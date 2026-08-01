@@ -159,3 +159,41 @@
 
   }
 }
+
+/* Onboarding / club HQ visual layer */
+:root {
+  --gradient-pitch: linear-gradient(135deg, var(--pitch), oklch(0.5 0.14 172));
+  --gradient-hq: radial-gradient(
+      120% 90% at 12% -10%,
+      color-mix(in oklab, var(--primary) 22%, transparent),
+      transparent 60%
+    ),
+    radial-gradient(
+      100% 80% at 100% 0%,
+      color-mix(in oklab, var(--accent) 14%, transparent),
+      transparent 55%
+    );
+  --shadow-glow: 0 18px 45px -22px color-mix(in oklab, var(--primary) 70%, transparent);
+}
+
+@utility hq-surface {
+  background-image: var(--gradient-hq);
+}
+
+@utility pitch-lines {
+  background-image: repeating-linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--chalk) 4%, transparent) 0 2px,
+    transparent 2px 84px
+  );
+}
+
+@utility glow-panel {
+  box-shadow: var(--shadow-glow);
+}
+
+@utility text-gradient-pitch {
+  background-image: var(--gradient-pitch);
+  background-clip: text;
+  color: transparent;
+}
