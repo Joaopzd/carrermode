@@ -31,6 +31,14 @@ function Dashboard() {
       const { data } = await supabase.auth.getUser();
       setEmail(data.user?.email ?? null);
       if (data.user) {
+        const { count } = await supabase
+          .from("saves")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", data.user.id);
+        if ((count ?? 0) === 0) {
+          navigate({ to: "/onboarding" });
+          return;
+        }
         const { data: perfil } = await supabase
           .from("profiles")
           .select("username")
@@ -39,7 +47,7 @@ function Dashboard() {
         setUsername(perfil?.username ?? null);
       }
     })();
-  }, []);
+  }, [navigate]);
 
   async function sair() {
     await supabase.auth.signOut();
