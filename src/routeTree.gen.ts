@@ -12,8 +12,16 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedBaseRouteImport } from './routes/_authenticated/base'
+import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
+import { Route as AuthenticatedClassificacaoRouteImport } from './routes/_authenticated/classificacao'
+import { Route as AuthenticatedComissaoRouteImport } from './routes/_authenticated/comissao'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedElencoRouteImport } from './routes/_authenticated/elenco'
+import { Route as AuthenticatedEstatisticasRouteImport } from './routes/_authenticated/estatisticas'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
+import { Route as AuthenticatedPartidasRouteImport } from './routes/_authenticated/partidas'
+import { Route as AuthenticatedTransferenciasRouteImport } from './routes/_authenticated/transferencias'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -29,49 +37,148 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedBaseRoute = AuthenticatedBaseRouteImport.update({
+  id: '/base',
+  path: '/base',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCalendarioRoute = AuthenticatedCalendarioRouteImport.update({
+  id: '/calendario',
+  path: '/calendario',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedClassificacaoRoute =
+  AuthenticatedClassificacaoRouteImport.update({
+    id: '/classificacao',
+    path: '/classificacao',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedComissaoRoute = AuthenticatedComissaoRouteImport.update({
+  id: '/comissao',
+  path: '/comissao',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedElencoRoute = AuthenticatedElencoRouteImport.update({
+  id: '/elenco',
+  path: '/elenco',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedEstatisticasRoute =
+  AuthenticatedEstatisticasRouteImport.update({
+    id: '/estatisticas',
+    path: '/estatisticas',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPartidasRoute = AuthenticatedPartidasRouteImport.update({
+  id: '/partidas',
+  path: '/partidas',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedTransferenciasRoute =
+  AuthenticatedTransferenciasRouteImport.update({
+    id: '/transferencias',
+    path: '/transferencias',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/base': typeof AuthenticatedBaseRoute
+  '/calendario': typeof AuthenticatedCalendarioRoute
+  '/classificacao': typeof AuthenticatedClassificacaoRoute
+  '/comissao': typeof AuthenticatedComissaoRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/elenco': typeof AuthenticatedElencoRoute
+  '/estatisticas': typeof AuthenticatedEstatisticasRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/partidas': typeof AuthenticatedPartidasRoute
+  '/transferencias': typeof AuthenticatedTransferenciasRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/base': typeof AuthenticatedBaseRoute
+  '/calendario': typeof AuthenticatedCalendarioRoute
+  '/classificacao': typeof AuthenticatedClassificacaoRoute
+  '/comissao': typeof AuthenticatedComissaoRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/elenco': typeof AuthenticatedElencoRoute
+  '/estatisticas': typeof AuthenticatedEstatisticasRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/partidas': typeof AuthenticatedPartidasRoute
+  '/transferencias': typeof AuthenticatedTransferenciasRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/base': typeof AuthenticatedBaseRoute
+  '/_authenticated/calendario': typeof AuthenticatedCalendarioRoute
+  '/_authenticated/classificacao': typeof AuthenticatedClassificacaoRoute
+  '/_authenticated/comissao': typeof AuthenticatedComissaoRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/elenco': typeof AuthenticatedElencoRoute
+  '/_authenticated/estatisticas': typeof AuthenticatedEstatisticasRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
+  '/_authenticated/partidas': typeof AuthenticatedPartidasRoute
+  '/_authenticated/transferencias': typeof AuthenticatedTransferenciasRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/dashboard' | '/onboarding'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/base'
+    | '/calendario'
+    | '/classificacao'
+    | '/comissao'
+    | '/dashboard'
+    | '/elenco'
+    | '/estatisticas'
+    | '/onboarding'
+    | '/partidas'
+    | '/transferencias'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/dashboard' | '/onboarding'
+  to:
+    | '/'
+    | '/auth'
+    | '/base'
+    | '/calendario'
+    | '/classificacao'
+    | '/comissao'
+    | '/dashboard'
+    | '/elenco'
+    | '/estatisticas'
+    | '/onboarding'
+    | '/partidas'
+    | '/transferencias'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/base'
+    | '/_authenticated/calendario'
+    | '/_authenticated/classificacao'
+    | '/_authenticated/comissao'
     | '/_authenticated/dashboard'
+    | '/_authenticated/elenco'
+    | '/_authenticated/estatisticas'
     | '/_authenticated/onboarding'
+    | '/_authenticated/partidas'
+    | '/_authenticated/transferencias'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -103,11 +210,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/base': {
+      id: '/_authenticated/base'
+      path: '/base'
+      fullPath: '/base'
+      preLoaderRoute: typeof AuthenticatedBaseRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/calendario': {
+      id: '/_authenticated/calendario'
+      path: '/calendario'
+      fullPath: '/calendario'
+      preLoaderRoute: typeof AuthenticatedCalendarioRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/classificacao': {
+      id: '/_authenticated/classificacao'
+      path: '/classificacao'
+      fullPath: '/classificacao'
+      preLoaderRoute: typeof AuthenticatedClassificacaoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/comissao': {
+      id: '/_authenticated/comissao'
+      path: '/comissao'
+      fullPath: '/comissao'
+      preLoaderRoute: typeof AuthenticatedComissaoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/elenco': {
+      id: '/_authenticated/elenco'
+      path: '/elenco'
+      fullPath: '/elenco'
+      preLoaderRoute: typeof AuthenticatedElencoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/estatisticas': {
+      id: '/_authenticated/estatisticas'
+      path: '/estatisticas'
+      fullPath: '/estatisticas'
+      preLoaderRoute: typeof AuthenticatedEstatisticasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/onboarding': {
@@ -117,17 +266,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/partidas': {
+      id: '/_authenticated/partidas'
+      path: '/partidas'
+      fullPath: '/partidas'
+      preLoaderRoute: typeof AuthenticatedPartidasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/transferencias': {
+      id: '/_authenticated/transferencias'
+      path: '/transferencias'
+      fullPath: '/transferencias'
+      preLoaderRoute: typeof AuthenticatedTransferenciasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedBaseRoute: typeof AuthenticatedBaseRoute
+  AuthenticatedCalendarioRoute: typeof AuthenticatedCalendarioRoute
+  AuthenticatedClassificacaoRoute: typeof AuthenticatedClassificacaoRoute
+  AuthenticatedComissaoRoute: typeof AuthenticatedComissaoRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedElencoRoute: typeof AuthenticatedElencoRoute
+  AuthenticatedEstatisticasRoute: typeof AuthenticatedEstatisticasRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+  AuthenticatedPartidasRoute: typeof AuthenticatedPartidasRoute
+  AuthenticatedTransferenciasRoute: typeof AuthenticatedTransferenciasRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedBaseRoute: AuthenticatedBaseRoute,
+  AuthenticatedCalendarioRoute: AuthenticatedCalendarioRoute,
+  AuthenticatedClassificacaoRoute: AuthenticatedClassificacaoRoute,
+  AuthenticatedComissaoRoute: AuthenticatedComissaoRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedElencoRoute: AuthenticatedElencoRoute,
+  AuthenticatedEstatisticasRoute: AuthenticatedEstatisticasRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
+  AuthenticatedPartidasRoute: AuthenticatedPartidasRoute,
+  AuthenticatedTransferenciasRoute: AuthenticatedTransferenciasRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
