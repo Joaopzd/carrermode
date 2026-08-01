@@ -1,24 +1,45 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "Carreira FC Manager | Companion do modo carreira" },
+      {
+        name: "description",
+        content:
+          "Companion app para gerenciar seu modo carreira: elenco, partidas, estatísticas, transferências, tabela e objetivos da diretoria.",
+      },
+      { property: "og:title", content: "Carreira FC Manager" },
+      {
+        property: "og:description",
+        content: "Gerencie seu modo carreira de futebol: elenco, partidas, transferências e mais.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <main className="flex min-h-screen flex-col items-center justify-center bg-background px-6 text-center">
+      <span className="mb-4 rounded-full border border-border px-3 py-1 text-xs tracking-widest text-muted-foreground uppercase">
+        Companion do modo carreira
+      </span>
+      <h1 className="max-w-2xl text-5xl leading-none text-foreground sm:text-7xl">
+        Carreira <span className="text-primary">FC</span> Manager
+      </h1>
+      <p className="mt-5 max-w-lg text-muted-foreground">
+        Registre elenco, partidas, estatísticas, transferências, classificação e os objetivos da
+        diretoria — tudo salvo na sua conta.
+      </p>
+      <Link
+        to="/auth"
+        className="mt-8 inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+      >
+        Começar
+      </Link>
+    </main>
   );
 }
