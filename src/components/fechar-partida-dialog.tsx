@@ -140,8 +140,24 @@ export function FecharPartidaDialog({
 
       const mapa: Record<string, StatJogador> = {};
       const ids: string[] = [];
-      for (const s of (existentes ?? []) as Record<string, unknown>[]) {
-        const pid = s.player_id as string | null;
+      type LinhaStat = {
+        player_id: string | null;
+        clean_sheet: boolean | null;
+        defesas: number | null;
+        gols: number | null;
+        xg: number | null;
+        chutes: number | null;
+        assistencias: number | null;
+        xa: number | null;
+        passes: number | null;
+        passes_pct: number | null;
+        desarmes: number | null;
+        cartao_amarelo: boolean | null;
+        cartao_vermelho: boolean | null;
+        nota: number | null;
+      };
+      for (const s of (existentes ?? []) as unknown as LinhaStat[]) {
+        const pid = s.player_id;
         if (!pid) continue;
         ids.push(pid);
         mapa[pid] = {
@@ -160,6 +176,7 @@ export function FecharPartidaDialog({
           nota: s.nota?.toString() ?? "",
         };
       }
+
       setSelecionados(ids);
       setStats(mapa);
     })();
