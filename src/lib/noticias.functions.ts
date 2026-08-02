@@ -82,7 +82,13 @@ async function chamarIA(sistema: string, dados: unknown): Promise<string> {
   return json.choices?.[0]?.message?.content ?? "";
 }
 
-type Entrada = { saveId: string; tipo: TipoEvento; dados: Record<string, unknown> };
+type Entrada = {
+  saveId: string;
+  tipo: TipoEvento;
+  dados: Record<string, unknown>;
+  relacionadoMatchId?: string;
+  relacionadoPlayerId?: string;
+};
 
 export const gerarNoticia = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -101,7 +107,14 @@ export const gerarNoticia = createServerFn({ method: "POST" })
 
     const { data: inserido, error } = await context.supabase
       .from("news_feed")
-      .insert({ save_id: data.saveId, tipo: tipoNews, titulo, corpo })
+      .insert({
+        save_id: data.saveId,
+        tipo: tipoNews,
+        titulo,
+        corpo,
+        relacionado_match_id: data.relacionadoMatchId ?? null,
+        relacionado_player_id: data.relacionadoPlayerId ?? null,
+      })
       .select("id, titulo, corpo, tipo")
       .single();
 
