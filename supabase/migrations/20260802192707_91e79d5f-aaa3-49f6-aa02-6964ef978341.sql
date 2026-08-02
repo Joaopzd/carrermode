@@ -1,0 +1,1 @@
+ALTER TABLE public.players ADD COLUMN IF NOT EXISTS favorito_torcida boolean NOT NULL DEFAULT false;

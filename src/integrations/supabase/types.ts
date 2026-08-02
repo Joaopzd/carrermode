@@ -414,6 +414,7 @@ export type Database = {
           categoria: string | null
           criado_em: string
           criado_via: string | null
+          favorito_torcida: boolean
           id: string
           idade: number | null
           nacionalidade: string | null
@@ -432,6 +433,7 @@ export type Database = {
           categoria?: string | null
           criado_em?: string
           criado_via?: string | null
+          favorito_torcida?: boolean
           id?: string
           idade?: number | null
           nacionalidade?: string | null
@@ -450,6 +452,7 @@ export type Database = {
           categoria?: string | null
           criado_em?: string
           criado_via?: string | null
+          favorito_torcida?: boolean
           id?: string
           idade?: number | null
           nacionalidade?: string | null
