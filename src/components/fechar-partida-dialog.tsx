@@ -17,6 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ICONE_COMPETICAO } from "@/lib/match-data";
+import { checarEventosPosPartida } from "@/lib/eventos";
 
 export type PartidaBase = {
   id: string;
@@ -265,6 +266,8 @@ export function FecharPartidaDialog({
         return;
       }
     }
+
+    void checarEventosPosPartida(saveId, partida.id);
 
     setSalvando(false);
     toast.success("Partida finalizada!");

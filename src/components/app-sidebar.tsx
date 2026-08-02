@@ -8,6 +8,7 @@ import {
   Repeat,
   Shirt,
   Sprout,
+  Target,
   Users,
 } from "lucide-react";
 import {
@@ -32,6 +33,7 @@ export const NAV_ITENS = [
   { title: "Categorias de Base", url: "/base", icon: Sprout },
   { title: "Elenco", url: "/elenco", icon: Shirt },
   { title: "Comissão Técnica", url: "/comissao", icon: Users },
+  { title: "Metas da Diretoria", url: "/metas", icon: Target },
 ] as const;
 
 export function AppSidebar() {
