@@ -94,7 +94,7 @@ const ICONE_NOTICIA: Record<string, typeof Newspaper> = {
 function moeda(v: number) {
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
-    currency: "EUR",
+    currency: "GBP",
     maximumFractionDigits: 0,
   }).format(v);
 }
