@@ -437,6 +437,16 @@ function ElencoPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <JogadorFormDialog
+        open={adicionando}
+        onOpenChange={setAdicionando}
+        titulo="Adicionar jogador ao elenco"
+        descricao="Cadastre um novo atleta no elenco principal."
+        salvando={criando}
+        textoConfirmar="Adicionar ao elenco"
+        onConfirmar={criarJogador}
+      />
     </AppShell>
   );
 }
