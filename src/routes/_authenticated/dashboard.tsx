@@ -431,9 +431,50 @@ function Dashboard() {
           )}
         </div>
       </div>
+
+      <Dialog open={editandoEscudo} onOpenChange={setEditandoEscudo}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Logo do clube</DialogTitle>
+            <DialogDescription>
+              Cole o endereço de uma imagem (PNG/SVG) para usar como escudo do seu clube.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3">
+            <div className="grid gap-1">
+              <Label>URL da imagem</Label>
+              <Input
+                value={urlEscudo}
+                onChange={(e) => setUrlEscudo(e.target.value)}
+                placeholder="https://exemplo.com/escudo.png"
+              />
+            </div>
+            {urlEscudo.trim() ? (
+              <div className="flex items-center gap-3 rounded-lg border border-border p-3">
+                <img
+                  src={urlEscudo.trim()}
+                  alt="Pré-visualização da logo"
+                  className="h-14 w-14 object-contain"
+                />
+                <span className="text-xs text-muted-foreground">Pré-visualização</span>
+              </div>
+            ) : null}
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditandoEscudo(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => void salvarEscudo()} disabled={salvandoEscudo}>
+              {salvandoEscudo ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
+              Salvar logo
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppShell>
   );
 }
+
 
 function ResumoCard({
   icone,
