@@ -124,6 +124,44 @@ function Dashboard() {
     }
   }
 
+  async function carregarArquivoEscudo(file: File) {
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("A imagem deve ter no máximo 2 MB.");
+      return;
+    }
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(new Error("erro"));
+      reader.readAsDataURL(file);
+    }).catch(() => null);
+    if (!dataUrl) {
+      toast.error("Não foi possível ler o arquivo.");
+      return;
+    }
+    if (file.type === "image/svg+xml") {
+      setUrlEscudo(dataUrl);
+      return;
+    }
+    const img = new Image();
+    img.onload = () => {
+      const max = 256;
+      const escala = Math.min(1, max / Math.max(img.width, img.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(img.width * escala);
+      canvas.height = Math.round(img.height * escala);
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        setUrlEscudo(dataUrl);
+        return;
+      }
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      setUrlEscudo(canvas.toDataURL("image/png"));
+    };
+    img.onerror = () => toast.error("Arquivo de imagem inválido.");
+    img.src = dataUrl;
+  }
+
   async function salvarEscudo() {
     if (!resumo) return;
     setSalvandoEscudo(true);
@@ -505,17 +543,23 @@ function Dashboard() {
           <DialogHeader>
             <DialogTitle>Logo do clube</DialogTitle>
             <DialogDescription>
-              Cole o endereço de uma imagem (PNG/SVG) para usar como escudo do seu clube.
+              Escolha uma imagem do seu computador para usar como escudo do clube.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-3">
             <div className="grid gap-1">
-              <Label>URL da imagem</Label>
+              <Label>Arquivo de imagem</Label>
               <Input
-                value={urlEscudo}
-                onChange={(e) => setUrlEscudo(e.target.value)}
-                placeholder="https://exemplo.com/escudo.png"
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) void carregarArquivoEscudo(file);
+                }}
               />
+              <p className="text-xs text-muted-foreground">
+                PNG, JPG, WEBP ou SVG (até 2 MB). A imagem é redimensionada automaticamente.
+              </p>
             </div>
             {urlEscudo.trim() ? (
               <div className="flex items-center gap-3 rounded-lg border border-border p-3">
@@ -525,9 +569,18 @@ function Dashboard() {
                   className="h-14 w-14 object-contain"
                 />
                 <span className="text-xs text-muted-foreground">Pré-visualização</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="ml-auto"
+                  onClick={() => setUrlEscudo("")}
+                >
+                  Remover
+                </Button>
               </div>
             ) : null}
           </div>
+
           <DialogFooter>
             <Button variant="ghost" onClick={() => setEditandoEscudo(false)}>
               Cancelar
