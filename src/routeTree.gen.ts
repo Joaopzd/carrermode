@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedArquivoRouteImport } from './routes/_authenticated/arquivo'
 import { Route as AuthenticatedBaseRouteImport } from './routes/_authenticated/base'
 import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
 import { Route as AuthenticatedClassificacaoRouteImport } from './routes/_authenticated/classificacao'
@@ -38,6 +39,11 @@ const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedArquivoRoute = AuthenticatedArquivoRouteImport.update({
+  id: '/arquivo',
+  path: '/arquivo',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedBaseRoute = AuthenticatedBaseRouteImport.update({
   id: '/base',
@@ -107,6 +113,7 @@ const AuthenticatedTransferenciasRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/arquivo': typeof AuthenticatedArquivoRoute
   '/base': typeof AuthenticatedBaseRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
   '/classificacao': typeof AuthenticatedClassificacaoRoute
@@ -123,6 +130,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/arquivo': typeof AuthenticatedArquivoRoute
   '/base': typeof AuthenticatedBaseRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
   '/classificacao': typeof AuthenticatedClassificacaoRoute
@@ -141,6 +149,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/arquivo': typeof AuthenticatedArquivoRoute
   '/_authenticated/base': typeof AuthenticatedBaseRoute
   '/_authenticated/calendario': typeof AuthenticatedCalendarioRoute
   '/_authenticated/classificacao': typeof AuthenticatedClassificacaoRoute
@@ -159,6 +168,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/arquivo'
     | '/base'
     | '/calendario'
     | '/classificacao'
@@ -175,6 +185,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/arquivo'
     | '/base'
     | '/calendario'
     | '/classificacao'
@@ -192,6 +203,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/arquivo'
     | '/_authenticated/base'
     | '/_authenticated/calendario'
     | '/_authenticated/classificacao'
@@ -234,6 +246,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/arquivo': {
+      id: '/_authenticated/arquivo'
+      path: '/arquivo'
+      fullPath: '/arquivo'
+      preLoaderRoute: typeof AuthenticatedArquivoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/base': {
       id: '/_authenticated/base'
@@ -323,6 +342,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedArquivoRoute: typeof AuthenticatedArquivoRoute
   AuthenticatedBaseRoute: typeof AuthenticatedBaseRoute
   AuthenticatedCalendarioRoute: typeof AuthenticatedCalendarioRoute
   AuthenticatedClassificacaoRoute: typeof AuthenticatedClassificacaoRoute
@@ -338,6 +358,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedArquivoRoute: AuthenticatedArquivoRoute,
   AuthenticatedBaseRoute: AuthenticatedBaseRoute,
   AuthenticatedCalendarioRoute: AuthenticatedCalendarioRoute,
   AuthenticatedClassificacaoRoute: AuthenticatedClassificacaoRoute,
