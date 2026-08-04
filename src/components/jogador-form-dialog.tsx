@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Bandeira } from "@/components/bandeira";
 import { PAISES, POSICOES, STATUS_JOGADOR } from "@/lib/onboarding-data";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +39,7 @@ export type JogadorForm = {
   playstyle: string;
   status: string;
   favorito_torcida: boolean;
+  capitao: boolean;
 };
 
 export const jogadorFormVazio: JogadorForm = {
@@ -54,6 +56,7 @@ export const jogadorFormVazio: JogadorForm = {
   playstyle: "",
   status: "Liberado",
   favorito_torcida: false,
+  capitao: false,
 };
 
 export function formParaPayload(f: JogadorForm) {
@@ -72,6 +75,7 @@ export function formParaPayload(f: JogadorForm) {
     playstyle: f.playstyle.trim() || null,
     status: f.status || null,
     favorito_torcida: f.favorito_torcida,
+    capitao: f.capitao,
   };
 }
 
@@ -157,7 +161,7 @@ export function JogadorFormDialog({
                   <SelectContent>
                     {PAISES.map((p) => (
                       <SelectItem key={p} value={p}>
-                        {p}
+                        <Bandeira pais={p} comNome />
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -292,6 +296,16 @@ export function JogadorFormDialog({
                 checked={form.favorito_torcida}
                 onCheckedChange={(v) => set({ favorito_torcida: v })}
               />
+            </div>
+
+            <div className="flex items-center justify-between rounded-lg border border-border p-3">
+              <div>
+                <p className="text-sm font-medium">Capitão do elenco</p>
+                <p className="text-xs text-muted-foreground">
+                  O líder do time. Apenas um jogador pode ser capitão.
+                </p>
+              </div>
+              <Switch checked={form.capitao} onCheckedChange={(v) => set({ capitao: v })} />
             </div>
           </TabsContent>
 
