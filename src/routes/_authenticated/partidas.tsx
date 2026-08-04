@@ -42,12 +42,10 @@ function PartidasPage() {
   const [selecionada, setSelecionada] = useState<PartidaBase | null>(null);
   const [aberto, setAberto] = useState(false);
 
-  const carregar = useCallback(async (saveId: string) => {
-    const { data } = await supabase
-      .from("matches")
-      .select("*")
-      .eq("save_id", saveId)
-      .order("data_hora", { ascending: false });
+  const carregar = useCallback(async (saveId: string, seasonId: string | null) => {
+    let q = supabase.from("matches").select("*").eq("save_id", saveId);
+    if (seasonId) q = q.eq("season_id", seasonId);
+    const { data } = await q.order("data_hora", { ascending: false });
     setPartidas((data ?? []) as PartidaBase[]);
     setCarregando(false);
   }, []);
@@ -57,7 +55,7 @@ function PartidasPage() {
       if (!carregandoSave) setCarregando(false);
       return;
     }
-    void carregar(save.id);
+    void carregar(save.id, save.seasonId);
   }, [save, carregandoSave, carregar]);
 
   const agendadas = partidas.filter((p) => p.status !== "finalizada");
@@ -199,7 +197,7 @@ function PartidasPage() {
           clubeNome={save.clubeNome}
           aberto={aberto}
           onOpenChange={setAberto}
-          onSalvo={() => void carregar(save.id)}
+          onSalvo={() => void carregar(save.id, save.seasonId)}
         />
       ) : null}
     </AppShell>
