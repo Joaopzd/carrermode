@@ -627,15 +627,14 @@ function Onboarding() {
                           onChange={(e) => atualizarJogador(j.key, { altura: e.target.value })}
                         />
                       </div>
-                      <div className="space-y-2">
-                        <Label>Playstyle</Label>
-                        <Input
-                          maxLength={60}
-                          placeholder="Ex.: Finalizador"
+                      <div className="space-y-2 lg:col-span-2">
+                        <Label>Playstyles (até 7)</Label>
+                        <PlaystyleSelect
                           value={j.playstyle}
-                          onChange={(e) => atualizarJogador(j.key, { playstyle: e.target.value })}
+                          onChange={(v) => atualizarJogador(j.key, { playstyle: v })}
                         />
                       </div>
+
                       <div className="space-y-2 lg:col-span-2">
                         <Label>Status</Label>
                         <Select

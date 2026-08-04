@@ -414,12 +414,13 @@ function ElencoPage() {
                 </div>
               </div>
               <div className="grid gap-1">
-                <Label>Playstyle</Label>
-                <Input
+                <Label>Playstyles (até 7)</Label>
+                <PlaystyleSelect
                   value={editando.playstyle ?? ""}
-                  onChange={(e) => campo({ playstyle: e.target.value })}
+                  onChange={(v) => campo({ playstyle: v })}
                 />
               </div>
+
               <div className="grid gap-1">
                 <Label>Status</Label>
                 <Select
