@@ -93,13 +93,15 @@ function ClassificacaoPage() {
   const [linhas, setLinhas] = useState<LinhaForm[]>([linhaVazia()]);
   const [salvando, setSalvando] = useState(false);
 
-  const carregar = useCallback(async (saveId: string) => {
-    const { data: mts } = await supabase
+  const carregar = useCallback(async (saveId: string, seasonId: string | null) => {
+    let qm = supabase
       .from("matches")
       .select("placar_time, placar_adversario")
       .eq("save_id", saveId)
       .eq("competicao", "Liga")
       .eq("status", "finalizada");
+    if (seasonId) qm = qm.eq("season_id", seasonId);
+    const { data: mts } = await qm;
     const acc = { jogos: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0 };
     for (const m of mts ?? []) {
       const a = m.placar_time ?? 0;
@@ -113,11 +115,9 @@ function ClassificacaoPage() {
     }
     setCampanha(acc);
 
-    const { data: snaps } = await supabase
-      .from("standings_snapshot")
-      .select("*")
-      .eq("save_id", saveId)
-      .order("rodada", { ascending: false });
+    let qs = supabase.from("standings_snapshot").select("*").eq("save_id", saveId);
+    if (seasonId) qs = qs.eq("season_id", seasonId);
+    const { data: snaps } = await qs.order("rodada", { ascending: false });
     setSnapshots((snaps ?? []) as Snapshot[]);
     setCarregando(false);
   }, []);
@@ -127,7 +127,7 @@ function ClassificacaoPage() {
       if (!carregandoSave) setCarregando(false);
       return;
     }
-    void carregar(save.id);
+    void carregar(save.id, save.seasonId);
   }, [save, carregandoSave, carregar]);
 
   const ultimaRodada = useMemo(() => {
@@ -190,11 +190,18 @@ function ClassificacaoPage() {
       return pb - pa || sb - sa || n(b.gols_pro) - n(a.gols_pro);
     });
 
-    await supabase.from("standings_snapshot").delete().eq("save_id", save.id).eq("rodada", rod);
+    let del = supabase
+      .from("standings_snapshot")
+      .delete()
+      .eq("save_id", save.id)
+      .eq("rodada", rod);
+    if (save.seasonId) del = del.eq("season_id", save.seasonId);
+    await del;
 
     const { error } = await supabase.from("standings_snapshot").insert(
       ordenadas.map((l, i) => ({
         save_id: save.id,
+        season_id: save.seasonId,
         rodada: rod,
         time: l.time.trim(),
         pontos: n(l.pontos),
@@ -215,7 +222,7 @@ function ClassificacaoPage() {
     }
     toast.success(`Rodada ${rod} sincronizada.`);
     setAberto(false);
-    void carregar(save.id);
+    void carregar(save.id, save.seasonId);
   }
 
   return (

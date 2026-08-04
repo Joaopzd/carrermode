@@ -70,6 +70,7 @@ function MetasPage() {
       .from("board_objectives")
       .select("id, tipo, meta, status")
       .eq("save_id", saveId);
+
     const mapa: Record<string, string> = {};
     for (const m of data ?? []) mapa[m.tipo] = m.meta ?? "";
     setValores(mapa);
@@ -101,6 +102,7 @@ function MetasPage() {
       } else {
         await supabase.from("board_objectives").insert({
           save_id: save.id,
+          season_id: save.seasonId,
           tipo: t.tipo,
           meta: valor,
           temporada: save.temporada,
