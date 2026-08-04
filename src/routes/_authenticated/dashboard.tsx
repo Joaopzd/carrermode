@@ -210,8 +210,10 @@ function Dashboard() {
       const liga = (save as { leagues: { nome: string } | null }).leagues;
 
       setResumo({
+        saveId,
         clubeNome: clube?.nome ?? null,
-        escudo: clube?.escudo_url ?? null,
+        escudo: ((save as { escudo_url: string | null }).escudo_url ?? clube?.escudo_url) ?? null,
+
         ligaNome: liga?.nome ?? null,
         temporada: save.temporada as string,
         manager: managerRes.data ?? null,
