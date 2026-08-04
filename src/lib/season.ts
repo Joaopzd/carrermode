@@ -64,16 +64,16 @@ export async function garantirSeasonAtiva(
 function proximoNomeTemporada(nome: string): string {
   // "2025/2026" -> "2026/2027"
   const barra = nome.match(/(\d{4})\s*\/\s*(\d{2,4})/);
-  if (barra) {
+  if (barra?.[1] && barra[2]) {
     const ini = Number(barra[1]) + 1;
     const fimTam = barra[2].length;
     const fim = ini + 1;
     return nome.replace(barra[0], `${ini}/${fimTam === 2 ? String(fim).slice(2) : fim}`);
   }
   const ano = nome.match(/(\d{4})/);
-  if (ano) return nome.replace(ano[0], String(Number(ano[0]) + 1));
+  if (ano?.[0]) return nome.replace(ano[0], String(Number(ano[0]) + 1));
   const n = nome.match(/(\d+)\s*$/);
-  if (n) return nome.replace(/(\d+)\s*$/, String(Number(n[1]) + 1));
+  if (n?.[1]) return nome.replace(/(\d+)\s*$/, String(Number(n[1]) + 1));
   return `${nome} (nova)`;
 }
 
@@ -144,7 +144,7 @@ export async function encerrarTemporada(saveId: string, seasonId: string) {
   const seasonAtual = seasonRes.data as unknown as Season | null;
 
   const resumo: ResumoSeason = {
-    posicao_final: linhasUltima.length > 0 ? (linhasUltima[0].posicao ?? null) : null,
+    posicao_final: linhasUltima[0]?.posicao ?? null,
     pontos: v * 3 + e,
     jogos: partidas.length,
     vitorias: v,
