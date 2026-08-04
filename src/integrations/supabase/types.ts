@@ -411,6 +411,7 @@ export type Database = {
       players: {
         Row: {
           altura: number | null
+          capitao: boolean
           categoria: string | null
           criado_em: string
           criado_via: string | null
@@ -431,6 +432,7 @@ export type Database = {
         }
         Insert: {
           altura?: number | null
+          capitao?: boolean
           categoria?: string | null
           criado_em?: string
           criado_via?: string | null
@@ -451,6 +453,7 @@ export type Database = {
         }
         Update: {
           altura?: number | null
+          capitao?: boolean
           categoria?: string | null
           criado_em?: string
           criado_via?: string | null
@@ -504,6 +507,7 @@ export type Database = {
         Row: {
           club_id: string | null
           criado_em: string
+          escudo_url: string | null
           id: string
           league_id: string | null
           temporada: string
@@ -512,6 +516,7 @@ export type Database = {
         Insert: {
           club_id?: string | null
           criado_em?: string
+          escudo_url?: string | null
           id?: string
           league_id?: string | null
           temporada: string
@@ -520,6 +525,7 @@ export type Database = {
         Update: {
           club_id?: string | null
           criado_em?: string
+          escudo_url?: string | null
           id?: string
           league_id?: string | null
           temporada?: string
