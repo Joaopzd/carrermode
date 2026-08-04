@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, ChevronsUpDown } from "lucide-react";
+import { Bandeira } from "@/components/bandeira";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { Card, CardContent } from "@/components/ui/card";
@@ -298,7 +299,7 @@ function EstatisticasPage() {
                     <SelectItem value={TODOS}>Todas</SelectItem>
                     {nacionalidades.map((n) => (
                       <SelectItem key={n} value={n}>
-                        {n}
+                        <Bandeira pais={n} comNome />
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -398,7 +399,12 @@ function EstatisticasPage() {
                         className="cursor-pointer"
                         onClick={() => setSelecionado(l)}
                       >
-                        <TableCell className="whitespace-nowrap font-medium">{l.nome}</TableCell>
+                        <TableCell className="whitespace-nowrap font-medium">
+                          <span className="inline-flex items-center gap-2">
+                            <Bandeira pais={l.nacionalidade} />
+                            {l.nome}
+                          </span>
+                        </TableCell>
                         <TableCell>
                           <Badge variant="secondary">{l.posicao_principal ?? "—"}</Badge>
                         </TableCell>
@@ -456,7 +462,10 @@ function EstatisticasPage() {
                     ["Overall", selecionado.overall ?? "—"],
                     ["Idade", selecionado.idade ?? "—"],
                     ["Altura", selecionado.altura ? `${selecionado.altura} cm` : "—"],
-                    ["Nacionalidade", selecionado.nacionalidade ?? "—"],
+                    [
+                      "Nacionalidade",
+                      <Bandeira key="nac" pais={selecionado.nacionalidade} comNome />,
+                    ],
                     [
                       "Valor",
                       selecionado.valor_mercado != null

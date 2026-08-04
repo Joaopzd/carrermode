@@ -62,7 +62,8 @@ function CalendarioPage() {
   const [partidas, setPartidas] = useState<Partida[]>([]);
   const [carregando, setCarregando] = useState(true);
   const hoje = new Date();
-  const [mes, setMes] = useState(() => new Date(hoje.getFullYear(), hoje.getMonth(), 1));
+  // A temporada começa em 01/07/2026 — o usuário avança os meses conforme o jogo evolui.
+  const [mes, setMes] = useState(() => new Date(2026, 6, 1));
   const [diaSelecionado, setDiaSelecionado] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [form, setForm] = useState({ hora: "16:00", competicao: "Liga", adversario: "" });

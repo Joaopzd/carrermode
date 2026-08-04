@@ -22,6 +22,7 @@ import {
   formParaPayload,
   type JogadorForm,
 } from "@/components/jogador-form-dialog";
+import { Bandeira } from "@/components/bandeira";
 import { supabase } from "@/integrations/supabase/client";
 import { useSaveAtual } from "@/lib/use-save";
 
@@ -162,9 +163,12 @@ function BasePage() {
                           <p className="font-display text-xl leading-tight tracking-wide">
                             {j.nome}
                           </p>
-                          <p className="text-xs text-muted-foreground">
-                            {j.posicao_principal ?? "—"} · {j.nacionalidade ?? "—"} ·{" "}
-                            {j.idade ?? "—"} anos
+                          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <span>{j.posicao_principal ?? "—"}</span>
+                            <span>·</span>
+                            <Bandeira pais={j.nacionalidade} />
+                            <span>{j.nacionalidade ?? "—"}</span>
+                            <span>· {j.idade ?? "—"} anos</span>
                           </p>
                         </div>
                         <span className="rounded-lg bg-primary/15 px-2 py-1 font-display text-lg text-primary">
