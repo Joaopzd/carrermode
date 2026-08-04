@@ -105,10 +105,20 @@ export const gerarNoticia = createServerFn({ method: "POST" })
     const titulo = (linhaTitulo?.[1] ?? "Notícia do clube").trim().slice(0, 120);
     const corpo = (linhaCorpo?.[1] ?? texto).trim();
 
+    const { data: seasonAtiva } = await context.supabase
+      .from("seasons")
+      .select("id")
+      .eq("save_id", data.saveId)
+      .eq("status", "ativa")
+      .order("criado_em", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
     const { data: inserido, error } = await context.supabase
       .from("news_feed")
       .insert({
         save_id: data.saveId,
+        season_id: seasonAtiva?.id ?? null,
         tipo: tipoNews,
         titulo,
         corpo,
