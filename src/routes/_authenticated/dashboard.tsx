@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { encerrarTemporada, garantirSeasonAtiva } from "@/lib/season";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -55,6 +56,8 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 type Resumo = {
   saveId: string;
+  seasonId: string | null;
+  seasonNome: string | null;
   clubeNome: string | null;
   escudo: string | null;
   ligaNome: string | null;
@@ -142,32 +145,43 @@ function Dashboard() {
 
       const saveId = save.id as string;
 
+      const season = await garantirSeasonAtiva(saveId, (save.temporada as string) || "Temporada 1");
+      const seasonId = season?.id ?? null;
+      const porSeason = <T,>(q: T): T => (seasonId ? (q as never as { eq: (a: string, b: string) => T }).eq("season_id", seasonId) : q);
+
       const [managerRes, playersRes, matchesRes, finalizadasRes, newsRes] = await Promise.all([
         supabase
           .from("managers")
           .select("nome, nome_usado, estilo_tatico")
           .eq("save_id", saveId)
           .maybeSingle(),
-        supabase.from("players").select("id, nome, overall, valor_mercado").eq("save_id", saveId),
         supabase
-          .from("matches")
-          .select("data_hora, adversario, competicao")
+          .from("players")
+          .select("id, nome, overall, valor_mercado")
           .eq("save_id", saveId)
-          .eq("status", "agendada")
+          .eq("ativo", true),
+        porSeason(
+          supabase
+            .from("matches")
+            .select("data_hora, adversario, competicao")
+            .eq("save_id", saveId)
+            .eq("status", "agendada"),
+        )
           .order("data_hora", { ascending: true })
           .limit(1)
           .maybeSingle(),
-        supabase
-          .from("matches")
-          .select("id, adversario, placar_time, placar_adversario")
-          .eq("save_id", saveId)
-          .eq("status", "finalizada")
+        porSeason(
+          supabase
+            .from("matches")
+            .select("id, adversario, placar_time, placar_adversario")
+            .eq("save_id", saveId)
+            .eq("status", "finalizada"),
+        )
           .order("data_hora", { ascending: false })
           .limit(5),
-        supabase
-          .from("news_feed")
-          .select("id, tipo, titulo, corpo")
-          .eq("save_id", saveId)
+        porSeason(
+          supabase.from("news_feed").select("id, tipo, titulo, corpo").eq("save_id", saveId),
+        )
           .order("gerado_em", { ascending: false })
           .limit(5),
       ]);
@@ -211,6 +225,8 @@ function Dashboard() {
 
       setResumo({
         saveId,
+        seasonId,
+        seasonNome: season?.nome ?? null,
         clubeNome: clube?.nome ?? null,
         escudo: ((save as { escudo_url: string | null }).escudo_url ?? clube?.escudo_url) ?? null,
 
