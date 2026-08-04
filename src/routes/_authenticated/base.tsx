@@ -206,7 +206,13 @@ function BasePage() {
                         </div>
                       </div>
 
-                      {j.playstyle ? <Badge variant="outline">{j.playstyle}</Badge> : null}
+                      <div className="flex flex-wrap gap-1">
+                        {parsePlaystyles(j.playstyle).map((p) => (
+                          <Badge key={p} variant="outline">
+                            {p}
+                          </Badge>
+                        ))}
+                      </div>
 
                       <div className="flex gap-2">
                         <Button size="sm" className="flex-1" onClick={() => void promover(j)}>

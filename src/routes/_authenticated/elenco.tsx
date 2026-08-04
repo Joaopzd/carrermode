@@ -297,7 +297,13 @@ function ElencoPage() {
                       >
                         {j.status ?? "Sem status"}
                       </Badge>
-                      {j.playstyle ? <Badge variant="outline">{j.playstyle}</Badge> : null}
+                      <div className="flex flex-wrap gap-1">
+                        {parsePlaystyles(j.playstyle).map((p) => (
+                          <Badge key={p} variant="outline">
+                            {p}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
                     <div className="grid grid-cols-2 gap-1 text-xs text-muted-foreground">
                       <span>Valor: {moeda(j.valor_mercado)}</span>
