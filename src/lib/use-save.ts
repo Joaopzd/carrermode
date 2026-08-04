@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { garantirSeasonAtiva } from "@/lib/season";
 
 export type SaveAtual = {
   id: string;
   temporada: string;
   clubeNome: string | null;
   escudo: string | null;
+  seasonId: string | null;
+  seasonNome: string | null;
 };
 
 export function useSaveAtual() {
@@ -23,7 +26,7 @@ export function useSaveAtual() {
       }
       const { data } = await supabase
         .from("saves")
-        .select("id, temporada, clubs(nome, escudo_url)")
+        .select("id, temporada, escudo_url, clubs(nome, escudo_url)")
         .eq("user_id", userId)
         .order("criado_em", { ascending: false })
         .limit(1)
@@ -32,11 +35,19 @@ export function useSaveAtual() {
       if (!ativo) return;
       if (data) {
         const clube = (data as { clubs: { nome: string; escudo_url: string | null } | null }).clubs;
+        const season = await garantirSeasonAtiva(
+          data.id as string,
+          (data.temporada as string) || "Temporada 1",
+        );
+        if (!ativo) return;
         setSave({
           id: data.id as string,
           temporada: data.temporada as string,
           clubeNome: clube?.nome ?? null,
-          escudo: clube?.escudo_url ?? null,
+          escudo:
+            ((data as { escudo_url: string | null }).escudo_url ?? clube?.escudo_url) ?? null,
+          seasonId: season?.id ?? null,
+          seasonNome: season?.nome ?? null,
         });
       }
       setCarregando(false);

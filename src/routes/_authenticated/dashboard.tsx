@@ -4,6 +4,7 @@ import {
   Award,
   Banknote,
   CalendarClock,
+  Flag,
   Gavel,
   HeartPulse,
   Megaphone,
@@ -17,6 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { encerrarTemporada, garantirSeasonAtiva } from "@/lib/season";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -55,6 +57,8 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 type Resumo = {
   saveId: string;
+  seasonId: string | null;
+  seasonNome: string | null;
   clubeNome: string | null;
   escudo: string | null;
   ligaNome: string | null;
@@ -102,6 +106,23 @@ function Dashboard() {
   const [editandoEscudo, setEditandoEscudo] = useState(false);
   const [urlEscudo, setUrlEscudo] = useState("");
   const [salvandoEscudo, setSalvandoEscudo] = useState(false);
+  const [confirmandoEncerrar, setConfirmandoEncerrar] = useState(false);
+  const [encerrando, setEncerrando] = useState(false);
+
+  async function confirmarEncerrarTemporada() {
+    if (!resumo?.seasonId) return;
+    setEncerrando(true);
+    try {
+      const { nova } = await encerrarTemporada(resumo.saveId, resumo.seasonId);
+      toast.success(`Temporada encerrada! Nova temporada: ${nova?.nome ?? "criada"}.`);
+      setConfirmandoEncerrar(false);
+      window.location.reload();
+    } catch {
+      toast.error("Não foi possível encerrar a temporada.");
+    } finally {
+      setEncerrando(false);
+    }
+  }
 
   async function salvarEscudo() {
     if (!resumo) return;
@@ -142,32 +163,43 @@ function Dashboard() {
 
       const saveId = save.id as string;
 
+      const season = await garantirSeasonAtiva(saveId, (save.temporada as string) || "Temporada 1");
+      const seasonId = season?.id ?? null;
+      const porSeason = <T,>(q: T): T => (seasonId ? (q as never as { eq: (a: string, b: string) => T }).eq("season_id", seasonId) : q);
+
       const [managerRes, playersRes, matchesRes, finalizadasRes, newsRes] = await Promise.all([
         supabase
           .from("managers")
           .select("nome, nome_usado, estilo_tatico")
           .eq("save_id", saveId)
           .maybeSingle(),
-        supabase.from("players").select("id, nome, overall, valor_mercado").eq("save_id", saveId),
         supabase
-          .from("matches")
-          .select("data_hora, adversario, competicao")
+          .from("players")
+          .select("id, nome, overall, valor_mercado")
           .eq("save_id", saveId)
-          .eq("status", "agendada")
+          .eq("ativo", true),
+        porSeason(
+          supabase
+            .from("matches")
+            .select("data_hora, adversario, competicao")
+            .eq("save_id", saveId)
+            .eq("status", "agendada"),
+        )
           .order("data_hora", { ascending: true })
           .limit(1)
           .maybeSingle(),
-        supabase
-          .from("matches")
-          .select("id, adversario, placar_time, placar_adversario")
-          .eq("save_id", saveId)
-          .eq("status", "finalizada")
+        porSeason(
+          supabase
+            .from("matches")
+            .select("id, adversario, placar_time, placar_adversario")
+            .eq("save_id", saveId)
+            .eq("status", "finalizada"),
+        )
           .order("data_hora", { ascending: false })
           .limit(5),
-        supabase
-          .from("news_feed")
-          .select("id, tipo, titulo, corpo")
-          .eq("save_id", saveId)
+        porSeason(
+          supabase.from("news_feed").select("id, tipo, titulo, corpo").eq("save_id", saveId),
+        )
           .order("gerado_em", { ascending: false })
           .limit(5),
       ]);
@@ -211,6 +243,8 @@ function Dashboard() {
 
       setResumo({
         saveId,
+        seasonId,
+        seasonNome: season?.nome ?? null,
         clubeNome: clube?.nome ?? null,
         escudo: ((save as { escudo_url: string | null }).escudo_url ?? clube?.escudo_url) ?? null,
 
@@ -282,13 +316,26 @@ function Dashboard() {
                     {resumo.ligaNome ?? "Liga"} · Temporada {resumo.temporada}
                   </p>
                 </div>
-                <div className="ml-auto text-right">
+                <div className="ml-auto flex flex-col items-end gap-2 text-right">
                   <p className="font-display text-xl tracking-wide">
                     {resumo.manager?.nome_usado ?? resumo.manager?.nome ?? "Treinador"}
                   </p>
                   <p className="text-xs uppercase tracking-[0.2em] text-primary">
                     {resumo.manager?.estilo_tatico ?? "Estilo a definir"}
                   </p>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">
+                      {resumo.seasonNome ?? "Temporada ativa"}
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={!resumo.seasonId}
+                      onClick={() => setConfirmandoEncerrar(true)}
+                    >
+                      <Flag className="mr-1 h-3.5 w-3.5" /> Encerrar temporada
+                    </Button>
+                  </div>
                 </div>
               </section>
 
@@ -431,6 +478,27 @@ function Dashboard() {
           )}
         </div>
       </div>
+
+      <Dialog open={confirmandoEncerrar} onOpenChange={setConfirmandoEncerrar}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Encerrar {resumo?.seasonNome ?? "temporada"}?</DialogTitle>
+            <DialogDescription>
+              Vamos calcular o resumo da temporada (posição final, artilheiro e saldo de
+              transferências), arquivá-la e abrir automaticamente uma nova temporada ativa.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setConfirmandoEncerrar(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => void confirmarEncerrarTemporada()} disabled={encerrando}>
+              {encerrando ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
+              Encerrar e iniciar nova
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={editandoEscudo} onOpenChange={setEditandoEscudo}>
         <DialogContent className="sm:max-w-md">

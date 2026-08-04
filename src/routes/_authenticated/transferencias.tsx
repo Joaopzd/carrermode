@@ -111,17 +111,16 @@ function TransferenciasPage() {
   const [transferPendente, setTransferPendente] = useState<string | null>(null);
   const [salvandoCadastro, setSalvandoCadastro] = useState(false);
 
-  async function carregar(saveId: string) {
+  async function carregar(saveId: string, seasonId: string | null) {
+    let qt = supabase.from("transfers").select("*").eq("save_id", saveId);
+    if (seasonId) qt = qt.eq("season_id", seasonId);
     const [{ data: t }, { data: p }] = await Promise.all([
-      supabase
-        .from("transfers")
-        .select("*")
-        .eq("save_id", saveId)
-        .order("data", { ascending: false }),
+      qt.order("data", { ascending: false }),
       supabase
         .from("players")
         .select("id, nome, overall, status")
         .eq("save_id", saveId)
+        .eq("ativo", true)
         .order("nome"),
     ]);
     setLista((t ?? []) as Transferencia[]);
@@ -134,7 +133,7 @@ function TransferenciasPage() {
       if (!carregandoSave) setCarregando(false);
       return;
     }
-    void carregar(save.id);
+    void carregar(save.id, save.seasonId);
   }, [save, carregandoSave]);
 
   const filtrada = useMemo(
@@ -202,6 +201,7 @@ function TransferenciasPage() {
       .from("transfers")
       .insert({
         save_id: save.id,
+        season_id: save.seasonId,
         tipo,
         modalidade,
         player_id: tipo === "saida" ? jogadorElencoId : null,
@@ -220,7 +220,18 @@ function TransferenciasPage() {
     }
 
     if (tipo === "saida") {
-      await supabase.from("players").update({ status: "Transferido" }).eq("id", jogadorElencoId);
+      await supabase
+        .from("players")
+        .update({
+          status: "Transferido",
+          ativo: false,
+          data_saida: new Date().toISOString().slice(0, 10),
+          motivo_saida:
+            modalidade === "emprestimo" ? "emprestimo" : "transferencia_definitiva",
+          clube_destino: clubeContraparte.trim() || null,
+          transfer_saida_id: data.id as string,
+        })
+        .eq("id", jogadorElencoId);
       void checarVendaPolemica(
         save.id,
         jogadorElencoId,
@@ -247,7 +258,7 @@ function TransferenciasPage() {
       setCadastroAberto(true);
     }
 
-    void carregar(save.id);
+    void carregar(save.id, save.seasonId);
   }
 
   async function salvarJogadorChegando(form: JogadorForm) {
@@ -277,7 +288,7 @@ function TransferenciasPage() {
     toast.success("Jogador integrado ao elenco principal!");
     setCadastroAberto(false);
     setTransferPendente(null);
-    void carregar(save.id);
+    void carregar(save.id, save.seasonId);
   }
 
   const precisaDadosExternos =

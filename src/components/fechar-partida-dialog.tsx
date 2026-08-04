@@ -129,6 +129,7 @@ export function FecharPartidaDialog({
           .from("players")
           .select("id, nome, posicao_principal, status")
           .eq("save_id", saveId)
+          .eq("ativo", true)
           .order("nome"),
         supabase.from("match_player_stats").select("*").eq("match_id", partida.id),
       ]);

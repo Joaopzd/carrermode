@@ -128,6 +128,7 @@ function ElencoPage() {
       .from("players")
       .select("*")
       .eq("save_id", saveId)
+      .eq("ativo", true)
       .order("nome");
     setJogadores(
       ((data ?? []) as Jogador[]).filter(

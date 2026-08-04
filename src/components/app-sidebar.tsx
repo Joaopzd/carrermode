@@ -1,5 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
+  Archive,
   CalendarDays,
   ClipboardList,
   GaugeCircle,
@@ -9,6 +10,7 @@ import {
   Shirt,
   Sprout,
   Target,
+  UserMinus,
   Users,
 } from "lucide-react";
 import {
@@ -34,6 +36,8 @@ export const NAV_ITENS = [
   { title: "Elenco", url: "/elenco", icon: Shirt },
   { title: "Comissão Técnica", url: "/comissao", icon: Users },
   { title: "Metas da Diretoria", url: "/metas", icon: Target },
+  { title: "Ex-Jogadores", url: "/ex-jogadores", icon: UserMinus },
+  { title: "Arquivo de Temporadas", url: "/arquivo", icon: Archive },
 ] as const;
 
 export function AppSidebar() {

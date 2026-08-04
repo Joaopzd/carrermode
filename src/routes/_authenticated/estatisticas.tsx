@@ -138,6 +138,7 @@ function EstatisticasPage() {
         .from("players")
         .select("*")
         .eq("save_id", save.id)
+        .eq("ativo", true)
         .or("categoria.eq.principal,categoria.is.null");
       const { data: mts } = await supabase
         .from("matches")

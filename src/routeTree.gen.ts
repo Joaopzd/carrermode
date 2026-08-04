@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedArquivoRouteImport } from './routes/_authenticated/arquivo'
 import { Route as AuthenticatedBaseRouteImport } from './routes/_authenticated/base'
 import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
 import { Route as AuthenticatedClassificacaoRouteImport } from './routes/_authenticated/classificacao'
@@ -19,6 +20,7 @@ import { Route as AuthenticatedComissaoRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedElencoRouteImport } from './routes/_authenticated/elenco'
 import { Route as AuthenticatedEstatisticasRouteImport } from './routes/_authenticated/estatisticas'
+import { Route as AuthenticatedExJogadoresRouteImport } from './routes/_authenticated/ex-jogadores'
 import { Route as AuthenticatedMetasRouteImport } from './routes/_authenticated/metas'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedPartidasRouteImport } from './routes/_authenticated/partidas'
@@ -37,6 +39,11 @@ const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedArquivoRoute = AuthenticatedArquivoRouteImport.update({
+  id: '/arquivo',
+  path: '/arquivo',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedBaseRoute = AuthenticatedBaseRouteImport.update({
   id: '/base',
@@ -75,6 +82,12 @@ const AuthenticatedEstatisticasRoute =
     path: '/estatisticas',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedExJogadoresRoute =
+  AuthenticatedExJogadoresRouteImport.update({
+    id: '/ex-jogadores',
+    path: '/ex-jogadores',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedMetasRoute = AuthenticatedMetasRouteImport.update({
   id: '/metas',
   path: '/metas',
@@ -100,6 +113,7 @@ const AuthenticatedTransferenciasRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/arquivo': typeof AuthenticatedArquivoRoute
   '/base': typeof AuthenticatedBaseRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
   '/classificacao': typeof AuthenticatedClassificacaoRoute
@@ -107,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/elenco': typeof AuthenticatedElencoRoute
   '/estatisticas': typeof AuthenticatedEstatisticasRoute
+  '/ex-jogadores': typeof AuthenticatedExJogadoresRoute
   '/metas': typeof AuthenticatedMetasRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/partidas': typeof AuthenticatedPartidasRoute
@@ -115,6 +130,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/arquivo': typeof AuthenticatedArquivoRoute
   '/base': typeof AuthenticatedBaseRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
   '/classificacao': typeof AuthenticatedClassificacaoRoute
@@ -122,6 +138,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/elenco': typeof AuthenticatedElencoRoute
   '/estatisticas': typeof AuthenticatedEstatisticasRoute
+  '/ex-jogadores': typeof AuthenticatedExJogadoresRoute
   '/metas': typeof AuthenticatedMetasRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/partidas': typeof AuthenticatedPartidasRoute
@@ -132,6 +149,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/arquivo': typeof AuthenticatedArquivoRoute
   '/_authenticated/base': typeof AuthenticatedBaseRoute
   '/_authenticated/calendario': typeof AuthenticatedCalendarioRoute
   '/_authenticated/classificacao': typeof AuthenticatedClassificacaoRoute
@@ -139,6 +157,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/elenco': typeof AuthenticatedElencoRoute
   '/_authenticated/estatisticas': typeof AuthenticatedEstatisticasRoute
+  '/_authenticated/ex-jogadores': typeof AuthenticatedExJogadoresRoute
   '/_authenticated/metas': typeof AuthenticatedMetasRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/partidas': typeof AuthenticatedPartidasRoute
@@ -149,6 +168,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/arquivo'
     | '/base'
     | '/calendario'
     | '/classificacao'
@@ -156,6 +176,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/elenco'
     | '/estatisticas'
+    | '/ex-jogadores'
     | '/metas'
     | '/onboarding'
     | '/partidas'
@@ -164,6 +185,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/arquivo'
     | '/base'
     | '/calendario'
     | '/classificacao'
@@ -171,6 +193,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/elenco'
     | '/estatisticas'
+    | '/ex-jogadores'
     | '/metas'
     | '/onboarding'
     | '/partidas'
@@ -180,6 +203,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/arquivo'
     | '/_authenticated/base'
     | '/_authenticated/calendario'
     | '/_authenticated/classificacao'
@@ -187,6 +211,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/elenco'
     | '/_authenticated/estatisticas'
+    | '/_authenticated/ex-jogadores'
     | '/_authenticated/metas'
     | '/_authenticated/onboarding'
     | '/_authenticated/partidas'
@@ -221,6 +246,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/arquivo': {
+      id: '/_authenticated/arquivo'
+      path: '/arquivo'
+      fullPath: '/arquivo'
+      preLoaderRoute: typeof AuthenticatedArquivoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/base': {
       id: '/_authenticated/base'
@@ -271,6 +303,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEstatisticasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/ex-jogadores': {
+      id: '/_authenticated/ex-jogadores'
+      path: '/ex-jogadores'
+      fullPath: '/ex-jogadores'
+      preLoaderRoute: typeof AuthenticatedExJogadoresRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/metas': {
       id: '/_authenticated/metas'
       path: '/metas'
@@ -303,6 +342,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedArquivoRoute: typeof AuthenticatedArquivoRoute
   AuthenticatedBaseRoute: typeof AuthenticatedBaseRoute
   AuthenticatedCalendarioRoute: typeof AuthenticatedCalendarioRoute
   AuthenticatedClassificacaoRoute: typeof AuthenticatedClassificacaoRoute
@@ -310,6 +350,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedElencoRoute: typeof AuthenticatedElencoRoute
   AuthenticatedEstatisticasRoute: typeof AuthenticatedEstatisticasRoute
+  AuthenticatedExJogadoresRoute: typeof AuthenticatedExJogadoresRoute
   AuthenticatedMetasRoute: typeof AuthenticatedMetasRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedPartidasRoute: typeof AuthenticatedPartidasRoute
@@ -317,6 +358,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedArquivoRoute: AuthenticatedArquivoRoute,
   AuthenticatedBaseRoute: AuthenticatedBaseRoute,
   AuthenticatedCalendarioRoute: AuthenticatedCalendarioRoute,
   AuthenticatedClassificacaoRoute: AuthenticatedClassificacaoRoute,
@@ -324,6 +366,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedElencoRoute: AuthenticatedElencoRoute,
   AuthenticatedEstatisticasRoute: AuthenticatedEstatisticasRoute,
+  AuthenticatedExJogadoresRoute: AuthenticatedExJogadoresRoute,
   AuthenticatedMetasRoute: AuthenticatedMetasRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedPartidasRoute: AuthenticatedPartidasRoute,
