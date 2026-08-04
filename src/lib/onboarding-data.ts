@@ -15,6 +15,8 @@ export const POSICOES = [
   "LE",
   "VOL",
   "MC",
+  "ME",
+  "MD",
   "MEI",
   "PD",
   "PE",
