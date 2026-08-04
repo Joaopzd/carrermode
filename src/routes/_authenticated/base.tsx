@@ -24,6 +24,7 @@ import {
 } from "@/components/jogador-form-dialog";
 import { Bandeira } from "@/components/bandeira";
 import { supabase } from "@/integrations/supabase/client";
+import { parsePlaystyles } from "@/lib/playstyles";
 import { useSaveAtual } from "@/lib/use-save";
 
 export const Route = createFileRoute("/_authenticated/base")({
