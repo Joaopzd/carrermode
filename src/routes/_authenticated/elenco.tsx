@@ -86,6 +86,27 @@ function ElencoPage() {
   const [status, setStatus] = useState("todos");
   const [editando, setEditando] = useState<Jogador | null>(null);
   const [salvando, setSalvando] = useState(false);
+  const [adicionando, setAdicionando] = useState(false);
+  const [criando, setCriando] = useState(false);
+
+  async function criarJogador(form: JogadorForm) {
+    if (!save) return;
+    setCriando(true);
+    const { error } = await supabase.from("players").insert({
+      save_id: save.id,
+      categoria: "principal",
+      criado_via: "manual",
+      ...formParaPayload(form),
+    });
+    setCriando(false);
+    if (error) {
+      toast.error("Não foi possível adicionar o jogador.");
+      return;
+    }
+    toast.success("Jogador adicionado ao elenco!");
+    setAdicionando(false);
+    void carregar(save.id);
+  }
 
   async function carregar(saveId: string) {
     const { data } = await supabase
