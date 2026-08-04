@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowUpCircle, Loader2, Sparkles, Trash2, UserPlus } from "lucide-react";
+import { ArrowUpCircle, Sparkles, Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
@@ -255,6 +255,3 @@ function BasePage() {
     </AppShell>
   );
 }
-
-// evita import não utilizado em builds estritos
-void Loader2;
