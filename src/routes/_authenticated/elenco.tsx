@@ -29,6 +29,8 @@ import {
   formParaPayload,
   type JogadorForm,
 } from "@/components/jogador-form-dialog";
+import { PlaystyleSelect } from "@/components/playstyle-select";
+import { parsePlaystyles } from "@/lib/playstyles";
 import { Bandeira } from "@/components/bandeira";
 import { supabase } from "@/integrations/supabase/client";
 import { PAISES, POSICOES, STATUS_JOGADOR } from "@/lib/onboarding-data";
@@ -296,7 +298,13 @@ function ElencoPage() {
                       >
                         {j.status ?? "Sem status"}
                       </Badge>
-                      {j.playstyle ? <Badge variant="outline">{j.playstyle}</Badge> : null}
+                      <div className="flex flex-wrap gap-1">
+                        {parsePlaystyles(j.playstyle).map((p) => (
+                          <Badge key={p} variant="outline">
+                            {p}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
                     <div className="grid grid-cols-2 gap-1 text-xs text-muted-foreground">
                       <span>Valor: {moeda(j.valor_mercado)}</span>
@@ -414,12 +422,13 @@ function ElencoPage() {
                 </div>
               </div>
               <div className="grid gap-1">
-                <Label>Playstyle</Label>
-                <Input
+                <Label>Playstyles (até 7)</Label>
+                <PlaystyleSelect
                   value={editando.playstyle ?? ""}
-                  onChange={(e) => campo({ playstyle: e.target.value })}
+                  onChange={(v) => campo({ playstyle: v })}
                 />
               </div>
+
               <div className="grid gap-1">
                 <Label>Status</Label>
                 <Select

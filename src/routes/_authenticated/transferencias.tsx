@@ -79,7 +79,7 @@ const ROTULO_MODALIDADE: Record<string, string> = {
 };
 
 const moeda = (v: number | null) =>
-  v === null ? "—" : `€ ${new Intl.NumberFormat("pt-BR").format(v)}`;
+  v === null ? "—" : `£ ${new Intl.NumberFormat("pt-BR").format(v)}`;
 
 function TransferenciasPage() {
   const { save, carregando: carregandoSave } = useSaveAtual();

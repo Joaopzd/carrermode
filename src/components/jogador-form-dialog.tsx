@@ -22,6 +22,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bandeira } from "@/components/bandeira";
+import { PlaystyleSelect } from "@/components/playstyle-select";
 import { PAISES, POSICOES, STATUS_JOGADOR } from "@/lib/onboarding-data";
 import { cn } from "@/lib/utils";
 
@@ -259,15 +260,15 @@ export function JogadorFormDialog({
               </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3">
               <div className="grid gap-1">
-                <Label>Playstyle</Label>
-                <Input
+                <Label>Playstyles (até 7)</Label>
+                <PlaystyleSelect
                   value={form.playstyle}
-                  onChange={(e) => set({ playstyle: e.target.value })}
-                  placeholder="Ex: Finalizador, Maestro..."
+                  onChange={(v) => set({ playstyle: v })}
                 />
               </div>
+
               <div className="grid gap-1">
                 <Label>Status</Label>
                 <Select value={form.status} onValueChange={(v) => set({ status: v })}>

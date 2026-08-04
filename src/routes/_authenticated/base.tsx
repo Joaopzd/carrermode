@@ -24,6 +24,7 @@ import {
 } from "@/components/jogador-form-dialog";
 import { Bandeira } from "@/components/bandeira";
 import { supabase } from "@/integrations/supabase/client";
+import { parsePlaystyles } from "@/lib/playstyles";
 import { useSaveAtual } from "@/lib/use-save";
 
 export const Route = createFileRoute("/_authenticated/base")({
@@ -206,7 +207,13 @@ function BasePage() {
                         </div>
                       </div>
 
-                      {j.playstyle ? <Badge variant="outline">{j.playstyle}</Badge> : null}
+                      <div className="flex flex-wrap gap-1">
+                        {parsePlaystyles(j.playstyle).map((p) => (
+                          <Badge key={p} variant="outline">
+                            {p}
+                          </Badge>
+                        ))}
+                      </div>
 
                       <div className="flex gap-2">
                         <Button size="sm" className="flex-1" onClick={() => void promover(j)}>

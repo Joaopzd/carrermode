@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PlaystyleSelect } from "@/components/playstyle-select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
@@ -627,15 +628,14 @@ function Onboarding() {
                           onChange={(e) => atualizarJogador(j.key, { altura: e.target.value })}
                         />
                       </div>
-                      <div className="space-y-2">
-                        <Label>Playstyle</Label>
-                        <Input
-                          maxLength={60}
-                          placeholder="Ex.: Finalizador"
+                      <div className="space-y-2 lg:col-span-2">
+                        <Label>Playstyles (até 7)</Label>
+                        <PlaystyleSelect
                           value={j.playstyle}
-                          onChange={(e) => atualizarJogador(j.key, { playstyle: e.target.value })}
+                          onChange={(v) => atualizarJogador(j.key, { playstyle: v })}
                         />
                       </div>
+
                       <div className="space-y-2 lg:col-span-2">
                         <Label>Status</Label>
                         <Select
