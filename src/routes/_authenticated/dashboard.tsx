@@ -4,6 +4,7 @@ import {
   Award,
   Banknote,
   CalendarClock,
+  Flag,
   Gavel,
   HeartPulse,
   Megaphone,
@@ -105,6 +106,23 @@ function Dashboard() {
   const [editandoEscudo, setEditandoEscudo] = useState(false);
   const [urlEscudo, setUrlEscudo] = useState("");
   const [salvandoEscudo, setSalvandoEscudo] = useState(false);
+  const [confirmandoEncerrar, setConfirmandoEncerrar] = useState(false);
+  const [encerrando, setEncerrando] = useState(false);
+
+  async function confirmarEncerrarTemporada() {
+    if (!resumo?.seasonId) return;
+    setEncerrando(true);
+    try {
+      const { nova } = await encerrarTemporada(resumo.saveId, resumo.seasonId);
+      toast.success(`Temporada encerrada! Nova temporada: ${nova?.nome ?? "criada"}.`);
+      setConfirmandoEncerrar(false);
+      window.location.reload();
+    } catch {
+      toast.error("Não foi possível encerrar a temporada.");
+    } finally {
+      setEncerrando(false);
+    }
+  }
 
   async function salvarEscudo() {
     if (!resumo) return;
@@ -298,13 +316,26 @@ function Dashboard() {
                     {resumo.ligaNome ?? "Liga"} · Temporada {resumo.temporada}
                   </p>
                 </div>
-                <div className="ml-auto text-right">
+                <div className="ml-auto flex flex-col items-end gap-2 text-right">
                   <p className="font-display text-xl tracking-wide">
                     {resumo.manager?.nome_usado ?? resumo.manager?.nome ?? "Treinador"}
                   </p>
                   <p className="text-xs uppercase tracking-[0.2em] text-primary">
                     {resumo.manager?.estilo_tatico ?? "Estilo a definir"}
                   </p>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">
+                      {resumo.seasonNome ?? "Temporada ativa"}
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={!resumo.seasonId}
+                      onClick={() => setConfirmandoEncerrar(true)}
+                    >
+                      <Flag className="mr-1 h-3.5 w-3.5" /> Encerrar temporada
+                    </Button>
+                  </div>
                 </div>
               </section>
 
@@ -447,6 +478,27 @@ function Dashboard() {
           )}
         </div>
       </div>
+
+      <Dialog open={confirmandoEncerrar} onOpenChange={setConfirmandoEncerrar}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Encerrar {resumo?.seasonNome ?? "temporada"}?</DialogTitle>
+            <DialogDescription>
+              Vamos calcular o resumo da temporada (posição final, artilheiro e saldo de
+              transferências), arquivá-la e abrir automaticamente uma nova temporada ativa.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setConfirmandoEncerrar(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => void confirmarEncerrarTemporada()} disabled={encerrando}>
+              {encerrando ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
+              Encerrar e iniciar nova
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={editandoEscudo} onOpenChange={setEditandoEscudo}>
         <DialogContent className="sm:max-w-md">
