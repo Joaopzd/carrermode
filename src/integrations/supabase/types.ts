@@ -20,6 +20,7 @@ export type Database = {
           id: string
           meta: string | null
           save_id: string
+          season_id: string | null
           status: string
           temporada: string | null
           tipo: string
@@ -29,6 +30,7 @@ export type Database = {
           id?: string
           meta?: string | null
           save_id: string
+          season_id?: string | null
           status?: string
           temporada?: string | null
           tipo: string
@@ -38,6 +40,7 @@ export type Database = {
           id?: string
           meta?: string | null
           save_id?: string
+          season_id?: string | null
           status?: string
           temporada?: string | null
           tipo?: string
@@ -48,6 +51,13 @@ export type Database = {
             columns: ["save_id"]
             isOneToOne: false
             referencedRelation: "saves"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "board_objectives_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
             referencedColumns: ["id"]
           },
         ]
@@ -289,6 +299,7 @@ export type Database = {
           placar_time: number | null
           posse: number | null
           save_id: string
+          season_id: string | null
           status: string
           tempo_recuperacao: number | null
           xg: number | null
@@ -309,6 +320,7 @@ export type Database = {
           placar_time?: number | null
           posse?: number | null
           save_id: string
+          season_id?: string | null
           status?: string
           tempo_recuperacao?: number | null
           xg?: number | null
@@ -329,6 +341,7 @@ export type Database = {
           placar_time?: number | null
           posse?: number | null
           save_id?: string
+          season_id?: string | null
           status?: string
           tempo_recuperacao?: number | null
           xg?: number | null
@@ -339,6 +352,13 @@ export type Database = {
             columns: ["save_id"]
             isOneToOne: false
             referencedRelation: "saves"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
             referencedColumns: ["id"]
           },
         ]
@@ -352,6 +372,7 @@ export type Database = {
           relacionado_player_id: string | null
           relacionado_transfer_id: string | null
           save_id: string
+          season_id: string | null
           tipo: string
           titulo: string
         }
@@ -363,6 +384,7 @@ export type Database = {
           relacionado_player_id?: string | null
           relacionado_transfer_id?: string | null
           save_id: string
+          season_id?: string | null
           tipo: string
           titulo: string
         }
@@ -374,6 +396,7 @@ export type Database = {
           relacionado_player_id?: string | null
           relacionado_transfer_id?: string | null
           save_id?: string
+          season_id?: string | null
           tipo?: string
           titulo?: string
         }
@@ -406,18 +429,29 @@ export type Database = {
             referencedRelation: "saves"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "news_feed_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
         ]
       }
       players: {
         Row: {
           altura: number | null
+          ativo: boolean
           capitao: boolean
           categoria: string | null
+          clube_destino: string | null
           criado_em: string
           criado_via: string | null
+          data_saida: string | null
           favorito_torcida: boolean
           id: string
           idade: number | null
+          motivo_saida: Database["public"]["Enums"]["motivo_saida"] | null
           nacionalidade: string | null
           nome: string
           overall: number | null
@@ -428,17 +462,22 @@ export type Database = {
           salario: number | null
           save_id: string
           status: string | null
+          transfer_saida_id: string | null
           valor_mercado: number | null
         }
         Insert: {
           altura?: number | null
+          ativo?: boolean
           capitao?: boolean
           categoria?: string | null
+          clube_destino?: string | null
           criado_em?: string
           criado_via?: string | null
+          data_saida?: string | null
           favorito_torcida?: boolean
           id?: string
           idade?: number | null
+          motivo_saida?: Database["public"]["Enums"]["motivo_saida"] | null
           nacionalidade?: string | null
           nome: string
           overall?: number | null
@@ -449,17 +488,22 @@ export type Database = {
           salario?: number | null
           save_id: string
           status?: string | null
+          transfer_saida_id?: string | null
           valor_mercado?: number | null
         }
         Update: {
           altura?: number | null
+          ativo?: boolean
           capitao?: boolean
           categoria?: string | null
+          clube_destino?: string | null
           criado_em?: string
           criado_via?: string | null
+          data_saida?: string | null
           favorito_torcida?: boolean
           id?: string
           idade?: number | null
+          motivo_saida?: Database["public"]["Enums"]["motivo_saida"] | null
           nacionalidade?: string | null
           nome?: string
           overall?: number | null
@@ -470,6 +514,7 @@ export type Database = {
           salario?: number | null
           save_id?: string
           status?: string | null
+          transfer_saida_id?: string | null
           valor_mercado?: number | null
         }
         Relationships: [
@@ -478,6 +523,13 @@ export type Database = {
             columns: ["save_id"]
             isOneToOne: false
             referencedRelation: "saves"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "players_transfer_saida_id_fkey"
+            columns: ["transfer_saida_id"]
+            isOneToOne: false
+            referencedRelation: "transfers"
             referencedColumns: ["id"]
           },
         ]
@@ -548,6 +600,47 @@ export type Database = {
           },
         ]
       }
+      seasons: {
+        Row: {
+          criado_em: string
+          data_fim: string | null
+          data_inicio: string | null
+          id: string
+          nome: string
+          resumo: Json | null
+          save_id: string
+          status: string
+        }
+        Insert: {
+          criado_em?: string
+          data_fim?: string | null
+          data_inicio?: string | null
+          id?: string
+          nome: string
+          resumo?: Json | null
+          save_id: string
+          status?: string
+        }
+        Update: {
+          criado_em?: string
+          data_fim?: string | null
+          data_inicio?: string | null
+          id?: string
+          nome?: string
+          resumo?: Json | null
+          save_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seasons_save_id_fkey"
+            columns: ["save_id"]
+            isOneToOne: false
+            referencedRelation: "saves"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       staff: {
         Row: {
           cargo: string
@@ -597,6 +690,7 @@ export type Database = {
           rodada: number | null
           saldo: number
           save_id: string
+          season_id: string | null
           time: string
           vitorias: number
         }
@@ -613,6 +707,7 @@ export type Database = {
           rodada?: number | null
           saldo?: number
           save_id: string
+          season_id?: string | null
           time: string
           vitorias?: number
         }
@@ -629,6 +724,7 @@ export type Database = {
           rodada?: number | null
           saldo?: number
           save_id?: string
+          season_id?: string | null
           time?: string
           vitorias?: number
         }
@@ -638,6 +734,13 @@ export type Database = {
             columns: ["save_id"]
             isOneToOne: false
             referencedRelation: "saves"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "standings_snapshot_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
             referencedColumns: ["id"]
           },
         ]
@@ -652,6 +755,7 @@ export type Database = {
           modalidade: string | null
           player_id: string | null
           save_id: string
+          season_id: string | null
           tipo: string
           valor: number | null
         }
@@ -664,6 +768,7 @@ export type Database = {
           modalidade?: string | null
           player_id?: string | null
           save_id: string
+          season_id?: string | null
           tipo: string
           valor?: number | null
         }
@@ -676,6 +781,7 @@ export type Database = {
           modalidade?: string | null
           player_id?: string | null
           save_id?: string
+          season_id?: string | null
           tipo?: string
           valor?: number | null
         }
@@ -701,6 +807,13 @@ export type Database = {
             referencedRelation: "saves"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "transfers_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
@@ -712,7 +825,11 @@ export type Database = {
       owns_save: { Args: { _save_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      motivo_saida:
+        | "transferencia_definitiva"
+        | "emprestimo"
+        | "liberado"
+        | "fim_de_contrato"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -839,6 +956,13 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      motivo_saida: [
+        "transferencia_definitiva",
+        "emprestimo",
+        "liberado",
+        "fim_de_contrato",
+      ],
+    },
   },
 } as const
