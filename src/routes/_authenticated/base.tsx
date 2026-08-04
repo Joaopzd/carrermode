@@ -67,6 +67,7 @@ function BasePage() {
         "id, nome, nacionalidade, posicao_principal, overall, potencial, idade, status, playstyle",
       )
       .eq("save_id", saveId)
+      .eq("ativo", true)
       .eq("categoria", "base")
       .order("nome");
     setJogadores((data ?? []) as Cria[]);
