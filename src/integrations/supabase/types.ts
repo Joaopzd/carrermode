@@ -423,6 +423,7 @@ export type Database = {
           playstyle: string | null
           posicao_principal: string | null
           posicoes_secundarias: Json
+          potencial: number | null
           salario: number | null
           save_id: string
           status: string | null
@@ -442,6 +443,7 @@ export type Database = {
           playstyle?: string | null
           posicao_principal?: string | null
           posicoes_secundarias?: Json
+          potencial?: number | null
           salario?: number | null
           save_id: string
           status?: string | null
@@ -461,6 +463,7 @@ export type Database = {
           playstyle?: string | null
           posicao_principal?: string | null
           posicoes_secundarias?: Json
+          potencial?: number | null
           salario?: number | null
           save_id?: string
           status?: string | null
