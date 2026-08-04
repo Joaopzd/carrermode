@@ -9,13 +9,27 @@ import {
   Megaphone,
   Newspaper,
   Repeat,
+  ImagePlus,
+  Loader2,
   Sprout,
   Star,
   Trophy,
 } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -40,6 +54,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 type Resumo = {
+  saveId: string;
   clubeNome: string | null;
   escudo: string | null;
   ligaNome: string | null;
@@ -84,6 +99,27 @@ function Dashboard() {
   const navigate = useNavigate();
   const [carregando, setCarregando] = useState(true);
   const [resumo, setResumo] = useState<Resumo | null>(null);
+  const [editandoEscudo, setEditandoEscudo] = useState(false);
+  const [urlEscudo, setUrlEscudo] = useState("");
+  const [salvandoEscudo, setSalvandoEscudo] = useState(false);
+
+  async function salvarEscudo() {
+    if (!resumo) return;
+    setSalvandoEscudo(true);
+    const valor = urlEscudo.trim() || null;
+    const { error } = await supabase
+      .from("saves")
+      .update({ escudo_url: valor })
+      .eq("id", resumo.saveId);
+    setSalvandoEscudo(false);
+    if (error) {
+      toast.error("Não foi possível salvar a logo do clube.");
+      return;
+    }
+    setResumo((r) => (r ? { ...r, escudo: valor } : r));
+    setEditandoEscudo(false);
+    toast.success("Logo do clube atualizada!");
+  }
 
   useEffect(() => {
     void (async () => {
@@ -93,7 +129,7 @@ function Dashboard() {
 
       const { data: save } = await supabase
         .from("saves")
-        .select("id, temporada, clubs(nome, escudo_url), leagues(nome)")
+        .select("id, temporada, escudo_url, clubs(nome, escudo_url), leagues(nome)")
         .eq("user_id", userId)
         .order("criado_em", { ascending: false })
         .limit(1)
