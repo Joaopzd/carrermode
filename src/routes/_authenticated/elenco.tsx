@@ -29,6 +29,7 @@ import {
   formParaPayload,
   type JogadorForm,
 } from "@/components/jogador-form-dialog";
+import { PlaystyleSelect } from "@/components/playstyle-select";
 import { Bandeira } from "@/components/bandeira";
 import { supabase } from "@/integrations/supabase/client";
 import { PAISES, POSICOES, STATUS_JOGADOR } from "@/lib/onboarding-data";
