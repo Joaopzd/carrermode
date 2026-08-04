@@ -248,18 +248,33 @@ function Dashboard() {
           ) : (
             <>
               <section className="glow-panel flex flex-wrap items-center gap-4 rounded-xl border border-border bg-card p-5">
-                {resumo.escudo ? (
-                  <img
-                    src={resumo.escudo}
-                    alt={`Escudo do ${resumo.clubeNome ?? "clube"}`}
-                    className="h-16 w-16 object-contain"
-                  />
-                ) : (
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted font-display text-2xl">
-                    {(resumo.clubeNome ?? "FC").slice(0, 2).toUpperCase()}
-                  </div>
-                )}
+                <div className="group relative">
+                  {resumo.escudo ? (
+                    <img
+                      src={resumo.escudo}
+                      alt={`Escudo do ${resumo.clubeNome ?? "clube"}`}
+                      className="h-16 w-16 object-contain"
+                    />
+                  ) : (
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted font-display text-2xl">
+                      {(resumo.clubeNome ?? "FC").slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    aria-label="Alterar logo do clube"
+                    className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full shadow"
+                    onClick={() => {
+                      setUrlEscudo(resumo.escudo ?? "");
+                      setEditandoEscudo(true);
+                    }}
+                  >
+                    <ImagePlus className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
                 <div className="min-w-0">
+
                   <h1 className="text-gradient-pitch text-3xl sm:text-4xl">
                     {resumo.clubeNome ?? "Clube a definir"}
                   </h1>
