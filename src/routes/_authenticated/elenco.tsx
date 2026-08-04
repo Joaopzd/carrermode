@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Heart, Loader2, Pencil, Search, UserPlus } from "lucide-react";
+import { Heart, Loader2, Pencil, Search, Shield, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +29,7 @@ import {
   formParaPayload,
   type JogadorForm,
 } from "@/components/jogador-form-dialog";
+import { Bandeira } from "@/components/bandeira";
 import { supabase } from "@/integrations/supabase/client";
 import { PAISES, POSICOES, STATUS_JOGADOR } from "@/lib/onboarding-data";
 import { useSaveAtual } from "@/lib/use-save";
@@ -64,6 +65,7 @@ type Jogador = {
   playstyle: string | null;
   status: string | null;
   favorito_torcida: boolean;
+  capitao: boolean;
 };
 
 const CORES_STATUS: Record<string, string> = {
@@ -89,15 +91,28 @@ function ElencoPage() {
   const [adicionando, setAdicionando] = useState(false);
   const [criando, setCriando] = useState(false);
 
+  async function definirCapitaoUnico(saveId: string, jogadorId: string) {
+    await supabase
+      .from("players")
+      .update({ capitao: false })
+      .eq("save_id", saveId)
+      .neq("id", jogadorId);
+  }
+
   async function criarJogador(form: JogadorForm) {
     if (!save) return;
     setCriando(true);
-    const { error } = await supabase.from("players").insert({
-      save_id: save.id,
-      categoria: "principal",
-      criado_via: "manual",
-      ...formParaPayload(form),
-    });
+    const { data: novo, error } = await supabase
+      .from("players")
+      .insert({
+        save_id: save.id,
+        categoria: "principal",
+        criado_via: "manual",
+        ...formParaPayload(form),
+      })
+      .select("id")
+      .single();
+    if (!error && form.capitao && novo) await definirCapitaoUnico(save.id, novo.id);
     setCriando(false);
     if (error) {
       toast.error("Não foi possível adicionar o jogador.");
@@ -158,8 +173,10 @@ function ElencoPage() {
         playstyle: editando.playstyle,
         status: editando.status,
         favorito_torcida: editando.favorito_torcida,
+        capitao: editando.capitao,
       })
       .eq("id", editando.id);
+    if (!error && editando.capitao && save) await definirCapitaoUnico(save.id, editando.id);
     setSalvando(false);
     if (error) {
       toast.error("Não foi possível salvar o jogador.");
@@ -253,10 +270,18 @@ function ElencoPage() {
                           {j.favorito_torcida && (
                             <Heart className="ml-1 inline h-4 w-4 fill-primary text-primary" />
                           )}
+                          {j.capitao && (
+                            <span className="ml-1.5 inline-flex items-center rounded bg-primary/15 px-1.5 py-0.5 align-middle text-[10px] font-semibold tracking-widest text-primary">
+                              C
+                            </span>
+                          )}
                         </p>
-                        <p className="text-xs text-muted-foreground">
-                          {j.posicao_principal ?? "—"} · {j.nacionalidade ?? "—"} ·{" "}
-                          {j.idade ?? "—"} anos
+                        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <span>{j.posicao_principal ?? "—"}</span>
+                          <span>·</span>
+                          <Bandeira pais={j.nacionalidade} />
+                          <span>{j.nacionalidade ?? "—"}</span>
+                          <span>· {j.idade ?? "—"} anos</span>
                         </p>
                       </div>
                       <span className="rounded-lg bg-primary/15 px-2 py-1 font-display text-lg text-primary">
@@ -316,7 +341,7 @@ function ElencoPage() {
                     <SelectContent>
                       {PAISES.map((p) => (
                         <SelectItem key={p} value={p}>
-                          {p}
+                          <Bandeira pais={p} comNome />
                         </SelectItem>
                       ))}
                     </SelectContent>
