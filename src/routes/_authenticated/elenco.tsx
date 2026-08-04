@@ -449,6 +449,19 @@ function ElencoPage() {
                   onCheckedChange={(v) => campo({ favorito_torcida: v })}
                 />
               </div>
+              <div className="flex items-center justify-between rounded-lg border border-border p-3">
+                <div>
+                  <p className="text-sm font-medium">Capitão do elenco</p>
+                  <p className="text-xs text-muted-foreground">
+                    Apenas um jogador pode usar a braçadeira.
+                  </p>
+                </div>
+                <Switch
+                  checked={editando.capitao}
+                  onCheckedChange={(v) => campo({ capitao: v })}
+                />
+              </div>
+
             </div>
           ) : null}
           <DialogFooter>
