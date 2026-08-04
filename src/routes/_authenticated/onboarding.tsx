@@ -201,6 +201,19 @@ function Onboarding() {
 
       const saveId = save.id as string;
 
+      const { data: season, error: seasonErr } = await supabase
+        .from("seasons")
+        .insert({
+          save_id: saveId,
+          nome: `Temporada ${temporada}`,
+          status: "ativa",
+          data_inicio: new Date().toISOString().slice(0, 10),
+        })
+        .select("id")
+        .single();
+      if (seasonErr) throw seasonErr;
+      void season;
+
       const { error: mgrErr } = await supabase.from("managers").insert({
         save_id: saveId,
         nome: manager.nome.trim(),
