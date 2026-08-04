@@ -24,6 +24,11 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  JogadorFormDialog,
+  formParaPayload,
+  type JogadorForm,
+} from "@/components/jogador-form-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { PAISES, POSICOES, STATUS_JOGADOR } from "@/lib/onboarding-data";
 import { useSaveAtual } from "@/lib/use-save";
