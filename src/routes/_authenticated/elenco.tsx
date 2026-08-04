@@ -24,6 +24,11 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  JogadorFormDialog,
+  formParaPayload,
+  type JogadorForm,
+} from "@/components/jogador-form-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { PAISES, POSICOES, STATUS_JOGADOR } from "@/lib/onboarding-data";
 import { useSaveAtual } from "@/lib/use-save";
@@ -81,6 +86,27 @@ function ElencoPage() {
   const [status, setStatus] = useState("todos");
   const [editando, setEditando] = useState<Jogador | null>(null);
   const [salvando, setSalvando] = useState(false);
+  const [adicionando, setAdicionando] = useState(false);
+  const [criando, setCriando] = useState(false);
+
+  async function criarJogador(form: JogadorForm) {
+    if (!save) return;
+    setCriando(true);
+    const { error } = await supabase.from("players").insert({
+      save_id: save.id,
+      categoria: "principal",
+      criado_via: "manual",
+      ...formParaPayload(form),
+    });
+    setCriando(false);
+    if (error) {
+      toast.error("Não foi possível adicionar o jogador.");
+      return;
+    }
+    toast.success("Jogador adicionado ao elenco!");
+    setAdicionando(false);
+    void carregar(save.id);
+  }
 
   async function carregar(saveId: string) {
     const { data } = await supabase
@@ -154,11 +180,16 @@ function ElencoPage() {
     <AppShell titulo="Elenco">
       <div className="pitch-lines min-h-full px-4 py-8 sm:px-8">
         <div className="mx-auto max-w-6xl space-y-6">
-          <header>
-            <h1 className="text-gradient-pitch text-4xl">Elenco</h1>
-            <p className="text-sm text-muted-foreground">
-              {filtrados.length} jogador(es) no elenco principal.
-            </p>
+          <header className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h1 className="text-gradient-pitch text-4xl">Elenco</h1>
+              <p className="text-sm text-muted-foreground">
+                {filtrados.length} jogador(es) no elenco principal.
+              </p>
+            </div>
+            <Button onClick={() => setAdicionando(true)} disabled={!save}>
+              <UserPlus className="mr-1 h-4 w-4" /> Adicionar jogador
+            </Button>
           </header>
 
           <div className="flex flex-wrap gap-3">
@@ -406,6 +437,16 @@ function ElencoPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <JogadorFormDialog
+        open={adicionando}
+        onOpenChange={setAdicionando}
+        titulo="Adicionar jogador ao elenco"
+        descricao="Cadastre um novo atleta no elenco principal."
+        salvando={criando}
+        textoConfirmar="Adicionar ao elenco"
+        onConfirmar={criarJogador}
+      />
     </AppShell>
   );
 }
