@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Heart, Loader2, Pencil, Search, Shield, UserPlus } from "lucide-react";
+import { Heart, Loader2, Pencil, Search, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
