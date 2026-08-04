@@ -180,11 +180,16 @@ function ElencoPage() {
     <AppShell titulo="Elenco">
       <div className="pitch-lines min-h-full px-4 py-8 sm:px-8">
         <div className="mx-auto max-w-6xl space-y-6">
-          <header>
-            <h1 className="text-gradient-pitch text-4xl">Elenco</h1>
-            <p className="text-sm text-muted-foreground">
-              {filtrados.length} jogador(es) no elenco principal.
-            </p>
+          <header className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h1 className="text-gradient-pitch text-4xl">Elenco</h1>
+              <p className="text-sm text-muted-foreground">
+                {filtrados.length} jogador(es) no elenco principal.
+              </p>
+            </div>
+            <Button onClick={() => setAdicionando(true)} disabled={!save}>
+              <UserPlus className="mr-1 h-4 w-4" /> Adicionar jogador
+            </Button>
           </header>
 
           <div className="flex flex-wrap gap-3">
