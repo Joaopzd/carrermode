@@ -9,13 +9,27 @@ import {
   Megaphone,
   Newspaper,
   Repeat,
+  ImagePlus,
+  Loader2,
   Sprout,
   Star,
   Trophy,
 } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -40,6 +54,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 type Resumo = {
+  saveId: string;
   clubeNome: string | null;
   escudo: string | null;
   ligaNome: string | null;
@@ -84,6 +99,27 @@ function Dashboard() {
   const navigate = useNavigate();
   const [carregando, setCarregando] = useState(true);
   const [resumo, setResumo] = useState<Resumo | null>(null);
+  const [editandoEscudo, setEditandoEscudo] = useState(false);
+  const [urlEscudo, setUrlEscudo] = useState("");
+  const [salvandoEscudo, setSalvandoEscudo] = useState(false);
+
+  async function salvarEscudo() {
+    if (!resumo) return;
+    setSalvandoEscudo(true);
+    const valor = urlEscudo.trim() || null;
+    const { error } = await supabase
+      .from("saves")
+      .update({ escudo_url: valor })
+      .eq("id", resumo.saveId);
+    setSalvandoEscudo(false);
+    if (error) {
+      toast.error("Não foi possível salvar a logo do clube.");
+      return;
+    }
+    setResumo((r) => (r ? { ...r, escudo: valor } : r));
+    setEditandoEscudo(false);
+    toast.success("Logo do clube atualizada!");
+  }
 
   useEffect(() => {
     void (async () => {
@@ -93,7 +129,7 @@ function Dashboard() {
 
       const { data: save } = await supabase
         .from("saves")
-        .select("id, temporada, clubs(nome, escudo_url), leagues(nome)")
+        .select("id, temporada, escudo_url, clubs(nome, escudo_url), leagues(nome)")
         .eq("user_id", userId)
         .order("criado_em", { ascending: false })
         .limit(1)
@@ -174,8 +210,10 @@ function Dashboard() {
       const liga = (save as { leagues: { nome: string } | null }).leagues;
 
       setResumo({
+        saveId,
         clubeNome: clube?.nome ?? null,
-        escudo: clube?.escudo_url ?? null,
+        escudo: ((save as { escudo_url: string | null }).escudo_url ?? clube?.escudo_url) ?? null,
+
         ligaNome: liga?.nome ?? null,
         temporada: save.temporada as string,
         manager: managerRes.data ?? null,
@@ -210,18 +248,33 @@ function Dashboard() {
           ) : (
             <>
               <section className="glow-panel flex flex-wrap items-center gap-4 rounded-xl border border-border bg-card p-5">
-                {resumo.escudo ? (
-                  <img
-                    src={resumo.escudo}
-                    alt={`Escudo do ${resumo.clubeNome ?? "clube"}`}
-                    className="h-16 w-16 object-contain"
-                  />
-                ) : (
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted font-display text-2xl">
-                    {(resumo.clubeNome ?? "FC").slice(0, 2).toUpperCase()}
-                  </div>
-                )}
+                <div className="group relative">
+                  {resumo.escudo ? (
+                    <img
+                      src={resumo.escudo}
+                      alt={`Escudo do ${resumo.clubeNome ?? "clube"}`}
+                      className="h-16 w-16 object-contain"
+                    />
+                  ) : (
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted font-display text-2xl">
+                      {(resumo.clubeNome ?? "FC").slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    aria-label="Alterar logo do clube"
+                    className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full shadow"
+                    onClick={() => {
+                      setUrlEscudo(resumo.escudo ?? "");
+                      setEditandoEscudo(true);
+                    }}
+                  >
+                    <ImagePlus className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
                 <div className="min-w-0">
+
                   <h1 className="text-gradient-pitch text-3xl sm:text-4xl">
                     {resumo.clubeNome ?? "Clube a definir"}
                   </h1>
@@ -378,9 +431,50 @@ function Dashboard() {
           )}
         </div>
       </div>
+
+      <Dialog open={editandoEscudo} onOpenChange={setEditandoEscudo}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Logo do clube</DialogTitle>
+            <DialogDescription>
+              Cole o endereço de uma imagem (PNG/SVG) para usar como escudo do seu clube.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3">
+            <div className="grid gap-1">
+              <Label>URL da imagem</Label>
+              <Input
+                value={urlEscudo}
+                onChange={(e) => setUrlEscudo(e.target.value)}
+                placeholder="https://exemplo.com/escudo.png"
+              />
+            </div>
+            {urlEscudo.trim() ? (
+              <div className="flex items-center gap-3 rounded-lg border border-border p-3">
+                <img
+                  src={urlEscudo.trim()}
+                  alt="Pré-visualização da logo"
+                  className="h-14 w-14 object-contain"
+                />
+                <span className="text-xs text-muted-foreground">Pré-visualização</span>
+              </div>
+            ) : null}
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditandoEscudo(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => void salvarEscudo()} disabled={salvandoEscudo}>
+              {salvandoEscudo ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
+              Salvar logo
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppShell>
   );
 }
+
 
 function ResumoCard({
   icone,
