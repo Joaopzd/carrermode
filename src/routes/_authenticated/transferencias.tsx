@@ -94,6 +94,11 @@ function TransferenciasPage() {
   const { save, carregando: carregandoSave } = useSaveAtual();
   const [lista, setLista] = useState<Transferencia[]>([]);
   const [elenco, setElenco] = useState<JogadorSimples[]>([]);
+  const [todosJogadores, setTodosJogadores] = useState<JogadorSimples[]>([]);
+  const [editando, setEditando] = useState<Transferencia | null>(null);
+  const [salvandoEdicao, setSalvandoEdicao] = useState(false);
+  const [excluindo, setExcluindo] = useState<Transferencia | null>(null);
+
   const [carregando, setCarregando] = useState(true);
   const [filtroTipo, setFiltroTipo] = useState("todos");
   const [filtroModalidade, setFiltroModalidade] = useState("todas");
