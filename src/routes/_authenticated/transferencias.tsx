@@ -118,15 +118,16 @@ function TransferenciasPage() {
       qt.order("data", { ascending: false }),
       supabase
         .from("players")
-        .select("id, nome, overall, status")
+        .select("id, nome, overall, status, ativo")
         .eq("save_id", saveId)
-        .eq("ativo", true)
         .order("nome"),
     ]);
     setLista((t ?? []) as Transferencia[]);
-    setElenco((p ?? []) as JogadorSimples[]);
+    setTodosJogadores((p ?? []) as JogadorSimples[]);
+    setElenco(((p ?? []) as JogadorSimples[]).filter((j) => j.ativo !== false));
     setCarregando(false);
   }
+
 
   useEffect(() => {
     if (!save) {
