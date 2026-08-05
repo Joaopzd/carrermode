@@ -1,6 +1,26 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
-import { CalendarPlus, ClipboardCheck, Pencil } from "lucide-react";
+import { AlertTriangle, CalendarPlus, ClipboardCheck, Pencil, Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { COMPETICOES } from "@/lib/match-data";
+import { lerDataCarreira, partidasAtrasadas } from "@/lib/carreira-data";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
@@ -41,6 +61,16 @@ function PartidasPage() {
   const [carregando, setCarregando] = useState(true);
   const [selecionada, setSelecionada] = useState<PartidaBase | null>(null);
   const [aberto, setAberto] = useState(false);
+  const [formAberto, setFormAberto] = useState(false);
+  const [editandoId, setEditandoId] = useState<string | null>(null);
+  const [salvandoForm, setSalvandoForm] = useState(false);
+  const [excluindo, setExcluindo] = useState<PartidaBase | null>(null);
+  const [form, setForm] = useState({
+    dia: "2026-07-01",
+    hora: "16:00",
+    competicao: "Liga",
+    adversario: "",
+  });
 
   const carregar = useCallback(async (saveId: string, seasonId: string | null) => {
     let q = supabase.from("matches").select("*").eq("save_id", saveId);
@@ -57,6 +87,78 @@ function PartidasPage() {
     }
     void carregar(save.id, save.seasonId);
   }, [save, carregandoSave, carregar]);
+
+  const dataCarreira = save ? lerDataCarreira(save.id) : null;
+  const atrasadas = partidasAtrasadas(partidas, dataCarreira);
+
+  function novaPartida() {
+    setEditandoId(null);
+    setForm({
+      dia: dataCarreira ?? "2026-07-01",
+      hora: "16:00",
+      competicao: "Liga",
+      adversario: "",
+    });
+    setFormAberto(true);
+  }
+
+  function editarPartida(p: PartidaBase) {
+    const d = p.data_hora ? new Date(p.data_hora) : new Date();
+    const pad = (n: number) => String(n).padStart(2, "0");
+    setEditandoId(p.id);
+    setForm({
+      dia: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`,
+      hora: `${pad(d.getHours())}:${pad(d.getMinutes())}`,
+      competicao: p.competicao ?? "Liga",
+      adversario: p.adversario ?? "",
+    });
+    setFormAberto(true);
+  }
+
+  async function salvarForm() {
+    if (!save) return;
+    if (!form.adversario.trim()) {
+      toast.error("Informe o adversário.");
+      return;
+    }
+    setSalvandoForm(true);
+    const dataHora = new Date(`${form.dia}T${form.hora || "00:00"}:00`).toISOString();
+    const payload = {
+      data_hora: dataHora,
+      competicao: form.competicao,
+      adversario: form.adversario.trim(),
+    };
+    const { error } = editandoId
+      ? await supabase.from("matches").update(payload).eq("id", editandoId)
+      : await supabase
+          .from("matches")
+          .insert({ ...payload, save_id: save.id, season_id: save.seasonId, status: "agendada" });
+    setSalvandoForm(false);
+    if (error) {
+      toast.error("Não foi possível salvar a partida.");
+      return;
+    }
+    toast.success(editandoId ? "Partida atualizada!" : "Partida agendada!");
+    setFormAberto(false);
+    void carregar(save.id, save.seasonId);
+  }
+
+  async function excluirPartida() {
+    if (!excluindo || !save) return;
+    await supabase.from("match_player_stats").delete().eq("match_id", excluindo.id);
+    await supabase
+      .from("news_feed")
+      .update({ relacionado_match_id: null })
+      .eq("relacionado_match_id", excluindo.id);
+    const { error } = await supabase.from("matches").delete().eq("id", excluindo.id);
+    if (error) {
+      toast.error("Não foi possível excluir a partida.");
+      return;
+    }
+    toast.success("Partida excluída.");
+    setExcluindo(null);
+    void carregar(save.id, save.seasonId);
+  }
 
   const agendadas = partidas.filter((p) => p.status !== "finalizada");
   const finalizadas = partidas.filter((p) => p.status === "finalizada");
@@ -77,12 +179,31 @@ function PartidasPage() {
                 Feche os jogos e alimente as estatísticas do elenco.
               </p>
             </div>
-            <Button asChild variant="outline">
-              <Link to="/calendario">
-                <CalendarPlus className="mr-1 h-4 w-4" /> Agendar no calendário
-              </Link>
-            </Button>
+            <div className="flex gap-2">
+              <Button asChild variant="outline">
+                <Link to="/calendario">
+                  <CalendarPlus className="mr-1 h-4 w-4" /> Calendário
+                </Link>
+              </Button>
+              <Button onClick={novaPartida} disabled={!save}>
+                <Plus className="mr-1 h-4 w-4" /> Nova partida
+              </Button>
+            </div>
           </header>
+
+          {atrasadas.length > 0 ? (
+            <Card className="border-amber-500/40 bg-amber-500/10">
+              <CardContent className="space-y-1 py-4">
+                <p className="flex items-center gap-2 font-semibold text-amber-400">
+                  <AlertTriangle className="h-4 w-4" /> {atrasadas.length} jogo(s) já passaram da
+                  data atual da carreira e continuam abertos
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Feche os jogos abaixo para manter as estatísticas em dia.
+                </p>
+              </CardContent>
+            </Card>
+          ) : null}
 
           {carregando ? (
             <Skeleton className="h-64 w-full rounded-xl" />
@@ -131,9 +252,27 @@ function PartidasPage() {
                               : ""}
                           </p>
                         </div>
-                        <Button onClick={() => abrir(p)}>
-                          <ClipboardCheck className="mr-1 h-4 w-4" /> Fechar partida
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button onClick={() => abrir(p)}>
+                            <ClipboardCheck className="mr-1 h-4 w-4" /> Fechar partida
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            aria-label="Editar partida"
+                            onClick={() => editarPartida(p)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            aria-label="Excluir partida"
+                            onClick={() => setExcluindo(p)}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-400" />
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   ))
@@ -176,9 +315,27 @@ function PartidasPage() {
                               </p>
                             </div>
                           </div>
-                          <Button variant="outline" onClick={() => abrir(p)}>
-                            <Pencil className="mr-1 h-4 w-4" /> Reabrir e editar
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button variant="outline" onClick={() => abrir(p)}>
+                              <ClipboardCheck className="mr-1 h-4 w-4" /> Reabrir
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              aria-label="Editar partida"
+                              onClick={() => editarPartida(p)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              aria-label="Excluir partida"
+                              onClick={() => setExcluindo(p)}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-400" />
+                            </Button>
+                          </div>
                         </CardContent>
                       </Card>
                     );
@@ -189,6 +346,90 @@ function PartidasPage() {
           )}
         </div>
       </div>
+
+      <Dialog open={formAberto} onOpenChange={setFormAberto}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{editandoId ? "Editar partida" : "Nova partida"}</DialogTitle>
+            <DialogDescription>
+              Defina data, competição e adversário do confronto.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="grid gap-1">
+                <Label>Data</Label>
+                <Input
+                  type="date"
+                  value={form.dia}
+                  onChange={(e) => setForm({ ...form, dia: e.target.value })}
+                />
+              </div>
+              <div className="grid gap-1">
+                <Label>Horário</Label>
+                <Input
+                  type="time"
+                  value={form.hora}
+                  onChange={(e) => setForm({ ...form, hora: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="grid gap-1">
+              <Label>Competição</Label>
+              <Select
+                value={form.competicao}
+                onValueChange={(v) => setForm({ ...form, competicao: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {COMPETICOES.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-1">
+              <Label>Adversário</Label>
+              <Input
+                value={form.adversario}
+                onChange={(e) => setForm({ ...form, adversario: e.target.value })}
+                placeholder="Nome do clube adversário"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setFormAberto(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => void salvarForm()} disabled={salvandoForm}>
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={excluindo !== null} onOpenChange={(v) => !v && setExcluindo(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Excluir partida</DialogTitle>
+            <DialogDescription>
+              A partida e as estatísticas individuais dela serão apagadas.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setExcluindo(null)}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={() => void excluirPartida()}>
+              Excluir
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {save ? (
         <FecharPartidaDialog

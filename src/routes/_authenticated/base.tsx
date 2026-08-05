@@ -1,3 +1,4 @@
+import { posEn } from "@/lib/posicoes";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowUpCircle, Sparkles, Trash2, UserPlus } from "lucide-react";
@@ -166,7 +167,7 @@ function BasePage() {
                             {j.nome}
                           </p>
                           <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <span>{j.posicao_principal ?? "—"}</span>
+                            <span>{posEn(j.posicao_principal) ?? "—"}</span>
                             <span>·</span>
                             <Bandeira pais={j.nacionalidade} />
                             <span>{j.nacionalidade ?? "—"}</span>

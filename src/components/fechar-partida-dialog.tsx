@@ -1,3 +1,4 @@
+import { ehGoleiro, posEn } from "@/lib/posicoes";
 import { useEffect, useMemo, useState } from "react";
 import { Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
@@ -38,7 +39,12 @@ export type PartidaBase = {
   cartoes_vermelhos: number | null;
 };
 
-type Jogador = { id: string; nome: string; posicao_principal: string | null; status: string | null };
+type Jogador = {
+  id: string;
+  nome: string;
+  posicao_principal: string | null;
+  status: string | null;
+};
 
 type StatJogador = {
   clean_sheet: boolean;
@@ -190,9 +196,7 @@ export function FecharPartidaDialog({
   );
 
   function alternar(id: string) {
-    setSelecionados((prev) =>
-      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id],
-    );
+    setSelecionados((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]));
     setStats((prev) => (prev[id] ? prev : { ...prev, [id]: { ...STAT_VAZIA } }));
   }
 
@@ -240,7 +244,7 @@ export function FecharPartidaDialog({
     if (escalados.length > 0) {
       const linhas = escalados.map((j) => {
         const s = stats[j.id] ?? STAT_VAZIA;
-        const goleiro = j.posicao_principal === "GOL";
+        const goleiro = ehGoleiro(j.posicao_principal);
         return {
           match_id: partida.id,
           player_id: j.id,
@@ -374,7 +378,7 @@ export function FecharPartidaDialog({
                   />
                   <span className="truncate">
                     <span className="text-xs text-muted-foreground">
-                      {j.posicao_principal ?? "—"}
+                      {posEn(j.posicao_principal) ?? "—"}
                     </span>{" "}
                     {j.nome}
                   </span>
@@ -391,7 +395,7 @@ export function FecharPartidaDialog({
             </h3>
             {escalados.map((j) => {
               const s = stats[j.id] ?? STAT_VAZIA;
-              const goleiro = j.posicao_principal === "GOL";
+              const goleiro = ehGoleiro(j.posicao_principal);
               const campos: [keyof StatJogador, string][] = goleiro
                 ? [
                     ["defesas", "Defesas"],
@@ -416,7 +420,7 @@ export function FecharPartidaDialog({
                 <div key={j.id} className="rounded-xl border p-3">
                   <p className="mb-2 font-semibold">
                     <span className="mr-2 rounded bg-primary/15 px-1.5 py-0.5 text-xs text-primary">
-                      {j.posicao_principal ?? "—"}
+                      {posEn(j.posicao_principal) ?? "—"}
                     </span>
                     {j.nome}
                   </p>

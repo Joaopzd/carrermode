@@ -1,3 +1,4 @@
+import { ehGoleiro, posEn } from "@/lib/posicoes";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, ChevronsUpDown } from "lucide-react";
@@ -18,7 +19,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { POSICOES, STATUS_JOGADOR } from "@/lib/onboarding-data";
 import { useSaveAtual } from "@/lib/use-save";
 
@@ -162,7 +170,8 @@ function EstatisticasPage() {
   }, [save, carregandoSave]);
 
   const nacionalidades = useMemo(
-    () => Array.from(new Set(jogadores.map((j) => j.nacionalidade).filter(Boolean))).sort() as string[],
+    () =>
+      Array.from(new Set(jogadores.map((j) => j.nacionalidade).filter(Boolean))).sort() as string[],
     [jogadores],
   );
 
@@ -177,7 +186,7 @@ function EstatisticasPage() {
     return jogadores.map((j) => {
       const ss = porJogador.get(j.id) ?? [];
       const notas = ss.map((s) => s.nota).filter((n): n is number => n != null);
-      const gk = j.posicao_principal === "GOL";
+      const gk = ehGoleiro(j.posicao_principal);
       return {
         ...j,
         jogos: ss.length,
@@ -200,7 +209,7 @@ function EstatisticasPage() {
     const iMin = num(idadeMin);
     const iMax = num(idadeMax);
     const arr = linhas.filter((l) => {
-      if (fPos !== TODOS && l.posicao_principal !== fPos) return false;
+      if (fPos !== TODOS && posEn(l.posicao_principal) !== fPos) return false;
       if (fStatus !== TODOS && l.status !== fStatus) return false;
       if (fNac !== TODOS && l.nacionalidade !== fNac) return false;
       if (oMin != null && (l.overall ?? 0) < oMin) return false;
@@ -217,7 +226,7 @@ function EstatisticasPage() {
       if (typeof va === "string" || typeof vb === "string") {
         return String(va ?? "").localeCompare(String(vb ?? ""), "pt-BR") * mult;
       }
-      return ((Number(va ?? -1)) - Number(vb ?? -1)) * mult;
+      return (Number(va ?? -1) - Number(vb ?? -1)) * mult;
     });
   }, [linhas, fPos, fStatus, fNac, ovrMin, ovrMax, idadeMin, idadeMax, ordem]);
 
@@ -377,7 +386,9 @@ function EstatisticasPage() {
                           className={`cursor-pointer select-none whitespace-nowrap ${c.num ? "text-right" : ""}`}
                           onClick={() => ordenar(c.key)}
                         >
-                          <span className={`inline-flex items-center gap-1 ${c.num ? "flex-row-reverse" : ""}`}>
+                          <span
+                            className={`inline-flex items-center gap-1 ${c.num ? "flex-row-reverse" : ""}`}
+                          >
                             {c.label}
                             {ordem.col === c.key ? (
                               ordem.dir === "asc" ? (
@@ -407,9 +418,11 @@ function EstatisticasPage() {
                           </span>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="secondary">{l.posicao_principal ?? "—"}</Badge>
+                          <Badge variant="secondary">{posEn(l.posicao_principal) ?? "—"}</Badge>
                         </TableCell>
-                        <TableCell className="text-right font-semibold">{l.overall ?? "—"}</TableCell>
+                        <TableCell className="text-right font-semibold">
+                          {l.overall ?? "—"}
+                        </TableCell>
                         <TableCell className="text-right">{l.idade ?? "—"}</TableCell>
                         <TableCell className="text-right">{l.jogos}</TableCell>
                         <TableCell className="text-right">{l.gols}</TableCell>
@@ -420,9 +433,7 @@ function EstatisticasPage() {
                         <TableCell className="text-right">{l.amarelos}</TableCell>
                         <TableCell className="text-right">{l.vermelhos}</TableCell>
                         <TableCell className="text-right">
-                          {l.posicao_principal === "GOL"
-                            ? l.extra
-                            : l.extra.toFixed(2)}
+                          {ehGoleiro(l.posicao_principal) ? l.extra : l.extra.toFixed(2)}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -445,11 +456,11 @@ function EstatisticasPage() {
               </SheetHeader>
               <div className="mt-4 space-y-6">
                 <div className="flex flex-wrap gap-2">
-                  <Badge>{selecionado.posicao_principal ?? "—"}</Badge>
+                  <Badge>{posEn(selecionado.posicao_principal) ?? "—"}</Badge>
                   {Array.isArray(selecionado.posicoes_secundarias)
                     ? (selecionado.posicoes_secundarias as string[]).map((p) => (
                         <Badge key={p} variant="secondary">
-                          {p}
+                          {posEn(p)}
                         </Badge>
                       ))
                     : null}
@@ -482,7 +493,9 @@ function EstatisticasPage() {
                     ["Playstyle", selecionado.playstyle ?? "—"],
                   ].map(([k, v]) => (
                     <div key={String(k)} className="rounded-lg border border-border p-3">
-                      <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{k}</p>
+                      <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                        {k}
+                      </p>
                       <p className="mt-1 font-semibold">{v}</p>
                     </div>
                   ))}
@@ -493,13 +506,18 @@ function EstatisticasPage() {
                     ["Jogos", selecionado.jogos],
                     ["Gols", selecionado.gols],
                     ["Assist.", selecionado.assist],
-                    ["Nota", selecionado.notaMedia != null ? selecionado.notaMedia.toFixed(2) : "—"],
+                    [
+                      "Nota",
+                      selecionado.notaMedia != null ? selecionado.notaMedia.toFixed(2) : "—",
+                    ],
                     ["Amarelos", selecionado.amarelos],
                     ["Vermelhos", selecionado.vermelhos],
                   ].map(([k, v]) => (
                     <div key={String(k)} className="rounded-lg bg-muted/40 p-3">
                       <p className="text-xl font-bold text-primary">{v}</p>
-                      <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{k}</p>
+                      <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                        {k}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -524,13 +542,15 @@ function EstatisticasPage() {
                               </span>
                             </p>
                             <span className="text-xs text-muted-foreground">
-                              {m?.data_hora ? new Date(m.data_hora).toLocaleDateString("pt-BR") : ""}
+                              {m?.data_hora
+                                ? new Date(m.data_hora).toLocaleDateString("pt-BR")
+                                : ""}
                             </span>
                           </div>
                           <p className="mt-1 text-xs text-muted-foreground">
                             {m?.competicao ?? "—"} · Nota {s.nota ?? "—"} · {s.gols ?? 0}G{" "}
                             {s.assistencias ?? 0}A
-                            {selecionado.posicao_principal === "GOL"
+                            {ehGoleiro(selecionado.posicao_principal)
                               ? ` · ${s.defesas ?? 0} defesas`
                               : ` · xG ${Number(s.xg ?? 0).toFixed(2)}`}
                             {s.cartao_amarelo ? " · 🟨" : ""}

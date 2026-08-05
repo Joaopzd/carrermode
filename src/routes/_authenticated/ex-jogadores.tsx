@@ -1,3 +1,4 @@
+import { posEn } from "@/lib/posicoes";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Archive, UserMinus } from "lucide-react";
@@ -63,7 +64,12 @@ type Stat = {
 };
 
 type Season = { id: string; nome: string };
-type Transfer = { id: string; valor: number | null; modalidade: string | null; season_id: string | null };
+type Transfer = {
+  id: string;
+  valor: number | null;
+  modalidade: string | null;
+  season_id: string | null;
+};
 
 const TODOS = "__todos__";
 
@@ -218,7 +224,12 @@ function ExJogadoresPage() {
           ) : (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {filtrados.map((j) => (
-                <button key={j.id} type="button" onClick={() => void abrir(j)} className="text-left">
+                <button
+                  key={j.id}
+                  type="button"
+                  onClick={() => void abrir(j)}
+                  className="text-left"
+                >
                   <Card className="hq-card h-full transition-colors hover:border-primary/60">
                     <CardContent className="space-y-2 py-4">
                       <div className="flex items-start justify-between gap-2">
@@ -228,7 +239,7 @@ function ExJogadoresPage() {
                           </p>
                           <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
                             <Bandeira pais={j.nacionalidade} />
-                            {j.posicao_principal ?? "—"} · {j.idade ?? "—"} anos
+                            {posEn(j.posicao_principal) ?? "—"} · {j.idade ?? "—"} anos
                           </p>
                         </div>
                         <span className="rounded-lg bg-muted px-2 py-1 font-display text-lg">

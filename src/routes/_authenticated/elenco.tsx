@@ -1,6 +1,7 @@
+import { posEn } from "@/lib/posicoes";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Heart, Loader2, Pencil, Search, UserPlus } from "lucide-react";
+import { Heart, Loader2, Pencil, Search, Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
@@ -79,7 +80,7 @@ const CORES_STATUS: Record<string, string> = {
 };
 
 const moeda = (v: number | null) =>
-  v === null ? "—" : `€ ${new Intl.NumberFormat("pt-BR").format(v)}`;
+  v === null ? "—" : `£ ${new Intl.NumberFormat("pt-BR").format(v)}`;
 
 function ElencoPage() {
   const { save, carregando: carregandoSave } = useSaveAtual();
@@ -92,6 +93,8 @@ function ElencoPage() {
   const [salvando, setSalvando] = useState(false);
   const [adicionando, setAdicionando] = useState(false);
   const [criando, setCriando] = useState(false);
+  const [excluindo, setExcluindo] = useState<Jogador | null>(null);
+  const [removendo, setRemovendo] = useState(false);
 
   async function definirCapitaoUnico(saveId: string, jogadorId: string) {
     await supabase
@@ -153,7 +156,7 @@ function ElencoPage() {
       jogadores.filter(
         (j) =>
           j.nome.toLowerCase().includes(busca.trim().toLowerCase()) &&
-          (posicao === "todas" || j.posicao_principal === posicao) &&
+          (posicao === "todas" || posEn(j.posicao_principal) === posicao) &&
           (status === "todos" || j.status === status),
       ),
     [jogadores, busca, posicao, status],
@@ -188,6 +191,33 @@ function ElencoPage() {
     toast.success("Jogador atualizado!");
     setEditando(null);
     if (save) void carregar(save.id);
+  }
+
+  async function excluirJogador() {
+    if (!excluindo || !save) return;
+    setRemovendo(true);
+    // Exclusão definitiva: limpa vínculos antes de remover o registro.
+    await supabase.from("match_player_stats").delete().eq("player_id", excluindo.id);
+    await supabase.from("fan_pressure_events").delete().eq("player_id", excluindo.id);
+    await supabase
+      .from("news_feed")
+      .update({ relacionado_player_id: null })
+      .eq("relacionado_player_id", excluindo.id);
+    await supabase.from("transfers").update({ player_id: null }).eq("player_id", excluindo.id);
+    await supabase
+      .from("transfers")
+      .update({ jogador_troca_id: null })
+      .eq("jogador_troca_id", excluindo.id);
+    const { error } = await supabase.from("players").delete().eq("id", excluindo.id);
+    setRemovendo(false);
+    if (error) {
+      toast.error("Não foi possível excluir o jogador.");
+      return;
+    }
+    toast.success("Jogador excluído do elenco.");
+    setExcluindo(null);
+    setEditando(null);
+    void carregar(save.id);
   }
 
   function campo(patch: Partial<Jogador>) {
@@ -280,7 +310,7 @@ function ElencoPage() {
                           )}
                         </p>
                         <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <span>{j.posicao_principal ?? "—"}</span>
+                          <span>{posEn(j.posicao_principal) ?? "—"}</span>
                           <span>·</span>
                           <Bandeira pais={j.nacionalidade} />
                           <span>{j.nacionalidade ?? "—"}</span>
@@ -292,10 +322,7 @@ function ElencoPage() {
                       </span>
                     </div>
                     <div className="flex flex-wrap items-center gap-2 text-xs">
-                      <Badge
-                        variant="secondary"
-                        className={CORES_STATUS[j.status ?? ""] ?? ""}
-                      >
+                      <Badge variant="secondary" className={CORES_STATUS[j.status ?? ""] ?? ""}>
                         {j.status ?? "Sem status"}
                       </Badge>
                       <div className="flex flex-wrap gap-1">
@@ -310,14 +337,24 @@ function ElencoPage() {
                       <span>Valor: {moeda(j.valor_mercado)}</span>
                       <span>Salário: {moeda(j.salario)}</span>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => setEditando(j)}
-                    >
-                      <Pencil className="mr-1 h-4 w-4" /> Editar jogador
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => setEditando(j)}
+                      >
+                        <Pencil className="mr-1 h-4 w-4" /> Editar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        aria-label={`Excluir ${j.nome}`}
+                        onClick={() => setExcluindo(j)}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-400" />
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))}
@@ -359,7 +396,7 @@ function ElencoPage() {
                 <div className="grid gap-1">
                   <Label>Posição principal</Label>
                   <Select
-                    value={editando.posicao_principal ?? ""}
+                    value={posEn(editando.posicao_principal) ?? ""}
                     onValueChange={(v) => campo({ posicao_principal: v })}
                   >
                     <SelectTrigger>
@@ -431,10 +468,7 @@ function ElencoPage() {
 
               <div className="grid gap-1">
                 <Label>Status</Label>
-                <Select
-                  value={editando.status ?? ""}
-                  onValueChange={(v) => campo({ status: v })}
-                >
+                <Select value={editando.status ?? ""} onValueChange={(v) => campo({ status: v })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
@@ -466,12 +500,8 @@ function ElencoPage() {
                     Apenas um jogador pode usar a braçadeira.
                   </p>
                 </div>
-                <Switch
-                  checked={editando.capitao}
-                  onCheckedChange={(v) => campo({ capitao: v })}
-                />
+                <Switch checked={editando.capitao} onCheckedChange={(v) => campo({ capitao: v })} />
               </div>
-
             </div>
           ) : null}
           <DialogFooter>
@@ -481,6 +511,31 @@ function ElencoPage() {
             <Button onClick={salvar} disabled={salvando}>
               {salvando ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
               Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={excluindo !== null} onOpenChange={(v) => !v && setExcluindo(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Excluir {excluindo?.nome}</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            O jogador será apagado definitivamente, junto das estatísticas dele. Ele não vai para a
+            lista de ex-jogadores. Esta ação não pode ser desfeita.
+          </p>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setExcluindo(null)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => void excluirJogador()}
+              disabled={removendo}
+            >
+              {removendo ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
+              Excluir definitivamente
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -4,8 +4,10 @@ import {
   ArrowDownLeft,
   ArrowUpRight,
   Loader2,
+  Pencil,
   Plus,
   Repeat,
+  Trash2,
   TrendingUp,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -61,13 +63,20 @@ type Transferencia = {
   tipo: string;
   modalidade: string | null;
   player_id: string | null;
+  jogador_troca_id: string | null;
   clube_contraparte: string | null;
   valor: number | null;
   duracao_emprestimo: string | null;
   data: string;
 };
 
-type JogadorSimples = { id: string; nome: string; overall: number | null; status: string | null };
+type JogadorSimples = {
+  id: string;
+  nome: string;
+  overall: number | null;
+  status: string | null;
+  ativo?: boolean | null;
+};
 
 const MODALIDADES = ["definitiva", "emprestimo", "troca"] as const;
 type Modalidade = (typeof MODALIDADES)[number];
@@ -85,6 +94,11 @@ function TransferenciasPage() {
   const { save, carregando: carregandoSave } = useSaveAtual();
   const [lista, setLista] = useState<Transferencia[]>([]);
   const [elenco, setElenco] = useState<JogadorSimples[]>([]);
+  const [todosJogadores, setTodosJogadores] = useState<JogadorSimples[]>([]);
+  const [editando, setEditando] = useState<Transferencia | null>(null);
+  const [salvandoEdicao, setSalvandoEdicao] = useState(false);
+  const [excluindo, setExcluindo] = useState<Transferencia | null>(null);
+
   const [carregando, setCarregando] = useState(true);
   const [filtroTipo, setFiltroTipo] = useState("todos");
   const [filtroModalidade, setFiltroModalidade] = useState("todas");
@@ -118,13 +132,13 @@ function TransferenciasPage() {
       qt.order("data", { ascending: false }),
       supabase
         .from("players")
-        .select("id, nome, overall, status")
+        .select("id, nome, overall, status, ativo")
         .eq("save_id", saveId)
-        .eq("ativo", true)
         .order("nome"),
     ]);
     setLista((t ?? []) as Transferencia[]);
-    setElenco((p ?? []) as JogadorSimples[]);
+    setTodosJogadores((p ?? []) as JogadorSimples[]);
+    setElenco(((p ?? []) as JogadorSimples[]).filter((j) => j.ativo !== false));
     setCarregando(false);
   }
 
@@ -147,17 +161,15 @@ function TransferenciasPage() {
   );
 
   const nomePorId = useMemo(
-    () => Object.fromEntries(elenco.map((j) => [j.id, j.nome])),
-    [elenco],
+    () => Object.fromEntries(todosJogadores.map((j) => [j.id, j.nome])),
+    [todosJogadores],
   );
 
   const saldo = useMemo(() => {
     const entradas = lista
       .filter((t) => t.tipo === "entrada")
       .reduce((a, t) => a + (t.valor ?? 0), 0);
-    const saidas = lista
-      .filter((t) => t.tipo === "saida")
-      .reduce((a, t) => a + (t.valor ?? 0), 0);
+    const saidas = lista.filter((t) => t.tipo === "saida").reduce((a, t) => a + (t.valor ?? 0), 0);
     return { entradas, saidas, total: saidas - entradas };
   }, [lista]);
 
@@ -219,22 +231,26 @@ function TransferenciasPage() {
       return;
     }
 
-    if (tipo === "saida") {
+    // Jogador que deixa o clube: numa saída é o próprio; numa entrada por troca
+    // é o atleta oferecido, que também precisa sair do elenco.
+    const jogadorQueSai =
+      tipo === "saida" || modalidade === "troca" ? jogadorElencoId || null : null;
+
+    if (jogadorQueSai) {
       await supabase
         .from("players")
         .update({
           status: "Transferido",
           ativo: false,
           data_saida: new Date().toISOString().slice(0, 10),
-          motivo_saida:
-            modalidade === "emprestimo" ? "emprestimo" : "transferencia_definitiva",
+          motivo_saida: modalidade === "emprestimo" ? "emprestimo" : "transferencia_definitiva",
           clube_destino: clubeContraparte.trim() || null,
           transfer_saida_id: data.id as string,
         })
-        .eq("id", jogadorElencoId);
+        .eq("id", jogadorQueSai);
       void checarVendaPolemica(
         save.id,
-        jogadorElencoId,
+        jogadorQueSai,
         numOrNull(valor),
         clubeContraparte.trim() || null,
       );
@@ -291,8 +307,74 @@ function TransferenciasPage() {
     void carregar(save.id, save.seasonId);
   }
 
-  const precisaDadosExternos =
-    tipo === "entrada" || (tipo === "saida" && modalidade === "troca");
+  async function salvarEdicao() {
+    if (!editando || !save) return;
+    setSalvandoEdicao(true);
+    const { error } = await supabase
+      .from("transfers")
+      .update({
+        clube_contraparte: editando.clube_contraparte,
+        valor: editando.valor,
+        duracao_emprestimo: editando.duracao_emprestimo,
+        modalidade: editando.modalidade,
+        data: editando.data,
+      })
+      .eq("id", editando.id);
+    if (!error) {
+      await supabase
+        .from("players")
+        .update({ clube_destino: editando.clube_contraparte })
+        .eq("transfer_saida_id", editando.id);
+    }
+    setSalvandoEdicao(false);
+    if (error) {
+      toast.error("Não foi possível salvar a transferência.");
+      return;
+    }
+    toast.success("Transferência atualizada!");
+    setEditando(null);
+    void carregar(save.id, save.seasonId);
+  }
+
+  async function excluirTransferencia() {
+    if (!excluindo || !save) return;
+    // Reverte a saída dos jogadores vinculados a esta negociação.
+    await supabase
+      .from("players")
+      .update({
+        ativo: true,
+        status: "Liberado",
+        data_saida: null,
+        motivo_saida: null,
+        clube_destino: null,
+        transfer_saida_id: null,
+      })
+      .eq("transfer_saida_id", excluindo.id);
+    await supabase
+      .from("news_feed")
+      .update({ relacionado_transfer_id: null })
+      .eq("relacionado_transfer_id", excluindo.id);
+    const { error } = await supabase.from("transfers").delete().eq("id", excluindo.id);
+    if (error) {
+      toast.error("Não foi possível excluir a transferência.");
+      return;
+    }
+    toast.success("Transferência excluída.");
+    setExcluindo(null);
+    void carregar(save.id, save.seasonId);
+  }
+
+  function rotuloJogador(t: Transferencia) {
+    const entra = t.player_id ? nomePorId[t.player_id] : null;
+    const sai = t.jogador_troca_id ? nomePorId[t.jogador_troca_id] : null;
+    if (t.modalidade === "troca") {
+      if (entra && sai) return `${sai} ⇄ ${entra}`;
+      return entra ?? sai ?? "Jogador";
+    }
+    return entra ?? sai ?? "Jogador";
+  }
+
+  const precisaDadosExternos = tipo === "entrada" || (tipo === "saida" && modalidade === "troca");
 
   return (
     <AppShell titulo="Transferências">
@@ -398,9 +480,7 @@ function TransferenciasPage() {
                         )}
                       </span>
                       <div>
-                        <p className="font-display text-lg tracking-wide">
-                          {t.player_id ? (nomePorId[t.player_id] ?? "Jogador") : "Jogador"}
-                        </p>
+                        <p className="font-display text-lg tracking-wide">{rotuloJogador(t)}</p>
                         <p className="text-xs text-muted-foreground">
                           {t.tipo === "entrada" ? "De" : "Para"} {t.clube_contraparte ?? "—"} ·{" "}
                           {new Date(t.data).toLocaleDateString("pt-BR")}
@@ -413,6 +493,22 @@ function TransferenciasPage() {
                         {ROTULO_MODALIDADE[t.modalidade ?? ""] ?? t.modalidade}
                       </Badge>
                       <span className="font-display text-lg">{moeda(t.valor)}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label="Editar transferência"
+                        onClick={() => setEditando(t)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label="Excluir transferência"
+                        onClick={() => setExcluindo(t)}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-400" />
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -547,11 +643,7 @@ function TransferenciasPage() {
               {modalidade === "emprestimo" ? (
                 <div className="grid gap-1">
                   <Label>Duração (data de término)</Label>
-                  <Input
-                    type="date"
-                    value={duracao}
-                    onChange={(e) => setDuracao(e.target.value)}
-                  />
+                  <Input type="date" value={duracao} onChange={(e) => setDuracao(e.target.value)} />
                 </div>
               ) : (
                 <div className="grid gap-1">
@@ -586,6 +678,113 @@ function TransferenciasPage() {
                 </Button>
               </>
             )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={editando !== null} onOpenChange={(v) => !v && setEditando(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar transferência</DialogTitle>
+            <DialogDescription>{editando ? rotuloJogador(editando) : ""}</DialogDescription>
+          </DialogHeader>
+          {editando ? (
+            <div className="grid gap-3">
+              <div className="grid gap-1">
+                <Label>Modalidade</Label>
+                <Select
+                  value={editando.modalidade ?? "definitiva"}
+                  onValueChange={(v) => setEditando((p) => (p ? { ...p, modalidade: v } : p))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MODALIDADES.map((m) => (
+                      <SelectItem key={m} value={m}>
+                        {ROTULO_MODALIDADE[m]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-1">
+                <Label>Clube contraparte</Label>
+                <Input
+                  value={editando.clube_contraparte ?? ""}
+                  onChange={(e) =>
+                    setEditando((p) => (p ? { ...p, clube_contraparte: e.target.value } : p))
+                  }
+                />
+              </div>
+              <div className="grid gap-1">
+                <Label>Valor</Label>
+                <Input
+                  type="number"
+                  value={editando.valor ?? ""}
+                  onChange={(e) =>
+                    setEditando((p) =>
+                      p
+                        ? { ...p, valor: e.target.value === "" ? null : Number(e.target.value) }
+                        : p,
+                    )
+                  }
+                />
+              </div>
+              {editando.modalidade === "emprestimo" ? (
+                <div className="grid gap-1">
+                  <Label>Duração (data de término)</Label>
+                  <Input
+                    type="date"
+                    value={editando.duracao_emprestimo ?? ""}
+                    onChange={(e) =>
+                      setEditando((p) => (p ? { ...p, duracao_emprestimo: e.target.value } : p))
+                    }
+                  />
+                </div>
+              ) : null}
+              <div className="grid gap-1">
+                <Label>Data da negociação</Label>
+                <Input
+                  type="date"
+                  value={editando.data.slice(0, 10)}
+                  onChange={(e) =>
+                    setEditando((p) =>
+                      p ? { ...p, data: new Date(`${e.target.value}T12:00:00`).toISOString() } : p,
+                    )
+                  }
+                />
+              </div>
+            </div>
+          ) : null}
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditando(null)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => void salvarEdicao()} disabled={salvandoEdicao}>
+              {salvandoEdicao ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={excluindo !== null} onOpenChange={(v) => !v && setExcluindo(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Excluir transferência</DialogTitle>
+            <DialogDescription>
+              A negociação será removida do histórico. Jogadores que saíram por ela voltam ao
+              elenco.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setExcluindo(null)}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={() => void excluirTransferencia()}>
+              Excluir
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

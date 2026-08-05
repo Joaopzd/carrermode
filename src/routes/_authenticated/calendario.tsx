@@ -1,6 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { CalendarDays, ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import {
+  AlertTriangle,
+  CalendarCheck,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+} from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
@@ -26,6 +33,13 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSaveAtual } from "@/lib/use-save";
 import { COMPETICOES, DIAS_SEMANA, ICONE_COMPETICAO, MESES, chaveDia } from "@/lib/match-data";
+import {
+  formatarDia,
+  lerDataCarreira,
+  partidasAtrasadas,
+  salvarDataCarreira,
+  somarDias,
+} from "@/lib/carreira-data";
 
 export const Route = createFileRoute("/_authenticated/calendario")({
   head: () => ({
@@ -61,12 +75,28 @@ function CalendarioPage() {
   const { save, carregando: carregandoSave } = useSaveAtual();
   const [partidas, setPartidas] = useState<Partida[]>([]);
   const [carregando, setCarregando] = useState(true);
-  const hoje = new Date();
   // A temporada começa em 01/07/2026 — o usuário avança os meses conforme o jogo evolui.
   const [mes, setMes] = useState(() => new Date(2026, 6, 1));
   const [diaSelecionado, setDiaSelecionado] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [form, setForm] = useState({ hora: "16:00", competicao: "Liga", adversario: "" });
+  const [dataAtual, setDataAtual] = useState("2026-07-01");
+
+  useEffect(() => {
+    if (!save) return;
+    const salvo = lerDataCarreira(save.id) ?? "2026-07-01";
+    setDataAtual(salvo);
+    setMes(new Date(`${salvo}T12:00:00`.slice(0, 4) + "-01-01"));
+    const d = new Date(`${salvo}T12:00:00`);
+    setMes(new Date(d.getFullYear(), d.getMonth(), 1));
+  }, [save]);
+
+  function definirDia(novo: string) {
+    setDataAtual(novo);
+    if (save) salvarDataCarreira(save.id, novo);
+    const d = new Date(`${novo}T12:00:00`);
+    setMes(new Date(d.getFullYear(), d.getMonth(), 1));
+  }
 
   const carregar = useCallback(async (saveId: string, seasonId: string | null) => {
     let q = supabase
@@ -74,8 +104,7 @@ function CalendarioPage() {
       .select("id, data_hora, competicao, adversario, status, placar_time, placar_adversario")
       .eq("save_id", saveId);
     if (seasonId) q = q.eq("season_id", seasonId);
-    const { data } = await q
-      .order("data_hora", { ascending: true });
+    const { data } = await q.order("data_hora", { ascending: true });
     setPartidas((data ?? []) as Partida[]);
     setCarregando(false);
   }, []);
@@ -136,6 +165,8 @@ function CalendarioPage() {
     void carregar(save.id, save.seasonId);
   }
 
+  const atrasadas = useMemo(() => partidasAtrasadas(partidas, dataAtual), [partidas, dataAtual]);
+
   const partidasDoDia = diaSelecionado ? (porDia.get(diaSelecionado) ?? []) : [];
 
   return (
@@ -172,6 +203,56 @@ function CalendarioPage() {
             </div>
           </header>
 
+          <Card className="hq-card">
+            <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4">
+              <div className="flex items-center gap-3">
+                <CalendarCheck className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="text-xs uppercase tracking-widest text-muted-foreground">
+                    Dia atual da carreira
+                  </p>
+                  <p className="font-display text-xl capitalize tracking-wide">
+                    {formatarDia(dataAtual)}
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Input
+                  type="date"
+                  className="w-44"
+                  value={dataAtual}
+                  onChange={(e) => e.target.value && definirDia(e.target.value)}
+                />
+                <Button variant="outline" onClick={() => definirDia(somarDias(dataAtual, 1))}>
+                  +1 dia
+                </Button>
+                <Button variant="outline" onClick={() => definirDia(somarDias(dataAtual, 7))}>
+                  +7 dias
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {atrasadas.length > 0 ? (
+            <Card className="border-amber-500/40 bg-amber-500/10">
+              <CardContent className="space-y-2 py-4">
+                <p className="flex items-center gap-2 font-semibold text-amber-400">
+                  <AlertTriangle className="h-4 w-4" /> {atrasadas.length} jogo(s) passaram sem
+                  serem fechados
+                </p>
+                {atrasadas.map((p) => (
+                  <p key={p.id} className="text-sm text-muted-foreground">
+                    {ICONE_COMPETICAO[p.competicao ?? ""] ?? "⚽"} {p.adversario} ·{" "}
+                    {p.data_hora ? new Date(p.data_hora).toLocaleDateString("pt-BR") : "—"}
+                  </p>
+                ))}
+                <Button asChild size="sm" variant="outline" className="mt-1">
+                  <Link to="/partidas">Fechar partidas</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          ) : null}
+
           {carregando ? (
             <Skeleton className="h-[520px] w-full rounded-xl" />
           ) : (
@@ -191,7 +272,7 @@ function CalendarioPage() {
                   {celulas.map((d) => {
                     const k = chaveDia(d);
                     const doMes = d.getMonth() === mes.getMonth();
-                    const eHoje = k === chaveDia(new Date());
+                    const eHoje = k === dataAtual;
                     const jogos = porDia.get(k) ?? [];
                     return (
                       <button
