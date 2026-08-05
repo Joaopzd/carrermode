@@ -1,6 +1,13 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AlertTriangle, CalendarCheck, CalendarDays, ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import {
+  AlertTriangle,
+  CalendarCheck,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+} from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
@@ -97,8 +104,7 @@ function CalendarioPage() {
       .select("id, data_hora, competicao, adversario, status, placar_time, placar_adversario")
       .eq("save_id", saveId);
     if (seasonId) q = q.eq("season_id", seasonId);
-    const { data } = await q
-      .order("data_hora", { ascending: true });
+    const { data } = await q.order("data_hora", { ascending: true });
     setPartidas((data ?? []) as Partida[]);
     setCarregando(false);
   }, []);
@@ -159,10 +165,7 @@ function CalendarioPage() {
     void carregar(save.id, save.seasonId);
   }
 
-  const atrasadas = useMemo(
-    () => partidasAtrasadas(partidas, dataAtual),
-    [partidas, dataAtual],
-  );
+  const atrasadas = useMemo(() => partidasAtrasadas(partidas, dataAtual), [partidas, dataAtual]);
 
   const partidasDoDia = diaSelecionado ? (porDia.get(diaSelecionado) ?? []) : [];
 
@@ -249,8 +252,6 @@ function CalendarioPage() {
               </CardContent>
             </Card>
           ) : null}
-
-
 
           {carregando ? (
             <Skeleton className="h-[520px] w-full rounded-xl" />

@@ -39,7 +39,12 @@ export type PartidaBase = {
   cartoes_vermelhos: number | null;
 };
 
-type Jogador = { id: string; nome: string; posicao_principal: string | null; status: string | null };
+type Jogador = {
+  id: string;
+  nome: string;
+  posicao_principal: string | null;
+  status: string | null;
+};
 
 type StatJogador = {
   clean_sheet: boolean;
@@ -191,9 +196,7 @@ export function FecharPartidaDialog({
   );
 
   function alternar(id: string) {
-    setSelecionados((prev) =>
-      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id],
-    );
+    setSelecionados((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]));
     setStats((prev) => (prev[id] ? prev : { ...prev, [id]: { ...STAT_VAZIA } }));
   }
 

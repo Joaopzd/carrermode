@@ -70,7 +70,6 @@ type Transferencia = {
   data: string;
 };
 
-
 type JogadorSimples = {
   id: string;
   nome: string;
@@ -78,7 +77,6 @@ type JogadorSimples = {
   status: string | null;
   ativo?: boolean | null;
 };
-
 
 const MODALIDADES = ["definitiva", "emprestimo", "troca"] as const;
 type Modalidade = (typeof MODALIDADES)[number];
@@ -144,7 +142,6 @@ function TransferenciasPage() {
     setCarregando(false);
   }
 
-
   useEffect(() => {
     if (!save) {
       if (!carregandoSave) setCarregando(false);
@@ -168,14 +165,11 @@ function TransferenciasPage() {
     [todosJogadores],
   );
 
-
   const saldo = useMemo(() => {
     const entradas = lista
       .filter((t) => t.tipo === "entrada")
       .reduce((a, t) => a + (t.valor ?? 0), 0);
-    const saidas = lista
-      .filter((t) => t.tipo === "saida")
-      .reduce((a, t) => a + (t.valor ?? 0), 0);
+    const saidas = lista.filter((t) => t.tipo === "saida").reduce((a, t) => a + (t.valor ?? 0), 0);
     return { entradas, saidas, total: saidas - entradas };
   }, [lista]);
 
@@ -249,8 +243,7 @@ function TransferenciasPage() {
           status: "Transferido",
           ativo: false,
           data_saida: new Date().toISOString().slice(0, 10),
-          motivo_saida:
-            modalidade === "emprestimo" ? "emprestimo" : "transferencia_definitiva",
+          motivo_saida: modalidade === "emprestimo" ? "emprestimo" : "transferencia_definitiva",
           clube_destino: clubeContraparte.trim() || null,
           transfer_saida_id: data.id as string,
         })
@@ -262,7 +255,6 @@ function TransferenciasPage() {
         clubeContraparte.trim() || null,
       );
     }
-
 
     setSalvando(false);
     setAberto(false);
@@ -382,9 +374,7 @@ function TransferenciasPage() {
     return entra ?? sai ?? "Jogador";
   }
 
-  const precisaDadosExternos =
-    tipo === "entrada" || (tipo === "saida" && modalidade === "troca");
-
+  const precisaDadosExternos = tipo === "entrada" || (tipo === "saida" && modalidade === "troca");
 
   return (
     <AppShell titulo="Transferências">
@@ -490,9 +480,7 @@ function TransferenciasPage() {
                         )}
                       </span>
                       <div>
-                        <p className="font-display text-lg tracking-wide">
-                          {rotuloJogador(t)}
-                        </p>
+                        <p className="font-display text-lg tracking-wide">{rotuloJogador(t)}</p>
                         <p className="text-xs text-muted-foreground">
                           {t.tipo === "entrada" ? "De" : "Para"} {t.clube_contraparte ?? "—"} ·{" "}
                           {new Date(t.data).toLocaleDateString("pt-BR")}
@@ -522,7 +510,6 @@ function TransferenciasPage() {
                         <Trash2 className="h-4 w-4 text-red-400" />
                       </Button>
                     </div>
-
                   </CardContent>
                 </Card>
               ))}
@@ -656,11 +643,7 @@ function TransferenciasPage() {
               {modalidade === "emprestimo" ? (
                 <div className="grid gap-1">
                   <Label>Duração (data de término)</Label>
-                  <Input
-                    type="date"
-                    value={duracao}
-                    onChange={(e) => setDuracao(e.target.value)}
-                  />
+                  <Input type="date" value={duracao} onChange={(e) => setDuracao(e.target.value)} />
                 </div>
               ) : (
                 <div className="grid gap-1">
@@ -703,9 +686,7 @@ function TransferenciasPage() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Editar transferência</DialogTitle>
-            <DialogDescription>
-              {editando ? rotuloJogador(editando) : ""}
-            </DialogDescription>
+            <DialogDescription>{editando ? rotuloJogador(editando) : ""}</DialogDescription>
           </DialogHeader>
           {editando ? (
             <div className="grid gap-3">
@@ -713,9 +694,7 @@ function TransferenciasPage() {
                 <Label>Modalidade</Label>
                 <Select
                   value={editando.modalidade ?? "definitiva"}
-                  onValueChange={(v) =>
-                    setEditando((p) => (p ? { ...p, modalidade: v } : p))
-                  }
+                  onValueChange={(v) => setEditando((p) => (p ? { ...p, modalidade: v } : p))}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -745,7 +724,9 @@ function TransferenciasPage() {
                   value={editando.valor ?? ""}
                   onChange={(e) =>
                     setEditando((p) =>
-                      p ? { ...p, valor: e.target.value === "" ? null : Number(e.target.value) } : p,
+                      p
+                        ? { ...p, valor: e.target.value === "" ? null : Number(e.target.value) }
+                        : p,
                     )
                   }
                 />
@@ -769,9 +750,7 @@ function TransferenciasPage() {
                   value={editando.data.slice(0, 10)}
                   onChange={(e) =>
                     setEditando((p) =>
-                      p
-                        ? { ...p, data: new Date(`${e.target.value}T12:00:00`).toISOString() }
-                        : p,
+                      p ? { ...p, data: new Date(`${e.target.value}T12:00:00`).toISOString() } : p,
                     )
                   }
                 />
@@ -811,7 +790,6 @@ function TransferenciasPage() {
       </Dialog>
 
       <JogadorFormDialog
-
         open={cadastroAberto}
         onOpenChange={setCadastroAberto}
         titulo="Cadastrar jogador que chega"

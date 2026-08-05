@@ -64,7 +64,12 @@ type Stat = {
 };
 
 type Season = { id: string; nome: string };
-type Transfer = { id: string; valor: number | null; modalidade: string | null; season_id: string | null };
+type Transfer = {
+  id: string;
+  valor: number | null;
+  modalidade: string | null;
+  season_id: string | null;
+};
 
 const TODOS = "__todos__";
 
@@ -219,7 +224,12 @@ function ExJogadoresPage() {
           ) : (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {filtrados.map((j) => (
-                <button key={j.id} type="button" onClick={() => void abrir(j)} className="text-left">
+                <button
+                  key={j.id}
+                  type="button"
+                  onClick={() => void abrir(j)}
+                  className="text-left"
+                >
                   <Card className="hq-card h-full transition-colors hover:border-primary/60">
                     <CardContent className="space-y-2 py-4">
                       <div className="flex items-start justify-between gap-2">

@@ -322,10 +322,7 @@ function ElencoPage() {
                       </span>
                     </div>
                     <div className="flex flex-wrap items-center gap-2 text-xs">
-                      <Badge
-                        variant="secondary"
-                        className={CORES_STATUS[j.status ?? ""] ?? ""}
-                      >
+                      <Badge variant="secondary" className={CORES_STATUS[j.status ?? ""] ?? ""}>
                         {j.status ?? "Sem status"}
                       </Badge>
                       <div className="flex flex-wrap gap-1">
@@ -471,10 +468,7 @@ function ElencoPage() {
 
               <div className="grid gap-1">
                 <Label>Status</Label>
-                <Select
-                  value={editando.status ?? ""}
-                  onValueChange={(v) => campo({ status: v })}
-                >
+                <Select value={editando.status ?? ""} onValueChange={(v) => campo({ status: v })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
@@ -506,12 +500,8 @@ function ElencoPage() {
                     Apenas um jogador pode usar a braçadeira.
                   </p>
                 </div>
-                <Switch
-                  checked={editando.capitao}
-                  onCheckedChange={(v) => campo({ capitao: v })}
-                />
+                <Switch checked={editando.capitao} onCheckedChange={(v) => campo({ capitao: v })} />
               </div>
-
             </div>
           ) : null}
           <DialogFooter>
@@ -532,14 +522,18 @@ function ElencoPage() {
             <DialogTitle>Excluir {excluindo?.nome}</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            O jogador será apagado definitivamente, junto das estatísticas dele. Ele não vai para
-            a lista de ex-jogadores. Esta ação não pode ser desfeita.
+            O jogador será apagado definitivamente, junto das estatísticas dele. Ele não vai para a
+            lista de ex-jogadores. Esta ação não pode ser desfeita.
           </p>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setExcluindo(null)}>
               Cancelar
             </Button>
-            <Button variant="destructive" onClick={() => void excluirJogador()} disabled={removendo}>
+            <Button
+              variant="destructive"
+              onClick={() => void excluirJogador()}
+              disabled={removendo}
+            >
               {removendo ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
               Excluir definitivamente
             </Button>

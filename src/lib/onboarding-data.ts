@@ -10,7 +10,6 @@ export const ESTILOS_TATICOS = [
 
 export { POSICOES, POSICAO_LEGADO, posEn, ehGoleiro } from "./posicoes";
 
-
 export const STATUS_JOGADOR = [
   "Liberado",
   "Lesionado",
@@ -28,7 +27,6 @@ export const CARGOS_STAFF = [
 ] as const;
 
 export { PAISES } from "./paises";
-
 
 const PRIMEIROS_NOMES = [
   "Andrea",

@@ -19,7 +19,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { POSICOES, STATUS_JOGADOR } from "@/lib/onboarding-data";
 import { useSaveAtual } from "@/lib/use-save";
 
@@ -163,7 +170,8 @@ function EstatisticasPage() {
   }, [save, carregandoSave]);
 
   const nacionalidades = useMemo(
-    () => Array.from(new Set(jogadores.map((j) => j.nacionalidade).filter(Boolean))).sort() as string[],
+    () =>
+      Array.from(new Set(jogadores.map((j) => j.nacionalidade).filter(Boolean))).sort() as string[],
     [jogadores],
   );
 
@@ -218,7 +226,7 @@ function EstatisticasPage() {
       if (typeof va === "string" || typeof vb === "string") {
         return String(va ?? "").localeCompare(String(vb ?? ""), "pt-BR") * mult;
       }
-      return ((Number(va ?? -1)) - Number(vb ?? -1)) * mult;
+      return (Number(va ?? -1) - Number(vb ?? -1)) * mult;
     });
   }, [linhas, fPos, fStatus, fNac, ovrMin, ovrMax, idadeMin, idadeMax, ordem]);
 
@@ -378,7 +386,9 @@ function EstatisticasPage() {
                           className={`cursor-pointer select-none whitespace-nowrap ${c.num ? "text-right" : ""}`}
                           onClick={() => ordenar(c.key)}
                         >
-                          <span className={`inline-flex items-center gap-1 ${c.num ? "flex-row-reverse" : ""}`}>
+                          <span
+                            className={`inline-flex items-center gap-1 ${c.num ? "flex-row-reverse" : ""}`}
+                          >
                             {c.label}
                             {ordem.col === c.key ? (
                               ordem.dir === "asc" ? (
@@ -410,7 +420,9 @@ function EstatisticasPage() {
                         <TableCell>
                           <Badge variant="secondary">{posEn(l.posicao_principal) ?? "—"}</Badge>
                         </TableCell>
-                        <TableCell className="text-right font-semibold">{l.overall ?? "—"}</TableCell>
+                        <TableCell className="text-right font-semibold">
+                          {l.overall ?? "—"}
+                        </TableCell>
                         <TableCell className="text-right">{l.idade ?? "—"}</TableCell>
                         <TableCell className="text-right">{l.jogos}</TableCell>
                         <TableCell className="text-right">{l.gols}</TableCell>
@@ -421,9 +433,7 @@ function EstatisticasPage() {
                         <TableCell className="text-right">{l.amarelos}</TableCell>
                         <TableCell className="text-right">{l.vermelhos}</TableCell>
                         <TableCell className="text-right">
-                          {ehGoleiro(l.posicao_principal)
-                            ? l.extra
-                            : l.extra.toFixed(2)}
+                          {ehGoleiro(l.posicao_principal) ? l.extra : l.extra.toFixed(2)}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -451,7 +461,6 @@ function EstatisticasPage() {
                     ? (selecionado.posicoes_secundarias as string[]).map((p) => (
                         <Badge key={p} variant="secondary">
                           {posEn(p)}
-
                         </Badge>
                       ))
                     : null}
@@ -484,7 +493,9 @@ function EstatisticasPage() {
                     ["Playstyle", selecionado.playstyle ?? "—"],
                   ].map(([k, v]) => (
                     <div key={String(k)} className="rounded-lg border border-border p-3">
-                      <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{k}</p>
+                      <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                        {k}
+                      </p>
                       <p className="mt-1 font-semibold">{v}</p>
                     </div>
                   ))}
@@ -495,13 +506,18 @@ function EstatisticasPage() {
                     ["Jogos", selecionado.jogos],
                     ["Gols", selecionado.gols],
                     ["Assist.", selecionado.assist],
-                    ["Nota", selecionado.notaMedia != null ? selecionado.notaMedia.toFixed(2) : "—"],
+                    [
+                      "Nota",
+                      selecionado.notaMedia != null ? selecionado.notaMedia.toFixed(2) : "—",
+                    ],
                     ["Amarelos", selecionado.amarelos],
                     ["Vermelhos", selecionado.vermelhos],
                   ].map(([k, v]) => (
                     <div key={String(k)} className="rounded-lg bg-muted/40 p-3">
                       <p className="text-xl font-bold text-primary">{v}</p>
-                      <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{k}</p>
+                      <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                        {k}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -526,7 +542,9 @@ function EstatisticasPage() {
                               </span>
                             </p>
                             <span className="text-xs text-muted-foreground">
-                              {m?.data_hora ? new Date(m.data_hora).toLocaleDateString("pt-BR") : ""}
+                              {m?.data_hora
+                                ? new Date(m.data_hora).toLocaleDateString("pt-BR")
+                                : ""}
                             </span>
                           </div>
                           <p className="mt-1 text-xs text-muted-foreground">
