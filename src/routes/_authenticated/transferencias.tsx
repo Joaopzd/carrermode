@@ -235,7 +235,12 @@ function TransferenciasPage() {
       return;
     }
 
-    if (tipo === "saida") {
+    // Jogador que deixa o clube: numa saída é o próprio; numa entrada por troca
+    // é o atleta oferecido, que também precisa sair do elenco.
+    const jogadorQueSai =
+      tipo === "saida" || modalidade === "troca" ? jogadorElencoId || null : null;
+
+    if (jogadorQueSai) {
       await supabase
         .from("players")
         .update({
@@ -247,14 +252,15 @@ function TransferenciasPage() {
           clube_destino: clubeContraparte.trim() || null,
           transfer_saida_id: data.id as string,
         })
-        .eq("id", jogadorElencoId);
+        .eq("id", jogadorQueSai);
       void checarVendaPolemica(
         save.id,
-        jogadorElencoId,
+        jogadorQueSai,
         numOrNull(valor),
         clubeContraparte.trim() || null,
       );
     }
+
 
     setSalvando(false);
     setAberto(false);
