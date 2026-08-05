@@ -313,8 +313,66 @@ function TransferenciasPage() {
     void carregar(save.id, save.seasonId);
   }
 
+  async function salvarEdicao() {
+    if (!editando || !save) return;
+    setSalvandoEdicao(true);
+    const { error } = await supabase
+      .from("transfers")
+      .update({
+        clube_contraparte: editando.clube_contraparte,
+        valor: editando.valor,
+        duracao_emprestimo: editando.duracao_emprestimo,
+        modalidade: editando.modalidade,
+        data: editando.data,
+      })
+      .eq("id", editando.id);
+    if (!error) {
+      await supabase
+        .from("players")
+        .update({ clube_destino: editando.clube_contraparte })
+        .eq("transfer_saida_id", editando.id);
+    }
+    setSalvandoEdicao(false);
+    if (error) {
+      toast.error("Não foi possível salvar a transferência.");
+      return;
+    }
+    toast.success("Transferência atualizada!");
+    setEditando(null);
+    void carregar(save.id, save.seasonId);
+  }
+
+  async function excluirTransferencia() {
+    if (!excluindo || !save) return;
+    // Reverte a saída dos jogadores vinculados a esta negociação.
+    await supabase
+      .from("players")
+      .update({
+        ativo: true,
+        status: "Liberado",
+        data_saida: null,
+        motivo_saida: null,
+        clube_destino: null,
+        transfer_saida_id: null,
+      })
+      .eq("transfer_saida_id", excluindo.id);
+    await supabase
+      .from("news_feed")
+      .update({ relacionado_transfer_id: null })
+      .eq("relacionado_transfer_id", excluindo.id);
+    const { error } = await supabase.from("transfers").delete().eq("id", excluindo.id);
+    if (error) {
+      toast.error("Não foi possível excluir a transferência.");
+      return;
+    }
+    toast.success("Transferência excluída.");
+    setExcluindo(null);
+    void carregar(save.id, save.seasonId);
+  }
+
   const precisaDadosExternos =
     tipo === "entrada" || (tipo === "saida" && modalidade === "troca");
+
 
   return (
     <AppShell titulo="Transferências">
