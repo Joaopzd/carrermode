@@ -1,4 +1,4 @@
-import { ehGoleiro, posEn } from "@/lib/posicoes";
+import { posEn } from "@/lib/posicoes";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Heart, Loader2, Pencil, Search, UserPlus } from "lucide-react";
@@ -360,7 +360,7 @@ function ElencoPage() {
                 <div className="grid gap-1">
                   <Label>Posição principal</Label>
                   <Select
-                    value={editando.posicao_principal ?? ""}
+                    value={posEn(editando.posicao_principal) ?? ""}
                     onValueChange={(v) => campo({ posicao_principal: v })}
                   >
                     <SelectTrigger>

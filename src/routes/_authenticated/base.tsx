@@ -1,4 +1,4 @@
-import { ehGoleiro, posEn } from "@/lib/posicoes";
+import { posEn } from "@/lib/posicoes";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowUpCircle, Sparkles, Trash2, UserPlus } from "lucide-react";
