@@ -479,7 +479,7 @@ function TransferenciasPage() {
                       </span>
                       <div>
                         <p className="font-display text-lg tracking-wide">
-                          {t.player_id ? (nomePorId[t.player_id] ?? "Jogador") : "Jogador"}
+                          {rotuloJogador(t)}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {t.tipo === "entrada" ? "De" : "Para"} {t.clube_contraparte ?? "—"} ·{" "}
@@ -493,7 +493,24 @@ function TransferenciasPage() {
                         {ROTULO_MODALIDADE[t.modalidade ?? ""] ?? t.modalidade}
                       </Badge>
                       <span className="font-display text-lg">{moeda(t.valor)}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label="Editar transferência"
+                        onClick={() => setEditando(t)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label="Excluir transferência"
+                        onClick={() => setExcluindo(t)}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-400" />
+                      </Button>
                     </div>
+
                   </CardContent>
                 </Card>
               ))}
