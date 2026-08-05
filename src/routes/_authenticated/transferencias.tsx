@@ -69,7 +69,14 @@ type Transferencia = {
 };
 
 
-type JogadorSimples = { id: string; nome: string; overall: number | null; status: string | null };
+type JogadorSimples = {
+  id: string;
+  nome: string;
+  overall: number | null;
+  status: string | null;
+  ativo?: boolean | null;
+};
+
 
 const MODALIDADES = ["definitiva", "emprestimo", "troca"] as const;
 type Modalidade = (typeof MODALIDADES)[number];
