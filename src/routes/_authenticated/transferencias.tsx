@@ -162,9 +162,10 @@ function TransferenciasPage() {
   );
 
   const nomePorId = useMemo(
-    () => Object.fromEntries(elenco.map((j) => [j.id, j.nome])),
-    [elenco],
+    () => Object.fromEntries(todosJogadores.map((j) => [j.id, j.nome])),
+    [todosJogadores],
   );
+
 
   const saldo = useMemo(() => {
     const entradas = lista
