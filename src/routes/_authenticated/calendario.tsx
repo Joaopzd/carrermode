@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { CalendarDays, ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { AlertTriangle, CalendarCheck, CalendarDays, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
@@ -26,6 +26,13 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSaveAtual } from "@/lib/use-save";
 import { COMPETICOES, DIAS_SEMANA, ICONE_COMPETICAO, MESES, chaveDia } from "@/lib/match-data";
+import {
+  formatarDia,
+  lerDataCarreira,
+  partidasAtrasadas,
+  salvarDataCarreira,
+  somarDias,
+} from "@/lib/carreira-data";
 
 export const Route = createFileRoute("/_authenticated/calendario")({
   head: () => ({
@@ -61,12 +68,28 @@ function CalendarioPage() {
   const { save, carregando: carregandoSave } = useSaveAtual();
   const [partidas, setPartidas] = useState<Partida[]>([]);
   const [carregando, setCarregando] = useState(true);
-  const hoje = new Date();
   // A temporada começa em 01/07/2026 — o usuário avança os meses conforme o jogo evolui.
   const [mes, setMes] = useState(() => new Date(2026, 6, 1));
   const [diaSelecionado, setDiaSelecionado] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [form, setForm] = useState({ hora: "16:00", competicao: "Liga", adversario: "" });
+  const [dataAtual, setDataAtual] = useState("2026-07-01");
+
+  useEffect(() => {
+    if (!save) return;
+    const salvo = lerDataCarreira(save.id) ?? "2026-07-01";
+    setDataAtual(salvo);
+    setMes(new Date(`${salvo}T12:00:00`.slice(0, 4) + "-01-01"));
+    const d = new Date(`${salvo}T12:00:00`);
+    setMes(new Date(d.getFullYear(), d.getMonth(), 1));
+  }, [save]);
+
+  function definirDia(novo: string) {
+    setDataAtual(novo);
+    if (save) salvarDataCarreira(save.id, novo);
+    const d = new Date(`${novo}T12:00:00`);
+    setMes(new Date(d.getFullYear(), d.getMonth(), 1));
+  }
 
   const carregar = useCallback(async (saveId: string, seasonId: string | null) => {
     let q = supabase
@@ -191,7 +214,7 @@ function CalendarioPage() {
                   {celulas.map((d) => {
                     const k = chaveDia(d);
                     const doMes = d.getMonth() === mes.getMonth();
-                    const eHoje = k === chaveDia(new Date());
+                    const eHoje = k === dataAtual;
                     const jogos = porDia.get(k) ?? [];
                     return (
                       <button
