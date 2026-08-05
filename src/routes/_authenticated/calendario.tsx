@@ -195,6 +195,58 @@ function CalendarioPage() {
             </div>
           </header>
 
+          <Card className="hq-card">
+            <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4">
+              <div className="flex items-center gap-3">
+                <CalendarCheck className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="text-xs uppercase tracking-widest text-muted-foreground">
+                    Dia atual da carreira
+                  </p>
+                  <p className="font-display text-xl capitalize tracking-wide">
+                    {formatarDia(dataAtual)}
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Input
+                  type="date"
+                  className="w-44"
+                  value={dataAtual}
+                  onChange={(e) => e.target.value && definirDia(e.target.value)}
+                />
+                <Button variant="outline" onClick={() => definirDia(somarDias(dataAtual, 1))}>
+                  +1 dia
+                </Button>
+                <Button variant="outline" onClick={() => definirDia(somarDias(dataAtual, 7))}>
+                  +7 dias
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {atrasadas.length > 0 ? (
+            <Card className="border-amber-500/40 bg-amber-500/10">
+              <CardContent className="space-y-2 py-4">
+                <p className="flex items-center gap-2 font-semibold text-amber-400">
+                  <AlertTriangle className="h-4 w-4" /> {atrasadas.length} jogo(s) passaram sem
+                  serem fechados
+                </p>
+                {atrasadas.map((p) => (
+                  <p key={p.id} className="text-sm text-muted-foreground">
+                    {ICONE_COMPETICAO[p.competicao ?? ""] ?? "⚽"} {p.adversario} ·{" "}
+                    {p.data_hora ? new Date(p.data_hora).toLocaleDateString("pt-BR") : "—"}
+                  </p>
+                ))}
+                <Button asChild size="sm" variant="outline" className="mt-1">
+                  <Link to="/partidas">Fechar partidas</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          ) : null}
+
+
+
           {carregando ? (
             <Skeleton className="h-[520px] w-full rounded-xl" />
           ) : (
