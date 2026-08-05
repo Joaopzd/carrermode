@@ -450,7 +450,8 @@ function EstatisticasPage() {
                   {Array.isArray(selecionado.posicoes_secundarias)
                     ? (selecionado.posicoes_secundarias as string[]).map((p) => (
                         <Badge key={p} variant="secondary">
-                          {p}
+                          {posEn(p)}
+
                         </Badge>
                       ))
                     : null}
