@@ -61,11 +61,13 @@ type Transferencia = {
   tipo: string;
   modalidade: string | null;
   player_id: string | null;
+  jogador_troca_id: string | null;
   clube_contraparte: string | null;
   valor: number | null;
   duracao_emprestimo: string | null;
   data: string;
 };
+
 
 type JogadorSimples = { id: string; nome: string; overall: number | null; status: string | null };
 
