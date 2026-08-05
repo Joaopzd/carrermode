@@ -699,7 +699,119 @@ function TransferenciasPage() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={editando !== null} onOpenChange={(v) => !v && setEditando(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar transferência</DialogTitle>
+            <DialogDescription>
+              {editando ? rotuloJogador(editando) : ""}
+            </DialogDescription>
+          </DialogHeader>
+          {editando ? (
+            <div className="grid gap-3">
+              <div className="grid gap-1">
+                <Label>Modalidade</Label>
+                <Select
+                  value={editando.modalidade ?? "definitiva"}
+                  onValueChange={(v) =>
+                    setEditando((p) => (p ? { ...p, modalidade: v } : p))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MODALIDADES.map((m) => (
+                      <SelectItem key={m} value={m}>
+                        {ROTULO_MODALIDADE[m]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-1">
+                <Label>Clube contraparte</Label>
+                <Input
+                  value={editando.clube_contraparte ?? ""}
+                  onChange={(e) =>
+                    setEditando((p) => (p ? { ...p, clube_contraparte: e.target.value } : p))
+                  }
+                />
+              </div>
+              <div className="grid gap-1">
+                <Label>Valor</Label>
+                <Input
+                  type="number"
+                  value={editando.valor ?? ""}
+                  onChange={(e) =>
+                    setEditando((p) =>
+                      p ? { ...p, valor: e.target.value === "" ? null : Number(e.target.value) } : p,
+                    )
+                  }
+                />
+              </div>
+              {editando.modalidade === "emprestimo" ? (
+                <div className="grid gap-1">
+                  <Label>Duração (data de término)</Label>
+                  <Input
+                    type="date"
+                    value={editando.duracao_emprestimo ?? ""}
+                    onChange={(e) =>
+                      setEditando((p) => (p ? { ...p, duracao_emprestimo: e.target.value } : p))
+                    }
+                  />
+                </div>
+              ) : null}
+              <div className="grid gap-1">
+                <Label>Data da negociação</Label>
+                <Input
+                  type="date"
+                  value={editando.data.slice(0, 10)}
+                  onChange={(e) =>
+                    setEditando((p) =>
+                      p
+                        ? { ...p, data: new Date(`${e.target.value}T12:00:00`).toISOString() }
+                        : p,
+                    )
+                  }
+                />
+              </div>
+            </div>
+          ) : null}
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditando(null)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => void salvarEdicao()} disabled={salvandoEdicao}>
+              {salvandoEdicao ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={excluindo !== null} onOpenChange={(v) => !v && setExcluindo(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Excluir transferência</DialogTitle>
+            <DialogDescription>
+              A negociação será removida do histórico. Jogadores que saíram por ela voltam ao
+              elenco.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setExcluindo(null)}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={() => void excluirTransferencia()}>
+              Excluir
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <JogadorFormDialog
+
         open={cadastroAberto}
         onOpenChange={setCadastroAberto}
         titulo="Cadastrar jogador que chega"
