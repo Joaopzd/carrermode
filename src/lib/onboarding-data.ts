@@ -8,21 +8,8 @@ export const ESTILOS_TATICOS = [
   "Wing Play",
 ] as const;
 
-export const POSICOES = [
-  "GOL",
-  "ZAG",
-  "LD",
-  "LE",
-  "VOL",
-  "MC",
-  "ME",
-  "MD",
-  "MEI",
-  "PD",
-  "PE",
-  "SA",
-  "CA",
-] as const;
+export { POSICOES, POSICAO_LEGADO, posEn, ehGoleiro } from "./posicoes";
+
 
 export const STATUS_JOGADOR = [
   "Liberado",
