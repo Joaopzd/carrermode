@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertTriangle, CalendarCheck, CalendarDays, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { toast } from "sonner";
@@ -158,6 +158,11 @@ function CalendarioPage() {
     setDiaSelecionado(null);
     void carregar(save.id, save.seasonId);
   }
+
+  const atrasadas = useMemo(
+    () => partidasAtrasadas(partidas, dataAtual),
+    [partidas, dataAtual],
+  );
 
   const partidasDoDia = diaSelecionado ? (porDia.get(diaSelecionado) ?? []) : [];
 
