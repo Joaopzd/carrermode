@@ -4,8 +4,10 @@ import {
   ArrowDownLeft,
   ArrowUpRight,
   Loader2,
+  Pencil,
   Plus,
   Repeat,
+  Trash2,
   TrendingUp,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -368,6 +370,16 @@ function TransferenciasPage() {
     toast.success("Transferência excluída.");
     setExcluindo(null);
     void carregar(save.id, save.seasonId);
+  }
+
+  function rotuloJogador(t: Transferencia) {
+    const entra = t.player_id ? nomePorId[t.player_id] : null;
+    const sai = t.jogador_troca_id ? nomePorId[t.jogador_troca_id] : null;
+    if (t.modalidade === "troca") {
+      if (entra && sai) return `${sai} ⇄ ${entra}`;
+      return entra ?? sai ?? "Jogador";
+    }
+    return entra ?? sai ?? "Jogador";
   }
 
   const precisaDadosExternos =
