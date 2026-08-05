@@ -80,7 +80,7 @@ const CORES_STATUS: Record<string, string> = {
 };
 
 const moeda = (v: number | null) =>
-  v === null ? "—" : `€ ${new Intl.NumberFormat("pt-BR").format(v)}`;
+  v === null ? "—" : `£ ${new Intl.NumberFormat("pt-BR").format(v)}`;
 
 function ElencoPage() {
   const { save, carregando: carregandoSave } = useSaveAtual();
