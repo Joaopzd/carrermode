@@ -1,3 +1,4 @@
+import { ehGoleiro, posEn } from "@/lib/posicoes";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Archive, UserMinus } from "lucide-react";
@@ -228,7 +229,7 @@ function ExJogadoresPage() {
                           </p>
                           <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
                             <Bandeira pais={j.nacionalidade} />
-                            {j.posicao_principal ?? "—"} · {j.idade ?? "—"} anos
+                            {posEn(j.posicao_principal) ?? "—"} · {j.idade ?? "—"} anos
                           </p>
                         </div>
                         <span className="rounded-lg bg-muted px-2 py-1 font-display text-lg">

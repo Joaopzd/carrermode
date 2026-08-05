@@ -1,3 +1,4 @@
+import { ehGoleiro, posEn } from "@/lib/posicoes";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, ChevronsUpDown } from "lucide-react";
@@ -177,7 +178,7 @@ function EstatisticasPage() {
     return jogadores.map((j) => {
       const ss = porJogador.get(j.id) ?? [];
       const notas = ss.map((s) => s.nota).filter((n): n is number => n != null);
-      const gk = j.posicao_principal === "GOL";
+      const gk = ehGoleiro(j.posicao_principal);
       return {
         ...j,
         jogos: ss.length,
@@ -200,7 +201,7 @@ function EstatisticasPage() {
     const iMin = num(idadeMin);
     const iMax = num(idadeMax);
     const arr = linhas.filter((l) => {
-      if (fPos !== TODOS && l.posicao_principal !== fPos) return false;
+      if (fPos !== TODOS && posEn(l.posicao_principal) !== fPos) return false;
       if (fStatus !== TODOS && l.status !== fStatus) return false;
       if (fNac !== TODOS && l.nacionalidade !== fNac) return false;
       if (oMin != null && (l.overall ?? 0) < oMin) return false;
@@ -407,7 +408,7 @@ function EstatisticasPage() {
                           </span>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="secondary">{l.posicao_principal ?? "—"}</Badge>
+                          <Badge variant="secondary">{posEn(l.posicao_principal) ?? "—"}</Badge>
                         </TableCell>
                         <TableCell className="text-right font-semibold">{l.overall ?? "—"}</TableCell>
                         <TableCell className="text-right">{l.idade ?? "—"}</TableCell>
@@ -420,7 +421,7 @@ function EstatisticasPage() {
                         <TableCell className="text-right">{l.amarelos}</TableCell>
                         <TableCell className="text-right">{l.vermelhos}</TableCell>
                         <TableCell className="text-right">
-                          {l.posicao_principal === "GOL"
+                          {ehGoleiro(l.posicao_principal)
                             ? l.extra
                             : l.extra.toFixed(2)}
                         </TableCell>
@@ -445,7 +446,7 @@ function EstatisticasPage() {
               </SheetHeader>
               <div className="mt-4 space-y-6">
                 <div className="flex flex-wrap gap-2">
-                  <Badge>{selecionado.posicao_principal ?? "—"}</Badge>
+                  <Badge>{posEn(selecionado.posicao_principal) ?? "—"}</Badge>
                   {Array.isArray(selecionado.posicoes_secundarias)
                     ? (selecionado.posicoes_secundarias as string[]).map((p) => (
                         <Badge key={p} variant="secondary">
@@ -530,7 +531,7 @@ function EstatisticasPage() {
                           <p className="mt-1 text-xs text-muted-foreground">
                             {m?.competicao ?? "—"} · Nota {s.nota ?? "—"} · {s.gols ?? 0}G{" "}
                             {s.assistencias ?? 0}A
-                            {selecionado.posicao_principal === "GOL"
+                            {ehGoleiro(selecionado.posicao_principal)
                               ? ` · ${s.defesas ?? 0} defesas`
                               : ` · xG ${Number(s.xg ?? 0).toFixed(2)}`}
                             {s.cartao_amarelo ? " · 🟨" : ""}

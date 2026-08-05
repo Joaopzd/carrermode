@@ -1,3 +1,4 @@
+import { ehGoleiro, posEn } from "@/lib/posicoes";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Heart, Loader2, Pencil, Search, UserPlus } from "lucide-react";
@@ -153,7 +154,7 @@ function ElencoPage() {
       jogadores.filter(
         (j) =>
           j.nome.toLowerCase().includes(busca.trim().toLowerCase()) &&
-          (posicao === "todas" || j.posicao_principal === posicao) &&
+          (posicao === "todas" || posEn(j.posicao_principal) === posicao) &&
           (status === "todos" || j.status === status),
       ),
     [jogadores, busca, posicao, status],
@@ -280,7 +281,7 @@ function ElencoPage() {
                           )}
                         </p>
                         <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <span>{j.posicao_principal ?? "—"}</span>
+                          <span>{posEn(j.posicao_principal) ?? "—"}</span>
                           <span>·</span>
                           <Bandeira pais={j.nacionalidade} />
                           <span>{j.nacionalidade ?? "—"}</span>
