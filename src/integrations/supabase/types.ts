@@ -438,6 +438,51 @@ export type Database = {
           },
         ]
       }
+      player_overall_history: {
+        Row: {
+          id: string
+          motivo: Database["public"]["Enums"]["player_overall_history_reason"]
+          overall: number
+          player_id: string
+          registrado_em: string
+          season_id: string
+          valor_mercado: number | null
+        }
+        Insert: {
+          id?: string
+          motivo: Database["public"]["Enums"]["player_overall_history_reason"]
+          overall: number
+          player_id: string
+          registrado_em?: string
+          season_id: string
+          valor_mercado?: number | null
+        }
+        Update: {
+          id?: string
+          motivo?: Database["public"]["Enums"]["player_overall_history_reason"]
+          overall?: number
+          player_id?: string
+          registrado_em?: string
+          season_id?: string
+          valor_mercado?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_overall_history_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_overall_history_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       players: {
         Row: {
           altura: number | null
@@ -830,6 +875,12 @@ export type Database = {
         | "emprestimo"
         | "liberado"
         | "fim_de_contrato"
+        | "aposentadoria"
+        | "rescisao_contrato"
+      player_overall_history_reason:
+        | "cadastro_inicial"
+        | "atualizacao_manual"
+        | "fim_temporada"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -962,6 +1013,13 @@ export const Constants = {
         "emprestimo",
         "liberado",
         "fim_de_contrato",
+        "aposentadoria",
+        "rescisao_contrato",
+      ],
+      player_overall_history_reason: [
+        "cadastro_inicial",
+        "atualizacao_manual",
+        "fim_temporada",
       ],
     },
   },
