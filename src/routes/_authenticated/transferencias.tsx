@@ -216,7 +216,7 @@ function TransferenciasPage() {
         season_id: save.seasonId,
         tipo,
         modalidade,
-        player_id: tipo === "saida" ? jogadorElencoId : null,
+        player_id: tipo === "saida" && modalidade !== "troca" ? jogadorElencoId : null,
         jogador_troca_id: modalidade === "troca" && jogadorElencoId ? jogadorElencoId : null,
         clube_contraparte: clubeContraparte.trim() || null,
         valor: numOrNull(valor),
@@ -237,7 +237,7 @@ function TransferenciasPage() {
       tipo === "saida" || modalidade === "troca" ? jogadorElencoId || null : null;
 
     if (jogadorQueSai) {
-      await supabase
+      const { error: saidaError } = await supabase
         .from("players")
         .update({
           status: "Transferido",
@@ -247,7 +247,16 @@ function TransferenciasPage() {
           clube_destino: clubeContraparte.trim() || null,
           transfer_saida_id: data.id as string,
         })
-        .eq("id", jogadorQueSai);
+        .eq("id", jogadorQueSai)
+        .eq("save_id", save.id)
+        .select("id")
+        .single();
+      if (saidaError) {
+        await supabase.from("transfers").delete().eq("id", data.id as string);
+        setSalvando(false);
+        toast.error("A negociação não foi concluída porque o jogador não saiu do elenco.");
+        return;
+      }
       void checarVendaPolemica(
         save.id,
         jogadorQueSai,

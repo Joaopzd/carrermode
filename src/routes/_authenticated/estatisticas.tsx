@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, ChevronsUpDown } from "lucide-react";
 import { Bandeira } from "@/components/bandeira";
+import { PlayerEvolution } from "@/components/player-evolution";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { Card, CardContent } from "@/components/ui/card";
@@ -522,6 +523,11 @@ function EstatisticasPage() {
                   ))}
                 </div>
 
+                <PlayerEvolution
+                  playerId={selecionado.id}
+                  currentOverall={selecionado.overall}
+                />
+
                 <div>
                   <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                     Histórico partida a partida
@@ -547,12 +553,12 @@ function EstatisticasPage() {
                                 : ""}
                             </span>
                           </div>
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            {m?.competicao ?? "—"} · Nota {s.nota ?? "—"} · {s.gols ?? 0}G{" "}
-                            {s.assistencias ?? 0}A
-                            {ehGoleiro(selecionado.posicao_principal)
-                              ? ` · ${s.defesas ?? 0} defesas`
-                              : ` · xG ${Number(s.xg ?? 0).toFixed(2)}`}
+                          <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                            {m?.competicao ?? "—"} · Nota {s.nota ?? "—"} · Gols {s.gols ?? 0} ·
+                            Assist. {s.assistencias ?? 0} · xG {Number(s.xg ?? 0).toFixed(2)} ·
+                            Chutes {s.chutes ?? 0} · Passes {s.passes ?? 0} · Acerto {s.passes_pct ?? 0}%
+                            · Desarmes {s.desarmes ?? 0} · Defesas {s.defesas ?? 0} · Clean sheet{" "}
+                            {s.clean_sheet ? "Sim" : "Não"}
                             {s.cartao_amarelo ? " · 🟨" : ""}
                             {s.cartao_vermelho ? " · 🟥" : ""}
                           </p>

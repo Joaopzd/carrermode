@@ -1,7 +1,7 @@
 import { posEn } from "@/lib/posicoes";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Heart, Loader2, Pencil, Search, Trash2, UserPlus } from "lucide-react";
+import { Heart, Loader2, Pencil, Search, Trash2, UserMinus, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
@@ -95,6 +95,10 @@ function ElencoPage() {
   const [criando, setCriando] = useState(false);
   const [excluindo, setExcluindo] = useState<Jogador | null>(null);
   const [removendo, setRemovendo] = useState(false);
+  const [encerrando, setEncerrando] = useState<{
+    jogador: Jogador;
+    motivo: "aposentadoria" | "rescisao_contrato";
+  } | null>(null);
 
   async function definirCapitaoUnico(saveId: string, jogadorId: string) {
     await supabase
@@ -164,6 +168,7 @@ function ElencoPage() {
 
   async function salvar() {
     if (!editando) return;
+    const overallAnterior = jogadores.find((j) => j.id === editando.id)?.overall ?? null;
     setSalvando(true);
     const { error } = await supabase
       .from("players")
@@ -183,6 +188,23 @@ function ElencoPage() {
       })
       .eq("id", editando.id);
     if (!error && editando.capitao && save) await definirCapitaoUnico(save.id, editando.id);
+    if (
+      !error &&
+      save?.seasonId &&
+      editando.overall != null &&
+      editando.overall !== overallAnterior
+    ) {
+      const { error: historyError } = await supabase.from("player_overall_history").insert({
+        player_id: editando.id,
+        season_id: save.seasonId,
+        overall: editando.overall,
+        valor_mercado: editando.valor_mercado,
+        motivo: "atualizacao_manual",
+      });
+      if (historyError) {
+        toast.error("Jogador atualizado, mas não foi possível registrar a evolução.");
+      }
+    }
     setSalvando(false);
     if (error) {
       toast.error("Não foi possível salvar o jogador.");
@@ -216,6 +238,34 @@ function ElencoPage() {
     }
     toast.success("Jogador excluído do elenco.");
     setExcluindo(null);
+    setEditando(null);
+    void carregar(save.id);
+  }
+
+  async function encerrarVinculo() {
+    if (!encerrando || !save) return;
+    setRemovendo(true);
+    const aposentadoria = encerrando.motivo === "aposentadoria";
+    const { error } = await supabase
+      .from("players")
+      .update({
+        ativo: false,
+        capitao: false,
+        status: aposentadoria ? "Aposentado" : "Contrato rescindido",
+        data_saida: new Date().toISOString().slice(0, 10),
+        motivo_saida: encerrando.motivo,
+        clube_destino: null,
+        transfer_saida_id: null,
+      })
+      .eq("id", encerrando.jogador.id)
+      .eq("save_id", save.id);
+    setRemovendo(false);
+    if (error) {
+      toast.error("Não foi possível concluir a saída do jogador.");
+      return;
+    }
+    toast.success(aposentadoria ? "Aposentadoria registrada." : "Contrato rescindido.");
+    setEncerrando(null);
     setEditando(null);
     void carregar(save.id);
   }
@@ -502,6 +552,20 @@ function ElencoPage() {
                 </div>
                 <Switch checked={editando.capitao} onCheckedChange={(v) => campo({ capitao: v })} />
               </div>
+              <div className="grid grid-cols-2 gap-2 border-t border-border pt-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setEncerrando({ jogador: editando, motivo: "aposentadoria" })}
+                >
+                  <UserMinus className="mr-1 h-4 w-4" /> Aposentar
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setEncerrando({ jogador: editando, motivo: "rescisao_contrato" })}
+                >
+                  Rescindir contrato
+                </Button>
+              </div>
             </div>
           ) : null}
           <DialogFooter>
@@ -511,6 +575,27 @@ function ElencoPage() {
             <Button onClick={salvar} disabled={salvando}>
               {salvando ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
               Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={encerrando !== null} onOpenChange={(v) => !v && setEncerrando(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {encerrando?.motivo === "aposentadoria" ? "Aposentar" : "Rescindir contrato de"}{" "}
+              {encerrando?.jogador.nome}
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            O jogador deixará o elenco ativo e será preservado em Ex-jogadores com todo o histórico.
+          </p>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEncerrando(null)}>Cancelar</Button>
+            <Button variant="destructive" onClick={() => void encerrarVinculo()} disabled={removendo}>
+              {removendo ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
+              Confirmar saída
             </Button>
           </DialogFooter>
         </DialogContent>

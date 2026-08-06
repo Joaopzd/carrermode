@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Archive, UserMinus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
+import { PlayerEvolution } from "@/components/player-evolution";
 import { Bandeira } from "@/components/bandeira";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -333,6 +334,10 @@ function ExJogadoresPage() {
                     </div>
                   ))}
                 </div>
+                <PlayerEvolution
+                  playerId={selecionado.id}
+                  currentOverall={selecionado.overall}
+                />
                 <p className="text-xs text-muted-foreground">
                   Estatísticas somadas de todas as temporadas em que o jogador atuou pelo clube.
                 </p>
