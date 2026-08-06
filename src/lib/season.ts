@@ -30,6 +30,8 @@ export const MOTIVOS_SAIDA = [
   { valor: "emprestimo", rotulo: "Empréstimo" },
   { valor: "liberado", rotulo: "Liberado" },
   { valor: "fim_de_contrato", rotulo: "Fim de contrato" },
+  { valor: "aposentadoria", rotulo: "Aposentadoria" },
+  { valor: "rescisao_contrato", rotulo: "Rescisão de contrato" },
 ] as const;
 
 export function rotuloMotivo(m: string | null | undefined) {
