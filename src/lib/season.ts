@@ -88,7 +88,10 @@ export async function encerrarTemporada(saveId: string, seasonId: string) {
         .eq("season_id", seasonId)
         .eq("status", "finalizada"),
       supabase.from("match_player_stats").select("player_id, gols, match_id"),
-      supabase.from("players").select("id, nome").eq("save_id", saveId),
+      supabase
+        .from("players")
+        .select("id, nome, overall, valor_mercado, ativo")
+        .eq("save_id", saveId),
       supabase.from("transfers").select("tipo, valor").eq("save_id", saveId).eq("season_id", seasonId),
       supabase
         .from("standings_snapshot")
@@ -157,6 +160,20 @@ export async function encerrarTemporada(saveId: string, seasonId: string) {
     saidas,
     saldo_transferencias: saidas - entradas,
   };
+
+  const snapshots = (playersRes.data ?? [])
+    .filter((player) => player.ativo && player.overall != null)
+    .map((player) => ({
+      player_id: player.id,
+      season_id: seasonId,
+      overall: player.overall as number,
+      valor_mercado: player.valor_mercado,
+      motivo: "fim_temporada" as const,
+    }));
+  if (snapshots.length > 0) {
+    const { error } = await supabase.from("player_overall_history").insert(snapshots);
+    if (error) throw error;
+  }
 
   await supabase
     .from("seasons")
