@@ -259,6 +259,8 @@ function TransferenciasPage() {
         clube_contraparte: clubeContraparte.trim() || null,
         valor: numOrNull(valor),
         duracao_emprestimo: modalidade === "emprestimo" ? duracao || null : null,
+        janela,
+        data: new Date(`${dataNeg || hojeISO()}T12:00:00`).toISOString(),
       })
       .select("id")
       .maybeSingle();
