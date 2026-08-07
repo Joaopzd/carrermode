@@ -499,10 +499,60 @@ function TransferenciasPage() {
                 ))}
               </SelectContent>
             </Select>
+            <Select value={filtroJanela} onValueChange={setFiltroJanela}>
+              <SelectTrigger className="w-44">
+                <SelectValue placeholder="Janela" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todas">Todas as janelas</SelectItem>
+                <SelectItem value="verao">☀️ Verão</SelectItem>
+                <SelectItem value="inverno">❄️ Inverno</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          {carregando ? (
-            <Skeleton className="h-64 w-full rounded-xl" />
+          <Card className="hq-card">
+            <CardContent className="space-y-3 py-4">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-emerald-400">{resumoFiltrado.entradas} entradas</span>
+                <span className="text-red-400">{resumoFiltrado.saidas} saídas</span>
+              </div>
+              <div className="flex h-2 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full bg-emerald-500"
+                  style={{
+                    width: `${resumoFiltrado.total ? (resumoFiltrado.entradas / resumoFiltrado.total) * 100 : 0}%`,
+                  }}
+                />
+                <div
+                  className="h-full bg-red-500"
+                  style={{
+                    width: `${resumoFiltrado.total ? (resumoFiltrado.saidas / resumoFiltrado.total) * 100 : 0}%`,
+                  }}
+                />
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-center text-xs text-muted-foreground">
+                <div>
+                  <p className="font-display text-lg text-foreground">
+                    {resumoFiltrado.porModalidade.definitiva}
+                  </p>
+                  Definitivas
+                </div>
+                <div>
+                  <p className="font-display text-lg text-foreground">
+                    {resumoFiltrado.porModalidade.emprestimo}
+                  </p>
+                  Empréstimos
+                </div>
+                <div>
+                  <p className="font-display text-lg text-foreground">
+                    {resumoFiltrado.porModalidade.troca}
+                  </p>
+                  Trocas
+                </div>
+              </div>
+            </CardContent>
+          </Card>
           ) : filtrada.length === 0 ? (
             <Card className="border-dashed">
               <CardContent className="py-14 text-center">
