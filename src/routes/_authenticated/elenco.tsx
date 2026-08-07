@@ -1,7 +1,19 @@
 import { posEn } from "@/lib/posicoes";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Heart, Loader2, Pencil, Search, Trash2, UserMinus, UserPlus } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  Heart,
+  LayoutGrid,
+  List,
+  Loader2,
+  Pencil,
+  Search,
+  Trash2,
+  UserMinus,
+  UserPlus,
+} from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
