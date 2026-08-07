@@ -417,6 +417,74 @@ function ElencoPage() {
                 </p>
               </CardContent>
             </Card>
+          ) : visao === "lista" ? (
+            <Card className="hq-card overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border text-left text-xs uppercase tracking-widest text-muted-foreground">
+                    <th className="px-3 py-2">Nome</th>
+                    <th className="px-3 py-2">Posição</th>
+                    <th className="px-3 py-2">Overall</th>
+                    <th className="px-3 py-2">Status</th>
+                    <th className="px-3 py-2">Idade</th>
+                    <th className="px-3 py-2">Valor</th>
+                    <th className="px-3 py-2">Salário</th>
+                    <th className="px-3 py-2 text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtrados.map((j) => (
+                    <tr key={j.id} className="border-b border-border/50 last:border-0">
+                      <td className="px-3 py-2">
+                        <span className="flex items-center gap-1.5">
+                          <Bandeira pais={j.nacionalidade} />
+                          <span className="font-medium">{j.nome}</span>
+                          {j.capitao && (
+                            <span className="rounded bg-primary/15 px-1 text-[10px] font-semibold text-primary">
+                              C
+                            </span>
+                          )}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2">{posEn(j.posicao_principal) ?? "—"}</td>
+                      <td className="px-3 py-2">
+                        <span
+                          className={`rounded-md px-2 py-0.5 font-display ${corOverall(j.overall)}`}
+                        >
+                          {j.overall ?? "—"}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2">
+                        <Badge variant="secondary" className={CORES_STATUS[j.status ?? ""] ?? ""}>
+                          {j.status ?? "—"}
+                        </Badge>
+                      </td>
+                      <td className="px-3 py-2">{j.idade ?? "—"}</td>
+                      <td className="px-3 py-2">{moeda(j.valor_mercado)}</td>
+                      <td className="px-3 py-2">{moeda(j.salario)}</td>
+                      <td className="px-3 py-2 text-right whitespace-nowrap">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Editar ${j.nome}`}
+                          onClick={() => setEditando(j)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Excluir ${j.nome}`}
+                          onClick={() => setExcluindo(j)}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-400" />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </Card>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {filtrados.map((j) => (
