@@ -553,6 +553,9 @@ function TransferenciasPage() {
               </div>
             </CardContent>
           </Card>
+
+          {carregando ? (
+            <Skeleton className="h-64 w-full rounded-xl" />
           ) : filtrada.length === 0 ? (
             <Card className="border-dashed">
               <CardContent className="py-14 text-center">
