@@ -172,10 +172,22 @@ function TransferenciasPage() {
       lista.filter(
         (t) =>
           (filtroTipo === "todos" || t.tipo === filtroTipo) &&
-          (filtroModalidade === "todas" || t.modalidade === filtroModalidade),
+          (filtroModalidade === "todas" || t.modalidade === filtroModalidade) &&
+          (filtroJanela === "todas" || (t.janela ?? janelaDoDia(t.data.slice(0, 10))) === filtroJanela),
       ),
-    [lista, filtroTipo, filtroModalidade],
+    [lista, filtroTipo, filtroModalidade, filtroJanela],
   );
+
+  const resumoFiltrado = useMemo(() => {
+    const entradas = filtrada.filter((t) => t.tipo === "entrada").length;
+    const saidas = filtrada.filter((t) => t.tipo === "saida").length;
+    const porModalidade = {
+      definitiva: filtrada.filter((t) => t.modalidade === "definitiva").length,
+      emprestimo: filtrada.filter((t) => t.modalidade === "emprestimo").length,
+      troca: filtrada.filter((t) => t.modalidade === "troca").length,
+    };
+    return { entradas, saidas, total: entradas + saidas, porModalidade };
+  }, [filtrada]);
 
   const nomePorId = useMemo(
     () => Object.fromEntries(todosJogadores.map((j) => [j.id, j.nome])),
@@ -190,6 +202,11 @@ function TransferenciasPage() {
     return { entradas, saidas, total: saidas - entradas };
   }, [lista]);
 
+  function definirData(novo: string) {
+    setDataNeg(novo);
+    if (!janelaManual && novo) setJanela(janelaDoDia(novo));
+  }
+
   function resetar() {
     setEtapa(1);
     setTipo("entrada");
@@ -201,6 +218,10 @@ function TransferenciasPage() {
     setValor("");
     setDuracao("");
     setJogadorElencoId("");
+    const hoje = hojeISO();
+    setDataNeg(hoje);
+    setJanela(janelaDoDia(hoje));
+    setJanelaManual(false);
   }
 
   function abrirWizard() {
