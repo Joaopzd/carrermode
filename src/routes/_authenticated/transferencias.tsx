@@ -115,6 +115,7 @@ function TransferenciasPage() {
   const [carregando, setCarregando] = useState(true);
   const [filtroTipo, setFiltroTipo] = useState("todos");
   const [filtroModalidade, setFiltroModalidade] = useState("todas");
+  const [filtroJanela, setFiltroJanela] = useState("todas");
 
   // wizard
   const [aberto, setAberto] = useState(false);
@@ -131,6 +132,9 @@ function TransferenciasPage() {
   const [valor, setValor] = useState("");
   const [duracao, setDuracao] = useState("");
   const [jogadorElencoId, setJogadorElencoId] = useState("");
+  const [dataNeg, setDataNeg] = useState(hojeISO);
+  const [janela, setJanela] = useState<Janela>(() => janelaDoDia(hojeISO()));
+  const [janelaManual, setJanelaManual] = useState(false);
 
   // cadastro do jogador que chega
   const [cadastroAberto, setCadastroAberto] = useState(false);
