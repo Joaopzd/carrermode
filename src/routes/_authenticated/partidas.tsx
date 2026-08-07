@@ -242,10 +242,15 @@ function PartidasPage() {
                         <div>
                           <p className="font-semibold">
                             {ICONE_COMPETICAO[p.competicao ?? ""] ?? "⚽"}{" "}
-                            {save?.clubeNome ?? "Meu clube"} x {p.adversario}
+                            {(p as { mando?: string }).mando === "fora"
+                              ? `${p.adversario} x ${save?.clubeNome ?? "Meu clube"}`
+                              : `${save?.clubeNome ?? "Meu clube"} x ${p.adversario}`}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {p.competicao ?? "—"}
+                            {(p as { mando?: string }).mando === "fora"
+                              ? "✈️ Fora"
+                              : "🏟️ Casa"}{" "}
+                            · {p.competicao ?? "—"}
                             {p.data_hora
                               ? ` · ${new Date(p.data_hora).toLocaleString("pt-BR", {
                                   day: "2-digit",
