@@ -82,6 +82,24 @@ const CORES_STATUS: Record<string, string> = {
 const moeda = (v: number | null) =>
   v === null ? "—" : `£ ${new Intl.NumberFormat("pt-BR").format(v)}`;
 
+/** Vermelho ≤64 · amarelo 65-74 · verde 75-84 · azul ≥85. */
+function corOverall(overall: number | null) {
+  if (overall === null) return "bg-muted text-muted-foreground";
+  if (overall <= 64) return "bg-red-500/15 text-red-400";
+  if (overall <= 74) return "bg-amber-500/15 text-amber-400";
+  if (overall <= 84) return "bg-emerald-500/15 text-emerald-400";
+  return "bg-sky-500/15 text-sky-400";
+}
+
+const ORDENACOES = [
+  { valor: "overall", rotulo: "Overall" },
+  { valor: "idade", rotulo: "Idade" },
+  { valor: "valor_mercado", rotulo: "Valor de mercado" },
+  { valor: "salario", rotulo: "Salário" },
+  { valor: "nome", rotulo: "Nome" },
+] as const;
+type CampoOrdem = (typeof ORDENACOES)[number]["valor"];
+
 function ElencoPage() {
   const { save, carregando: carregandoSave } = useSaveAtual();
   const [jogadores, setJogadores] = useState<Jogador[]>([]);
