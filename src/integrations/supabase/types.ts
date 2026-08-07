@@ -293,6 +293,7 @@ export type Database = {
           data_hora: string | null
           desarmes: number | null
           id: string
+          mando: Database["public"]["Enums"]["match_venue"]
           passes: number | null
           passes_pct: number | null
           placar_adversario: number | null
@@ -314,6 +315,7 @@ export type Database = {
           data_hora?: string | null
           desarmes?: number | null
           id?: string
+          mando?: Database["public"]["Enums"]["match_venue"]
           passes?: number | null
           passes_pct?: number | null
           placar_adversario?: number | null
@@ -335,6 +337,7 @@ export type Database = {
           data_hora?: string | null
           desarmes?: number | null
           id?: string
+          mando?: Database["public"]["Enums"]["match_venue"]
           passes?: number | null
           passes_pct?: number | null
           placar_adversario?: number | null
@@ -796,6 +799,7 @@ export type Database = {
           data: string
           duracao_emprestimo: string | null
           id: string
+          janela: Database["public"]["Enums"]["transfer_window"] | null
           jogador_troca_id: string | null
           modalidade: string | null
           player_id: string | null
@@ -809,6 +813,7 @@ export type Database = {
           data?: string
           duracao_emprestimo?: string | null
           id?: string
+          janela?: Database["public"]["Enums"]["transfer_window"] | null
           jogador_troca_id?: string | null
           modalidade?: string | null
           player_id?: string | null
@@ -822,6 +827,7 @@ export type Database = {
           data?: string
           duracao_emprestimo?: string | null
           id?: string
+          janela?: Database["public"]["Enums"]["transfer_window"] | null
           jogador_troca_id?: string | null
           modalidade?: string | null
           player_id?: string | null
@@ -870,6 +876,7 @@ export type Database = {
       owns_save: { Args: { _save_id: string }; Returns: boolean }
     }
     Enums: {
+      match_venue: "casa" | "fora"
       motivo_saida:
         | "transferencia_definitiva"
         | "emprestimo"
@@ -881,6 +888,7 @@ export type Database = {
         | "cadastro_inicial"
         | "atualizacao_manual"
         | "fim_temporada"
+      transfer_window: "verao" | "inverno"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1008,6 +1016,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      match_venue: ["casa", "fora"],
       motivo_saida: [
         "transferencia_definitiva",
         "emprestimo",
@@ -1021,6 +1030,7 @@ export const Constants = {
         "atualizacao_manual",
         "fim_temporada",
       ],
+      transfer_window: ["verao", "inverno"],
     },
   },
 } as const
