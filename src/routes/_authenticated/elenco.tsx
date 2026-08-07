@@ -176,16 +176,21 @@ function ElencoPage() {
     void carregar(save.id);
   }, [save, carregandoSave]);
 
-  const filtrados = useMemo(
-    () =>
-      jogadores.filter(
-        (j) =>
-          j.nome.toLowerCase().includes(busca.trim().toLowerCase()) &&
-          (posicao === "todas" || posEn(j.posicao_principal) === posicao) &&
-          (status === "todos" || j.status === status),
-      ),
-    [jogadores, busca, posicao, status],
-  );
+  const filtrados = useMemo(() => {
+    const base = jogadores.filter(
+      (j) =>
+        j.nome.toLowerCase().includes(busca.trim().toLowerCase()) &&
+        (posicao === "todas" || posEn(j.posicao_principal) === posicao) &&
+        (status === "todos" || j.status === status),
+    );
+    const dir = asc ? 1 : -1;
+    return [...base].sort((a, b) => {
+      if (ordem === "nome") return a.nome.localeCompare(b.nome, "pt-BR") * dir;
+      const va = a[ordem] ?? -Infinity;
+      const vb = b[ordem] ?? -Infinity;
+      return (Number(va) - Number(vb)) * dir;
+    });
+  }, [jogadores, busca, posicao, status, ordem, asc]);
 
   async function salvar() {
     if (!editando) return;
