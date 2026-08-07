@@ -769,6 +769,40 @@ function TransferenciasPage() {
                   />
                 </div>
               )}
+
+              <div className="grid gap-1">
+                <Label>Data da negociação</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="date"
+                    value={dataNeg}
+                    onChange={(e) => definirData(e.target.value)}
+                  />
+                  {(["verao", "inverno"] as const).map((j) => (
+                    <button
+                      key={j}
+                      type="button"
+                      aria-label={`Janela de ${ROTULO_JANELA[j]}`}
+                      title={`Janela de ${ROTULO_JANELA[j]}`}
+                      onClick={() => {
+                        setJanela(j);
+                        setJanelaManual(true);
+                      }}
+                      className={cn(
+                        "rounded-lg border px-3 py-2 text-lg transition-colors",
+                        janela === j
+                          ? "border-primary bg-primary/10"
+                          : "border-border opacity-60 hover:opacity-100",
+                      )}
+                    >
+                      {ICONE_JANELA[j]}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Janela definida automaticamente pelo mês — clique nos ícones para trocar.
+                </p>
+              </div>
             </div>
           )}
 
