@@ -402,6 +402,26 @@ function PartidasPage() {
               </Select>
             </div>
             <div className="grid gap-1">
+              <Label>Mando de campo</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {(["casa", "fora"] as const).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setForm({ ...form, mando: m })}
+                    className={
+                      "rounded-lg border px-3 py-2 text-sm transition-colors " +
+                      (form.mando === m
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border text-muted-foreground hover:border-primary/50")
+                    }
+                  >
+                    {m === "casa" ? "🏟️ Casa (Home)" : "✈️ Fora (Away)"}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="grid gap-1">
               <Label>Adversário</Label>
               <Input
                 value={form.adversario}
