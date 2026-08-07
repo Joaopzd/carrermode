@@ -354,6 +354,44 @@ function ElencoPage() {
                 ))}
               </SelectContent>
             </Select>
+            <Select value={ordem} onValueChange={(v) => setOrdem(v as CampoOrdem)}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Ordenar por" />
+              </SelectTrigger>
+              <SelectContent>
+                {ORDENACOES.map((o) => (
+                  <SelectItem key={o.valor} value={o.valor}>
+                    Ordenar por {o.rotulo}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              size="icon"
+              aria-label={asc ? "Ordem crescente" : "Ordem decrescente"}
+              onClick={() => setAsc((v) => !v)}
+            >
+              {asc ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
+            </Button>
+            <div className="flex overflow-hidden rounded-md border border-border">
+              <Button
+                variant={visao === "cards" ? "secondary" : "ghost"}
+                size="icon"
+                aria-label="Visão em cards"
+                onClick={() => setVisao("cards")}
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={visao === "lista" ? "secondary" : "ghost"}
+                size="icon"
+                aria-label="Visão em lista"
+                onClick={() => setVisao("lista")}
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
           {carregando ? (
