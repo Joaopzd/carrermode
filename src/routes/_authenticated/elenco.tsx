@@ -511,7 +511,9 @@ function ElencoPage() {
                           <span>· {j.idade ?? "—"} anos</span>
                         </p>
                       </div>
-                      <span className="rounded-lg bg-primary/15 px-2 py-1 font-display text-lg text-primary">
+                      <span
+                        className={`rounded-lg px-2 py-1 font-display text-lg ${corOverall(j.overall)}`}
+                      >
                         {j.overall ?? "—"}
                       </span>
                     </div>
