@@ -367,6 +367,7 @@ function TransferenciasPage() {
         duracao_emprestimo: editando.duracao_emprestimo,
         modalidade: editando.modalidade,
         data: editando.data,
+        janela: (editando.janela as Janela | null) ?? janelaDoDia(editando.data.slice(0, 10)),
       })
       .eq("id", editando.id);
     if (!error) {
