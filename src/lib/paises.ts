@@ -78,6 +78,7 @@ export const PAIS_ISO: Record<string, string> = {
   Letônia: "lv",
   Líbano: "lb",
   Libéria: "lr",
+  Liechtenstein: "li",
   Líbia: "ly",
   Lituânia: "lt",
   Luxemburgo: "lu",
