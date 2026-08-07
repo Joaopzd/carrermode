@@ -79,7 +79,12 @@ function CalendarioPage() {
   const [mes, setMes] = useState(() => new Date(2026, 6, 1));
   const [diaSelecionado, setDiaSelecionado] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
-  const [form, setForm] = useState({ hora: "16:00", competicao: "Liga", adversario: "" });
+  const [form, setForm] = useState({
+    hora: "16:00",
+    competicao: "Liga",
+    adversario: "",
+    mando: "casa" as "casa" | "fora",
+  });
   const [dataAtual, setDataAtual] = useState("2026-07-01");
 
   useEffect(() => {
