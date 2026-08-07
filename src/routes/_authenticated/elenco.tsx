@@ -107,6 +107,9 @@ function ElencoPage() {
   const [busca, setBusca] = useState("");
   const [posicao, setPosicao] = useState("todas");
   const [status, setStatus] = useState("todos");
+  const [ordem, setOrdem] = useState<CampoOrdem>("overall");
+  const [asc, setAsc] = useState(false);
+  const [visao, setVisao] = useState<"cards" | "lista">("cards");
   const [editando, setEditando] = useState<Jogador | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [adicionando, setAdicionando] = useState(false);
