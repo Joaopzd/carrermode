@@ -892,15 +892,40 @@ function TransferenciasPage() {
               ) : null}
               <div className="grid gap-1">
                 <Label>Data da negociação</Label>
-                <Input
-                  type="date"
-                  value={editando.data.slice(0, 10)}
-                  onChange={(e) =>
-                    setEditando((p) =>
-                      p ? { ...p, data: new Date(`${e.target.value}T12:00:00`).toISOString() } : p,
-                    )
-                  }
-                />
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="date"
+                    value={editando.data.slice(0, 10)}
+                    onChange={(e) =>
+                      setEditando((p) =>
+                        p
+                          ? {
+                              ...p,
+                              data: new Date(`${e.target.value}T12:00:00`).toISOString(),
+                              janela: janelaDoDia(e.target.value),
+                            }
+                          : p,
+                      )
+                    }
+                  />
+                  {(["verao", "inverno"] as const).map((j) => (
+                    <button
+                      key={j}
+                      type="button"
+                      aria-label={`Janela de ${ROTULO_JANELA[j]}`}
+                      title={`Janela de ${ROTULO_JANELA[j]}`}
+                      onClick={() => setEditando((p) => (p ? { ...p, janela: j } : p))}
+                      className={cn(
+                        "rounded-lg border px-3 py-2 text-lg transition-colors",
+                        (editando.janela ?? janelaDoDia(editando.data.slice(0, 10))) === j
+                          ? "border-primary bg-primary/10"
+                          : "border-border opacity-60 hover:opacity-100",
+                      )}
+                    >
+                      {ICONE_JANELA[j]}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           ) : null}
