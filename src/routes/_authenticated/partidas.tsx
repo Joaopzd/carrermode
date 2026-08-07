@@ -70,6 +70,7 @@ function PartidasPage() {
     hora: "16:00",
     competicao: "Liga",
     adversario: "",
+    mando: "casa" as "casa" | "fora",
   });
 
   const carregar = useCallback(async (saveId: string, seasonId: string | null) => {
@@ -98,6 +99,7 @@ function PartidasPage() {
       hora: "16:00",
       competicao: "Liga",
       adversario: "",
+      mando: "casa",
     });
     setFormAberto(true);
   }
@@ -111,6 +113,7 @@ function PartidasPage() {
       hora: `${pad(d.getHours())}:${pad(d.getMinutes())}`,
       competicao: p.competicao ?? "Liga",
       adversario: p.adversario ?? "",
+      mando: ((p as { mando?: string }).mando as "casa" | "fora") ?? "casa",
     });
     setFormAberto(true);
   }
@@ -127,6 +130,7 @@ function PartidasPage() {
       data_hora: dataHora,
       competicao: form.competicao,
       adversario: form.adversario.trim(),
+      mando: form.mando,
     };
     const { error } = editandoId
       ? await supabase.from("matches").update(payload).eq("id", editandoId)
