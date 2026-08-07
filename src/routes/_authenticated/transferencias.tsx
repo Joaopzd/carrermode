@@ -432,9 +432,14 @@ function TransferenciasPage() {
         <div className="mx-auto max-w-5xl space-y-6">
           <header className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h1 className="text-gradient-pitch text-4xl">Transferências</h1>
+              <h1 className="text-gradient-pitch text-4xl">
+                {filtroJanela === "todas"
+                  ? "Transferências"
+                  : `Janela de ${ROTULO_JANELA[filtroJanela]}`}
+              </h1>
               <p className="text-sm text-muted-foreground">
-                Histórico da janela atual — {lista.length} movimentação(ões).
+                {filtroJanela === "todas" ? "Histórico completo" : ICONE_JANELA[filtroJanela]} —{" "}
+                {filtrada.length} movimentação(ões).
               </p>
             </div>
             <Button onClick={abrirWizard} disabled={!save}>
