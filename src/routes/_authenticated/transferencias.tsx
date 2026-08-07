@@ -600,6 +600,11 @@ function TransferenciasPage() {
                       <Badge variant="outline">
                         {ROTULO_MODALIDADE[t.modalidade ?? ""] ?? t.modalidade}
                       </Badge>
+                      <span
+                        title={`Janela de ${ROTULO_JANELA[t.janela ?? janelaDoDia(t.data.slice(0, 10))]}`}
+                      >
+                        {ICONE_JANELA[t.janela ?? janelaDoDia(t.data.slice(0, 10))]}
+                      </span>
                       <span className="font-display text-lg">{moeda(t.valor)}</span>
                       <Button
                         variant="ghost"
