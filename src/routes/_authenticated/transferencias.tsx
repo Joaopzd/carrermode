@@ -67,6 +67,7 @@ type Transferencia = {
   clube_contraparte: string | null;
   valor: number | null;
   duracao_emprestimo: string | null;
+  janela: string | null;
   data: string;
 };
 
@@ -86,6 +87,18 @@ const ROTULO_MODALIDADE: Record<string, string> = {
   emprestimo: "Empréstimo",
   troca: "Troca",
 };
+
+type Janela = "verao" | "inverno";
+const ICONE_JANELA: Record<string, string> = { verao: "☀️", inverno: "❄️" };
+const ROTULO_JANELA: Record<string, string> = { verao: "Verão", inverno: "Inverno" };
+
+/** Junho a agosto = verão; demais meses (janeiro incluso) = inverno. */
+function janelaDoDia(dia: string): Janela {
+  const mes = Number(dia.slice(5, 7));
+  return mes >= 6 && mes <= 8 ? "verao" : "inverno";
+}
+
+const hojeISO = () => new Date().toISOString().slice(0, 10);
 
 const moeda = (v: number | null) =>
   v === null ? "—" : `£ ${new Intl.NumberFormat("pt-BR").format(v)}`;
