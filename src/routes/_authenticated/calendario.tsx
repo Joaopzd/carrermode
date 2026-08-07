@@ -79,7 +79,12 @@ function CalendarioPage() {
   const [mes, setMes] = useState(() => new Date(2026, 6, 1));
   const [diaSelecionado, setDiaSelecionado] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
-  const [form, setForm] = useState({ hora: "16:00", competicao: "Liga", adversario: "" });
+  const [form, setForm] = useState({
+    hora: "16:00",
+    competicao: "Liga",
+    adversario: "",
+    mando: "casa" as "casa" | "fora",
+  });
   const [dataAtual, setDataAtual] = useState("2026-07-01");
 
   useEffect(() => {
@@ -152,6 +157,7 @@ function CalendarioPage() {
       data_hora: dataHora.toISOString(),
       competicao: form.competicao,
       adversario: form.adversario.trim(),
+      mando: form.mando,
       status: "agendada",
     });
     setSalvando(false);
@@ -160,7 +166,7 @@ function CalendarioPage() {
       return;
     }
     toast.success("Partida agendada!");
-    setForm({ hora: "16:00", competicao: "Liga", adversario: "" });
+    setForm({ hora: "16:00", competicao: "Liga", adversario: "", mando: "casa" });
     setDiaSelecionado(null);
     void carregar(save.id, save.seasonId);
   }
@@ -380,6 +386,26 @@ function CalendarioPage() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Mando de campo</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {(["casa", "fora"] as const).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setForm({ ...form, mando: m })}
+                    className={
+                      "rounded-lg border px-3 py-2 text-sm transition-colors " +
+                      (form.mando === m
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border text-muted-foreground hover:border-primary/50")
+                    }
+                  >
+                    {m === "casa" ? "🏟️ Casa (Home)" : "✈️ Fora (Away)"}
+                  </button>
+                ))}
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="adv">Adversário</Label>

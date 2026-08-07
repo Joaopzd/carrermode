@@ -178,7 +178,11 @@ export async function avaliarMetas(saveId: string): Promise<MetaAvaliada[]> {
         .eq("competicao", "Liga")
         .eq("status", "finalizada"),
       supabase.from("transfers").select("tipo, valor").eq("save_id", saveId),
-      supabase.from("players").select("salario").eq("save_id", saveId),
+      supabase
+        .from("players")
+        .select("salario, motivo_saida")
+        .eq("save_id", saveId)
+        .eq("ativo", true),
     ]);
 
   const { data: saveRow } = await supabase

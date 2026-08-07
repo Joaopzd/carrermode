@@ -1,7 +1,19 @@
 import { posEn } from "@/lib/posicoes";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Heart, Loader2, Pencil, Search, Trash2, UserMinus, UserPlus } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  Heart,
+  LayoutGrid,
+  List,
+  Loader2,
+  Pencil,
+  Search,
+  Trash2,
+  UserMinus,
+  UserPlus,
+} from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
@@ -82,6 +94,24 @@ const CORES_STATUS: Record<string, string> = {
 const moeda = (v: number | null) =>
   v === null ? "—" : `£ ${new Intl.NumberFormat("pt-BR").format(v)}`;
 
+/** Vermelho ≤64 · amarelo 65-74 · verde 75-84 · azul ≥85. */
+function corOverall(overall: number | null) {
+  if (overall === null) return "bg-muted text-muted-foreground";
+  if (overall <= 64) return "bg-red-500/15 text-red-400";
+  if (overall <= 74) return "bg-amber-500/15 text-amber-400";
+  if (overall <= 84) return "bg-emerald-500/15 text-emerald-400";
+  return "bg-sky-500/15 text-sky-400";
+}
+
+const ORDENACOES = [
+  { valor: "overall", rotulo: "Overall" },
+  { valor: "idade", rotulo: "Idade" },
+  { valor: "valor_mercado", rotulo: "Valor de mercado" },
+  { valor: "salario", rotulo: "Salário" },
+  { valor: "nome", rotulo: "Nome" },
+] as const;
+type CampoOrdem = (typeof ORDENACOES)[number]["valor"];
+
 function ElencoPage() {
   const { save, carregando: carregandoSave } = useSaveAtual();
   const [jogadores, setJogadores] = useState<Jogador[]>([]);
@@ -89,6 +119,9 @@ function ElencoPage() {
   const [busca, setBusca] = useState("");
   const [posicao, setPosicao] = useState("todas");
   const [status, setStatus] = useState("todos");
+  const [ordem, setOrdem] = useState<CampoOrdem>("overall");
+  const [asc, setAsc] = useState(false);
+  const [visao, setVisao] = useState<"cards" | "lista">("cards");
   const [editando, setEditando] = useState<Jogador | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [adicionando, setAdicionando] = useState(false);
@@ -155,16 +188,21 @@ function ElencoPage() {
     void carregar(save.id);
   }, [save, carregandoSave]);
 
-  const filtrados = useMemo(
-    () =>
-      jogadores.filter(
-        (j) =>
-          j.nome.toLowerCase().includes(busca.trim().toLowerCase()) &&
-          (posicao === "todas" || posEn(j.posicao_principal) === posicao) &&
-          (status === "todos" || j.status === status),
-      ),
-    [jogadores, busca, posicao, status],
-  );
+  const filtrados = useMemo(() => {
+    const base = jogadores.filter(
+      (j) =>
+        j.nome.toLowerCase().includes(busca.trim().toLowerCase()) &&
+        (posicao === "todas" || posEn(j.posicao_principal) === posicao) &&
+        (status === "todos" || j.status === status),
+    );
+    const dir = asc ? 1 : -1;
+    return [...base].sort((a, b) => {
+      if (ordem === "nome") return a.nome.localeCompare(b.nome, "pt-BR") * dir;
+      const va = a[ordem] ?? -Infinity;
+      const vb = b[ordem] ?? -Infinity;
+      return (Number(va) - Number(vb)) * dir;
+    });
+  }, [jogadores, busca, posicao, status, ordem, asc]);
 
   async function salvar() {
     if (!editando) return;
@@ -328,6 +366,44 @@ function ElencoPage() {
                 ))}
               </SelectContent>
             </Select>
+            <Select value={ordem} onValueChange={(v) => setOrdem(v as CampoOrdem)}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Ordenar por" />
+              </SelectTrigger>
+              <SelectContent>
+                {ORDENACOES.map((o) => (
+                  <SelectItem key={o.valor} value={o.valor}>
+                    Ordenar por {o.rotulo}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              size="icon"
+              aria-label={asc ? "Ordem crescente" : "Ordem decrescente"}
+              onClick={() => setAsc((v) => !v)}
+            >
+              {asc ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
+            </Button>
+            <div className="flex overflow-hidden rounded-md border border-border">
+              <Button
+                variant={visao === "cards" ? "secondary" : "ghost"}
+                size="icon"
+                aria-label="Visão em cards"
+                onClick={() => setVisao("cards")}
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={visao === "lista" ? "secondary" : "ghost"}
+                size="icon"
+                aria-label="Visão em lista"
+                onClick={() => setVisao("lista")}
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
           {carregando ? (
@@ -340,6 +416,74 @@ function ElencoPage() {
                   Nenhum jogador encontrado com esses filtros.
                 </p>
               </CardContent>
+            </Card>
+          ) : visao === "lista" ? (
+            <Card className="hq-card overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border text-left text-xs uppercase tracking-widest text-muted-foreground">
+                    <th className="px-3 py-2">Nome</th>
+                    <th className="px-3 py-2">Posição</th>
+                    <th className="px-3 py-2">Overall</th>
+                    <th className="px-3 py-2">Status</th>
+                    <th className="px-3 py-2">Idade</th>
+                    <th className="px-3 py-2">Valor</th>
+                    <th className="px-3 py-2">Salário</th>
+                    <th className="px-3 py-2 text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtrados.map((j) => (
+                    <tr key={j.id} className="border-b border-border/50 last:border-0">
+                      <td className="px-3 py-2">
+                        <span className="flex items-center gap-1.5">
+                          <Bandeira pais={j.nacionalidade} />
+                          <span className="font-medium">{j.nome}</span>
+                          {j.capitao && (
+                            <span className="rounded bg-primary/15 px-1 text-[10px] font-semibold text-primary">
+                              C
+                            </span>
+                          )}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2">{posEn(j.posicao_principal) ?? "—"}</td>
+                      <td className="px-3 py-2">
+                        <span
+                          className={`rounded-md px-2 py-0.5 font-display ${corOverall(j.overall)}`}
+                        >
+                          {j.overall ?? "—"}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2">
+                        <Badge variant="secondary" className={CORES_STATUS[j.status ?? ""] ?? ""}>
+                          {j.status ?? "—"}
+                        </Badge>
+                      </td>
+                      <td className="px-3 py-2">{j.idade ?? "—"}</td>
+                      <td className="px-3 py-2">{moeda(j.valor_mercado)}</td>
+                      <td className="px-3 py-2">{moeda(j.salario)}</td>
+                      <td className="px-3 py-2 text-right whitespace-nowrap">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Editar ${j.nome}`}
+                          onClick={() => setEditando(j)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Excluir ${j.nome}`}
+                          onClick={() => setExcluindo(j)}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-400" />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </Card>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -367,7 +511,9 @@ function ElencoPage() {
                           <span>· {j.idade ?? "—"} anos</span>
                         </p>
                       </div>
-                      <span className="rounded-lg bg-primary/15 px-2 py-1 font-display text-lg text-primary">
+                      <span
+                        className={`rounded-lg px-2 py-1 font-display text-lg ${corOverall(j.overall)}`}
+                      >
                         {j.overall ?? "—"}
                       </span>
                     </div>

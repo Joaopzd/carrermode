@@ -70,6 +70,7 @@ function PartidasPage() {
     hora: "16:00",
     competicao: "Liga",
     adversario: "",
+    mando: "casa" as "casa" | "fora",
   });
 
   const carregar = useCallback(async (saveId: string, seasonId: string | null) => {
@@ -98,6 +99,7 @@ function PartidasPage() {
       hora: "16:00",
       competicao: "Liga",
       adversario: "",
+      mando: "casa",
     });
     setFormAberto(true);
   }
@@ -111,6 +113,7 @@ function PartidasPage() {
       hora: `${pad(d.getHours())}:${pad(d.getMinutes())}`,
       competicao: p.competicao ?? "Liga",
       adversario: p.adversario ?? "",
+      mando: ((p as { mando?: string }).mando as "casa" | "fora") ?? "casa",
     });
     setFormAberto(true);
   }
@@ -127,6 +130,7 @@ function PartidasPage() {
       data_hora: dataHora,
       competicao: form.competicao,
       adversario: form.adversario.trim(),
+      mando: form.mando,
     };
     const { error } = editandoId
       ? await supabase.from("matches").update(payload).eq("id", editandoId)
@@ -238,10 +242,15 @@ function PartidasPage() {
                         <div>
                           <p className="font-semibold">
                             {ICONE_COMPETICAO[p.competicao ?? ""] ?? "⚽"}{" "}
-                            {save?.clubeNome ?? "Meu clube"} x {p.adversario}
+                            {(p as { mando?: string }).mando === "fora"
+                              ? `${p.adversario} x ${save?.clubeNome ?? "Meu clube"}`
+                              : `${save?.clubeNome ?? "Meu clube"} x ${p.adversario}`}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {p.competicao ?? "—"}
+                            {(p as { mando?: string }).mando === "fora"
+                              ? "✈️ Fora"
+                              : "🏟️ Casa"}{" "}
+                            · {p.competicao ?? "—"}
                             {p.data_hora
                               ? ` · ${new Date(p.data_hora).toLocaleString("pt-BR", {
                                   day: "2-digit",
@@ -391,6 +400,26 @@ function PartidasPage() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="grid gap-1">
+              <Label>Mando de campo</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {(["casa", "fora"] as const).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setForm({ ...form, mando: m })}
+                    className={
+                      "rounded-lg border px-3 py-2 text-sm transition-colors " +
+                      (form.mando === m
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border text-muted-foreground hover:border-primary/50")
+                    }
+                  >
+                    {m === "casa" ? "🏟️ Casa (Home)" : "✈️ Fora (Away)"}
+                  </button>
+                ))}
+              </div>
             </div>
             <div className="grid gap-1">
               <Label>Adversário</Label>

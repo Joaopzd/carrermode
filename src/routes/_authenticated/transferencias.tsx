@@ -67,6 +67,7 @@ type Transferencia = {
   clube_contraparte: string | null;
   valor: number | null;
   duracao_emprestimo: string | null;
+  janela: string | null;
   data: string;
 };
 
@@ -87,6 +88,18 @@ const ROTULO_MODALIDADE: Record<string, string> = {
   troca: "Troca",
 };
 
+type Janela = "verao" | "inverno";
+const ICONE_JANELA: Record<string, string> = { verao: "☀️", inverno: "❄️" };
+const ROTULO_JANELA: Record<string, string> = { verao: "Verão", inverno: "Inverno" };
+
+/** Junho a agosto = verão; demais meses (janeiro incluso) = inverno. */
+function janelaDoDia(dia: string): Janela {
+  const mes = Number(dia.slice(5, 7));
+  return mes >= 6 && mes <= 8 ? "verao" : "inverno";
+}
+
+const hojeISO = () => new Date().toISOString().slice(0, 10);
+
 const moeda = (v: number | null) =>
   v === null ? "—" : `£ ${new Intl.NumberFormat("pt-BR").format(v)}`;
 
@@ -102,6 +115,7 @@ function TransferenciasPage() {
   const [carregando, setCarregando] = useState(true);
   const [filtroTipo, setFiltroTipo] = useState("todos");
   const [filtroModalidade, setFiltroModalidade] = useState("todas");
+  const [filtroJanela, setFiltroJanela] = useState("todas");
 
   // wizard
   const [aberto, setAberto] = useState(false);
@@ -118,6 +132,9 @@ function TransferenciasPage() {
   const [valor, setValor] = useState("");
   const [duracao, setDuracao] = useState("");
   const [jogadorElencoId, setJogadorElencoId] = useState("");
+  const [dataNeg, setDataNeg] = useState(hojeISO);
+  const [janela, setJanela] = useState<Janela>(() => janelaDoDia(hojeISO()));
+  const [janelaManual, setJanelaManual] = useState(false);
 
   // cadastro do jogador que chega
   const [cadastroAberto, setCadastroAberto] = useState(false);
@@ -155,10 +172,22 @@ function TransferenciasPage() {
       lista.filter(
         (t) =>
           (filtroTipo === "todos" || t.tipo === filtroTipo) &&
-          (filtroModalidade === "todas" || t.modalidade === filtroModalidade),
+          (filtroModalidade === "todas" || t.modalidade === filtroModalidade) &&
+          (filtroJanela === "todas" || (t.janela ?? janelaDoDia(t.data.slice(0, 10))) === filtroJanela),
       ),
-    [lista, filtroTipo, filtroModalidade],
+    [lista, filtroTipo, filtroModalidade, filtroJanela],
   );
+
+  const resumoFiltrado = useMemo(() => {
+    const entradas = filtrada.filter((t) => t.tipo === "entrada").length;
+    const saidas = filtrada.filter((t) => t.tipo === "saida").length;
+    const porModalidade = {
+      definitiva: filtrada.filter((t) => t.modalidade === "definitiva").length,
+      emprestimo: filtrada.filter((t) => t.modalidade === "emprestimo").length,
+      troca: filtrada.filter((t) => t.modalidade === "troca").length,
+    };
+    return { entradas, saidas, total: entradas + saidas, porModalidade };
+  }, [filtrada]);
 
   const nomePorId = useMemo(
     () => Object.fromEntries(todosJogadores.map((j) => [j.id, j.nome])),
@@ -173,6 +202,11 @@ function TransferenciasPage() {
     return { entradas, saidas, total: saidas - entradas };
   }, [lista]);
 
+  function definirData(novo: string) {
+    setDataNeg(novo);
+    if (!janelaManual && novo) setJanela(janelaDoDia(novo));
+  }
+
   function resetar() {
     setEtapa(1);
     setTipo("entrada");
@@ -184,6 +218,10 @@ function TransferenciasPage() {
     setValor("");
     setDuracao("");
     setJogadorElencoId("");
+    const hoje = hojeISO();
+    setDataNeg(hoje);
+    setJanela(janelaDoDia(hoje));
+    setJanelaManual(false);
   }
 
   function abrirWizard() {
@@ -221,6 +259,8 @@ function TransferenciasPage() {
         clube_contraparte: clubeContraparte.trim() || null,
         valor: numOrNull(valor),
         duracao_emprestimo: modalidade === "emprestimo" ? duracao || null : null,
+        janela,
+        data: new Date(`${dataNeg || hojeISO()}T12:00:00`).toISOString(),
       })
       .select("id")
       .maybeSingle();
@@ -327,6 +367,7 @@ function TransferenciasPage() {
         duracao_emprestimo: editando.duracao_emprestimo,
         modalidade: editando.modalidade,
         data: editando.data,
+        janela: (editando.janela as Janela | null) ?? janelaDoDia(editando.data.slice(0, 10)),
       })
       .eq("id", editando.id);
     if (!error) {
@@ -391,9 +432,14 @@ function TransferenciasPage() {
         <div className="mx-auto max-w-5xl space-y-6">
           <header className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h1 className="text-gradient-pitch text-4xl">Transferências</h1>
+              <h1 className="text-gradient-pitch text-4xl">
+                {filtroJanela === "todas"
+                  ? "Transferências"
+                  : `Janela de ${ROTULO_JANELA[filtroJanela]}`}
+              </h1>
               <p className="text-sm text-muted-foreground">
-                Histórico da janela atual — {lista.length} movimentação(ões).
+                {filtroJanela === "todas" ? "Histórico completo" : ICONE_JANELA[filtroJanela]} —{" "}
+                {filtrada.length} movimentação(ões).
               </p>
             </div>
             <Button onClick={abrirWizard} disabled={!save}>
@@ -453,7 +499,60 @@ function TransferenciasPage() {
                 ))}
               </SelectContent>
             </Select>
+            <Select value={filtroJanela} onValueChange={setFiltroJanela}>
+              <SelectTrigger className="w-44">
+                <SelectValue placeholder="Janela" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todas">Todas as janelas</SelectItem>
+                <SelectItem value="verao">☀️ Verão</SelectItem>
+                <SelectItem value="inverno">❄️ Inverno</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
+
+          <Card className="hq-card">
+            <CardContent className="space-y-3 py-4">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-emerald-400">{resumoFiltrado.entradas} entradas</span>
+                <span className="text-red-400">{resumoFiltrado.saidas} saídas</span>
+              </div>
+              <div className="flex h-2 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full bg-emerald-500"
+                  style={{
+                    width: `${resumoFiltrado.total ? (resumoFiltrado.entradas / resumoFiltrado.total) * 100 : 0}%`,
+                  }}
+                />
+                <div
+                  className="h-full bg-red-500"
+                  style={{
+                    width: `${resumoFiltrado.total ? (resumoFiltrado.saidas / resumoFiltrado.total) * 100 : 0}%`,
+                  }}
+                />
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-center text-xs text-muted-foreground">
+                <div>
+                  <p className="font-display text-lg text-foreground">
+                    {resumoFiltrado.porModalidade.definitiva}
+                  </p>
+                  Definitivas
+                </div>
+                <div>
+                  <p className="font-display text-lg text-foreground">
+                    {resumoFiltrado.porModalidade.emprestimo}
+                  </p>
+                  Empréstimos
+                </div>
+                <div>
+                  <p className="font-display text-lg text-foreground">
+                    {resumoFiltrado.porModalidade.troca}
+                  </p>
+                  Trocas
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {carregando ? (
             <Skeleton className="h-64 w-full rounded-xl" />
@@ -501,6 +600,11 @@ function TransferenciasPage() {
                       <Badge variant="outline">
                         {ROTULO_MODALIDADE[t.modalidade ?? ""] ?? t.modalidade}
                       </Badge>
+                      <span
+                        title={`Janela de ${ROTULO_JANELA[t.janela ?? janelaDoDia(t.data.slice(0, 10))]}`}
+                      >
+                        {ICONE_JANELA[t.janela ?? janelaDoDia(t.data.slice(0, 10))]}
+                      </span>
                       <span className="font-display text-lg">{moeda(t.valor)}</span>
                       <Button
                         variant="ghost"
@@ -665,6 +769,40 @@ function TransferenciasPage() {
                   />
                 </div>
               )}
+
+              <div className="grid gap-1">
+                <Label>Data da negociação</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="date"
+                    value={dataNeg}
+                    onChange={(e) => definirData(e.target.value)}
+                  />
+                  {(["verao", "inverno"] as const).map((j) => (
+                    <button
+                      key={j}
+                      type="button"
+                      aria-label={`Janela de ${ROTULO_JANELA[j]}`}
+                      title={`Janela de ${ROTULO_JANELA[j]}`}
+                      onClick={() => {
+                        setJanela(j);
+                        setJanelaManual(true);
+                      }}
+                      className={cn(
+                        "rounded-lg border px-3 py-2 text-lg transition-colors",
+                        janela === j
+                          ? "border-primary bg-primary/10"
+                          : "border-border opacity-60 hover:opacity-100",
+                      )}
+                    >
+                      {ICONE_JANELA[j]}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Janela definida automaticamente pelo mês — clique nos ícones para trocar.
+                </p>
+              </div>
             </div>
           )}
 
@@ -754,15 +892,40 @@ function TransferenciasPage() {
               ) : null}
               <div className="grid gap-1">
                 <Label>Data da negociação</Label>
-                <Input
-                  type="date"
-                  value={editando.data.slice(0, 10)}
-                  onChange={(e) =>
-                    setEditando((p) =>
-                      p ? { ...p, data: new Date(`${e.target.value}T12:00:00`).toISOString() } : p,
-                    )
-                  }
-                />
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="date"
+                    value={editando.data.slice(0, 10)}
+                    onChange={(e) =>
+                      setEditando((p) =>
+                        p
+                          ? {
+                              ...p,
+                              data: new Date(`${e.target.value}T12:00:00`).toISOString(),
+                              janela: janelaDoDia(e.target.value),
+                            }
+                          : p,
+                      )
+                    }
+                  />
+                  {(["verao", "inverno"] as const).map((j) => (
+                    <button
+                      key={j}
+                      type="button"
+                      aria-label={`Janela de ${ROTULO_JANELA[j]}`}
+                      title={`Janela de ${ROTULO_JANELA[j]}`}
+                      onClick={() => setEditando((p) => (p ? { ...p, janela: j } : p))}
+                      className={cn(
+                        "rounded-lg border px-3 py-2 text-lg transition-colors",
+                        (editando.janela ?? janelaDoDia(editando.data.slice(0, 10))) === j
+                          ? "border-primary bg-primary/10"
+                          : "border-border opacity-60 hover:opacity-100",
+                      )}
+                    >
+                      {ICONE_JANELA[j]}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           ) : null}
