@@ -23,10 +23,14 @@ export function AppShell({ titulo, children }: { titulo: string; children: React
           <header className="flex h-14 items-center gap-3 border-b border-border px-3">
             <SidebarTrigger />
             <span className="font-display text-xl tracking-wide">{titulo}</span>
-            <Button variant="ghost" size="sm" className="ml-auto" onClick={sair}>
-              Sair
-            </Button>
+            <div className="ml-auto flex items-center gap-1">
+              <ThemeToggle />
+              <Button variant="ghost" size="sm" onClick={sair}>
+                Sair
+              </Button>
+            </div>
           </header>
+
           <main className="hq-surface flex-1">{children}</main>
         </div>
       </div>
