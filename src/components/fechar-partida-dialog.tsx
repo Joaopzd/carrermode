@@ -1,6 +1,6 @@
-import { ehGoleiro, posEn } from "@/lib/posicoes";
+import { ehGoleiro, posEn, GRUPOS_POSICAO, grupoDaPosicao } from "@/lib/posicoes";
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Save } from "lucide-react";
+import { ChevronDown, ChevronRight, Loader2, Save, Star } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,13 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +44,7 @@ export type PartidaBase = {
   desarmes: number | null;
   cartoes_amarelos: number | null;
   cartoes_vermelhos: number | null;
+  mvp_player_id?: string | null;
 };
 
 type Jogador = {
@@ -44,9 +52,11 @@ type Jogador = {
   nome: string;
   posicao_principal: string | null;
   status: string | null;
+  overall: number | null;
 };
 
 type StatJogador = {
+  titular: boolean;
   clean_sheet: boolean;
   defesas: string;
   gols: string;
@@ -63,6 +73,7 @@ type StatJogador = {
 };
 
 const STAT_VAZIA: StatJogador = {
+  titular: true,
   clean_sheet: false,
   defesas: "",
   gols: "",
@@ -78,7 +89,42 @@ const STAT_VAZIA: StatJogador = {
   nota: "",
 };
 
+const CAMPOS_NUMERICOS: (keyof StatJogador)[] = [
+  "defesas",
+  "gols",
+  "xg",
+  "chutes",
+  "assistencias",
+  "xa",
+  "passes",
+  "passes_pct",
+  "desarmes",
+];
+
 const num = (v: string) => (v.trim() === "" ? null : Number(v));
+
+function StatInput({
+  id,
+  valor,
+  onChange,
+  larguraClasse = "w-16",
+}: {
+  id: string;
+  valor: string;
+  onChange: (v: string) => void;
+  larguraClasse?: string;
+}) {
+  return (
+    <Input
+      id={id}
+      type="number"
+      step="any"
+      className={`h-8 ${larguraClasse} px-2 text-center text-sm`}
+      value={valor}
+      onChange={(e) => onChange(e.target.value)}
+    />
+  );
+}
 
 export function FecharPartidaDialog({
   partida,
@@ -99,6 +145,12 @@ export function FecharPartidaDialog({
   const [selecionados, setSelecionados] = useState<string[]>([]);
   const [stats, setStats] = useState<Record<string, StatJogador>>({});
   const [salvando, setSalvando] = useState(false);
+  const [gruposAbertos, setGruposAbertos] = useState<string[]>(
+    GRUPOS_POSICAO.map((g) => g.chave),
+  );
+  const [linhasAbertas, setLinhasAbertas] = useState<string[]>([]);
+  const [mvp, setMvp] = useState<string>("");
+  const [mvpTocado, setMvpTocado] = useState(false);
   const [jogo, setJogo] = useState({
     placar_time: "",
     placar_adversario: "",
@@ -128,12 +180,15 @@ export function FecharPartidaDialog({
       cartoes_amarelos: partida.cartoes_amarelos?.toString() ?? "",
       cartoes_vermelhos: partida.cartoes_vermelhos?.toString() ?? "",
     });
+    setMvp(partida.mvp_player_id ?? "");
+    setMvpTocado(Boolean(partida.mvp_player_id));
+    setLinhasAbertas([]);
 
     void (async () => {
       const [{ data: elenco }, { data: existentes }] = await Promise.all([
         supabase
           .from("players")
-          .select("id, nome, posicao_principal, status")
+          .select("id, nome, posicao_principal, status, overall")
           .eq("save_id", saveId)
           .eq("ativo", true)
           .order("nome"),
@@ -150,6 +205,7 @@ export function FecharPartidaDialog({
       const ids: string[] = [];
       type LinhaStat = {
         player_id: string | null;
+        titular: boolean | null;
         clean_sheet: boolean | null;
         defesas: number | null;
         gols: number | null;
@@ -169,6 +225,7 @@ export function FecharPartidaDialog({
         if (!pid) continue;
         ids.push(pid);
         mapa[pid] = {
+          titular: s.titular ?? true,
           clean_sheet: Boolean(s.clean_sheet),
           defesas: s.defesas?.toString() ?? "",
           gols: s.gols?.toString() ?? "",
@@ -194,6 +251,28 @@ export function FecharPartidaDialog({
     () => jogadores.filter((j) => selecionados.includes(j.id)),
     [jogadores, selecionados],
   );
+  const goleiros = useMemo(
+    () => escalados.filter((j) => ehGoleiro(j.posicao_principal)),
+    [escalados],
+  );
+  const linha = useMemo(
+    () => escalados.filter((j) => !ehGoleiro(j.posicao_principal)),
+    [escalados],
+  );
+
+  const sugestaoMvp = useMemo(() => {
+    let melhor: { id: string; nota: number } | null = null;
+    for (const j of escalados) {
+      const n = Number(stats[j.id]?.nota ?? "");
+      if (!Number.isFinite(n) || (stats[j.id]?.nota ?? "") === "") continue;
+      if (!melhor || n > melhor.nota) melhor = { id: j.id, nota: n };
+    }
+    return melhor?.id ?? "";
+  }, [escalados, stats]);
+
+  useEffect(() => {
+    if (!mvpTocado && sugestaoMvp) setMvp(sugestaoMvp);
+  }, [sugestaoMvp, mvpTocado]);
 
   function alternar(id: string) {
     setSelecionados((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]));
@@ -205,6 +284,46 @@ export function FecharPartidaDialog({
       ...prev,
       [id]: { ...(prev[id] ?? STAT_VAZIA), [campo]: valor },
     }));
+  }
+
+  function alternarGrupo(chave: string) {
+    setGruposAbertos((prev) =>
+      prev.includes(chave) ? prev.filter((c) => c !== chave) : [...prev, chave],
+    );
+  }
+
+  function alternarLinha(id: string) {
+    setLinhasAbertas((prev) =>
+      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id],
+    );
+  }
+
+  function aplicarNotaPadrao() {
+    setStats((prev) => {
+      const proximo = { ...prev };
+      for (const j of escalados) {
+        proximo[j.id] = { ...(proximo[j.id] ?? STAT_VAZIA), nota: "6.0" };
+      }
+      return proximo;
+    });
+    toast.success("Nota 6.0 aplicada a todos os escalados.");
+  }
+
+  function zerarEstatisticas() {
+    setStats((prev) => {
+      const proximo = { ...prev };
+      for (const j of escalados) {
+        const atual = { ...(proximo[j.id] ?? STAT_VAZIA) };
+        for (const campo of CAMPOS_NUMERICOS) {
+          if ((atual[campo] as string).trim() === "") {
+            (atual[campo] as string) = "0";
+          }
+        }
+        proximo[j.id] = atual;
+      }
+      return proximo;
+    });
+    toast.success("Campos numéricos vazios preenchidos com 0.");
   }
 
   async function salvar() {
@@ -230,6 +349,7 @@ export function FecharPartidaDialog({
         desarmes: num(jogo.desarmes),
         cartoes_amarelos: num(jogo.cartoes_amarelos),
         cartoes_vermelhos: num(jogo.cartoes_vermelhos),
+        mvp_player_id: mvp && selecionados.includes(mvp) ? mvp : null,
       })
       .eq("id", partida.id);
 
@@ -248,6 +368,7 @@ export function FecharPartidaDialog({
         return {
           match_id: partida.id,
           player_id: j.id,
+          titular: s.titular,
           clean_sheet: goleiro ? s.clean_sheet : false,
           defesas: goleiro ? num(s.defesas) : null,
           gols: num(s.gols),
@@ -282,7 +403,7 @@ export function FecharPartidaDialog({
 
   return (
     <Dialog open={aberto} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-5xl">
         <DialogHeader>
           <DialogTitle>
             {ICONE_COMPETICAO[partida?.competicao ?? ""] ?? "⚽"} {clubeNome ?? "Meu clube"} x{" "}
@@ -358,119 +479,312 @@ export function FecharPartidaDialog({
         <Separator />
 
         <section className="space-y-3">
-          <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Escalação ({selecionados.length})
-          </h3>
+          <div className="sticky top-0 z-10 -mx-1 flex items-center justify-between gap-2 bg-background/95 px-1 py-2 backdrop-blur">
+            <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+              Escalação
+            </h3>
+            <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-primary">
+              {selecionados.length} selecionado(s)
+            </span>
+          </div>
+
           {jogadores.length === 0 ? (
             <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
               Nenhum jogador disponível (status Liberado ou Convocado) no elenco.
             </p>
           ) : (
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {jogadores.map((j) => (
-                <label
-                  key={j.id}
-                  className="flex cursor-pointer items-center gap-2 rounded-lg border p-2 text-sm transition-colors hover:bg-accent/40"
-                >
-                  <Checkbox
-                    checked={selecionados.includes(j.id)}
-                    onCheckedChange={() => alternar(j.id)}
-                  />
-                  <span className="truncate">
-                    <span className="text-xs text-muted-foreground">
-                      {posEn(j.posicao_principal) ?? "—"}
-                    </span>{" "}
-                    {j.nome}
-                  </span>
-                </label>
-              ))}
+            <div className="space-y-2">
+              {GRUPOS_POSICAO.map((grupo) => {
+                const doGrupo = jogadores.filter(
+                  (j) => grupoDaPosicao(j.posicao_principal) === grupo.chave,
+                );
+                if (doGrupo.length === 0) return null;
+                const aberto = gruposAbertos.includes(grupo.chave);
+                const marcados = doGrupo.filter((j) => selecionados.includes(j.id)).length;
+                return (
+                  <div key={grupo.chave} className="rounded-xl border">
+                    <button
+                      type="button"
+                      onClick={() => alternarGrupo(grupo.chave)}
+                      className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-semibold"
+                    >
+                      {aberto ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                      {grupo.rotulo}
+                      <span className="text-xs font-normal text-muted-foreground">
+                        ({marcados}/{doGrupo.length})
+                      </span>
+                    </button>
+                    {aberto ? (
+                      <div className="grid gap-2 border-t p-3 sm:grid-cols-2">
+                        {doGrupo.map((j) => {
+                          const marcado = selecionados.includes(j.id);
+                          return (
+                            <div
+                              key={j.id}
+                              className="flex items-center gap-2 rounded-lg border p-2 text-sm"
+                            >
+                              <Checkbox
+                                checked={marcado}
+                                onCheckedChange={() => alternar(j.id)}
+                                aria-label={`Jogou: ${j.nome}`}
+                              />
+                              <span className="truncate">
+                                <span className="text-xs text-muted-foreground">
+                                  {posEn(j.posicao_principal) ?? "—"}
+                                </span>{" "}
+                                {j.nome}
+                                <span className="ml-1 text-xs text-muted-foreground">
+                                  ({j.overall ?? "—"})
+                                </span>
+                              </span>
+                              {marcado ? (
+                                <label className="ml-auto flex shrink-0 items-center gap-1.5 text-[11px] text-muted-foreground">
+                                  <Switch
+                                    checked={!(stats[j.id]?.titular ?? true)}
+                                    onCheckedChange={(v) => setStat(j.id, "titular", !v)}
+                                  />
+                                  Entrou do banco
+                                </label>
+                              ) : null}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })}
             </div>
           )}
         </section>
 
         {escalados.length > 0 ? (
           <section className="space-y-3">
-            <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Estatísticas individuais
-            </h3>
-            {escalados.map((j) => {
-              const s = stats[j.id] ?? STAT_VAZIA;
-              const goleiro = ehGoleiro(j.posicao_principal);
-              const campos: [keyof StatJogador, string][] = goleiro
-                ? [
-                    ["defesas", "Defesas"],
-                    ["passes", "Passes"],
-                    ["passes_pct", "% passes"],
-                    ["gols", "Gols"],
-                    ["assistencias", "Assistências"],
-                    ["nota", "Nota (0-10)"],
-                  ]
-                : [
-                    ["gols", "Gols"],
-                    ["xg", "xG"],
-                    ["chutes", "Chutes"],
-                    ["assistencias", "Assistências"],
-                    ["xa", "xA"],
-                    ["passes", "Passes"],
-                    ["passes_pct", "% passes"],
-                    ["desarmes", "Desarmes"],
-                    ["nota", "Nota (0-10)"],
-                  ];
-              return (
-                <div key={j.id} className="rounded-xl border p-3">
-                  <p className="mb-2 font-semibold">
-                    <span className="mr-2 rounded bg-primary/15 px-1.5 py-0.5 text-xs text-primary">
-                      {posEn(j.posicao_principal) ?? "—"}
-                    </span>
-                    {j.nome}
-                  </p>
-                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                    {campos.map(([campo, rotulo]) => (
-                      <div key={campo} className="space-y-1">
-                        <Label htmlFor={`${j.id}-${campo}`} className="text-xs">
-                          {rotulo}
-                        </Label>
-                        <Input
-                          id={`${j.id}-${campo}`}
-                          type="number"
-                          step="any"
-                          value={s[campo] as string}
-                          onChange={(e) => setStat(j.id, campo, e.target.value)}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-3 flex flex-wrap gap-4">
-                    {goleiro ? (
-                      <label className="flex items-center gap-2 text-sm">
-                        <Switch
-                          checked={s.clean_sheet}
-                          onCheckedChange={(v) => setStat(j.id, "clean_sheet", v)}
-                        />
-                        Clean sheet
-                      </label>
-                    ) : (
-                      <>
-                        <label className="flex items-center gap-2 text-sm">
-                          <Switch
-                            checked={s.cartao_amarelo}
-                            onCheckedChange={(v) => setStat(j.id, "cartao_amarelo", v)}
-                          />
-                          🟨 Amarelo
-                        </label>
-                        <label className="flex items-center gap-2 text-sm">
-                          <Switch
-                            checked={s.cartao_vermelho}
-                            onCheckedChange={(v) => setStat(j.id, "cartao_vermelho", v)}
-                          />
-                          🟥 Vermelho
-                        </label>
-                      </>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Estatísticas individuais
+              </h3>
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={aplicarNotaPadrao}>
+                  Aplicar nota 6.0 a todos
+                </Button>
+                <Button type="button" variant="outline" size="sm" onClick={zerarEstatisticas}>
+                  Zerar estatísticas
+                </Button>
+              </div>
+            </div>
+
+            {goleiros.length > 0 ? (
+              <div className="overflow-x-auto rounded-xl border border-primary/40 bg-primary/5">
+                <table className="w-full text-sm">
+                  <thead className="text-xs uppercase tracking-wide text-muted-foreground">
+                    <tr>
+                      <th className="px-3 py-2 text-left">Goleiro</th>
+                      <th className="px-2 py-2">Clean sheet</th>
+                      <th className="px-2 py-2">Defesas</th>
+                      <th className="px-2 py-2">Passes</th>
+                      <th className="px-2 py-2">% passes</th>
+                      <th className="px-2 py-2">Gols</th>
+                      <th className="px-2 py-2">Assist.</th>
+                      <th className="px-2 py-2">Nota</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {goleiros.map((j) => {
+                      const s = stats[j.id] ?? STAT_VAZIA;
+                      return (
+                        <tr key={j.id} className="border-t">
+                          <td className="px-3 py-2">
+                            <span className="font-semibold">{j.nome}</span>
+                            {!s.titular ? (
+                              <span className="ml-1 text-[10px] text-muted-foreground">
+                                (banco)
+                              </span>
+                            ) : null}
+                          </td>
+                          <td className="px-2 py-2 text-center">
+                            <Switch
+                              checked={s.clean_sheet}
+                              onCheckedChange={(v) => setStat(j.id, "clean_sheet", v)}
+                              aria-label={`Clean sheet de ${j.nome}`}
+                            />
+                          </td>
+                          {(
+                            [
+                              "defesas",
+                              "passes",
+                              "passes_pct",
+                              "gols",
+                              "assistencias",
+                              "nota",
+                            ] as const
+                          ).map((campo) => (
+                            <td key={campo} className="px-2 py-2 text-center">
+                              <StatInput
+                                id={`${j.id}-${campo}`}
+                                valor={s[campo] as string}
+                                onChange={(v) => setStat(j.id, campo, v)}
+                              />
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : null}
+
+            {linha.length > 0 ? (
+              <div className="overflow-x-auto rounded-xl border">
+                <table className="w-full text-sm">
+                  <thead className="text-xs uppercase tracking-wide text-muted-foreground">
+                    <tr>
+                      <th className="w-8 px-2 py-2" />
+                      <th className="px-3 py-2 text-left">Jogador</th>
+                      <th className="px-2 py-2">Pos.</th>
+                      <th className="px-2 py-2">Gols</th>
+                      <th className="px-2 py-2">Assist.</th>
+                      <th className="px-2 py-2">🟨</th>
+                      <th className="px-2 py-2">🟥</th>
+                      <th className="px-2 py-2">Nota</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {linha.map((j) => {
+                      const s = stats[j.id] ?? STAT_VAZIA;
+                      const expandido = linhasAbertas.includes(j.id);
+                      return (
+                        <>
+                          <tr key={j.id} className="border-t">
+                            <td className="px-2 py-2">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                aria-label={`Detalhar ${j.nome}`}
+                                onClick={() => alternarLinha(j.id)}
+                              >
+                                {expandido ? (
+                                  <ChevronDown className="h-4 w-4" />
+                                ) : (
+                                  <ChevronRight className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </td>
+                            <td className="px-3 py-2">
+                              <span className="font-medium">{j.nome}</span>
+                              {!s.titular ? (
+                                <span className="ml-1 text-[10px] text-muted-foreground">
+                                  (banco)
+                                </span>
+                              ) : null}
+                            </td>
+                            <td className="px-2 py-2 text-center text-xs text-muted-foreground">
+                              {posEn(j.posicao_principal) ?? "—"}
+                            </td>
+                            {(["gols", "assistencias"] as const).map((campo) => (
+                              <td key={campo} className="px-2 py-2 text-center">
+                                <StatInput
+                                  id={`${j.id}-${campo}`}
+                                  valor={s[campo] as string}
+                                  onChange={(v) => setStat(j.id, campo, v)}
+                                />
+                              </td>
+                            ))}
+                            <td className="px-2 py-2 text-center">
+                              <Switch
+                                checked={s.cartao_amarelo}
+                                onCheckedChange={(v) => setStat(j.id, "cartao_amarelo", v)}
+                                aria-label={`Cartão amarelo de ${j.nome}`}
+                              />
+                            </td>
+                            <td className="px-2 py-2 text-center">
+                              <Switch
+                                checked={s.cartao_vermelho}
+                                onCheckedChange={(v) => setStat(j.id, "cartao_vermelho", v)}
+                                aria-label={`Cartão vermelho de ${j.nome}`}
+                              />
+                            </td>
+                            <td className="px-2 py-2 text-center">
+                              <StatInput
+                                id={`${j.id}-nota`}
+                                valor={s.nota}
+                                onChange={(v) => setStat(j.id, "nota", v)}
+                              />
+                            </td>
+                          </tr>
+                          {expandido ? (
+                            <tr key={`${j.id}-detalhe`} className="border-t bg-muted/30">
+                              <td colSpan={8} className="px-3 py-3">
+                                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+                                  {(
+                                    [
+                                      ["xg", "xG"],
+                                      ["chutes", "Chutes"],
+                                      ["xa", "xA"],
+                                      ["passes", "Passes"],
+                                      ["passes_pct", "% passes"],
+                                      ["desarmes", "Desarmes"],
+                                    ] as const
+                                  ).map(([campo, rotulo]) => (
+                                    <div key={campo} className="space-y-1">
+                                      <Label htmlFor={`${j.id}-${campo}`} className="text-xs">
+                                        {rotulo}
+                                      </Label>
+                                      <StatInput
+                                        id={`${j.id}-${campo}`}
+                                        valor={s[campo] as string}
+                                        onChange={(v) => setStat(j.id, campo, v)}
+                                        larguraClasse="w-full"
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                              </td>
+                            </tr>
+                          ) : null}
+                        </>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : null}
+
+            <div className="flex flex-wrap items-center gap-3 rounded-xl border border-accent/40 bg-accent/10 p-3">
+              <Star className="h-4 w-4 text-accent" />
+              <Label htmlFor="mvp-partida" className="text-sm font-semibold">
+                Craque da partida (MVP)
+              </Label>
+              <Select
+                value={mvp}
+                onValueChange={(v) => {
+                  setMvpTocado(true);
+                  setMvp(v);
+                }}
+              >
+                <SelectTrigger id="mvp-partida" className="w-full sm:w-72">
+                  <SelectValue placeholder="Selecione o MVP" />
+                </SelectTrigger>
+                <SelectContent>
+                  {escalados.map((j) => (
+                    <SelectItem key={j.id} value={j.id}>
+                      {j.nome}
+                      {stats[j.id]?.nota ? ` · nota ${stats[j.id]?.nota}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {sugestaoMvp && mvp === sugestaoMvp ? (
+                <span className="text-xs text-muted-foreground">Sugerido pela maior nota</span>
+              ) : null}
+            </div>
           </section>
         ) : null}
 
