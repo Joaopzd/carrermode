@@ -43,3 +43,20 @@ export function posEn(valor: string | null | undefined): string | null {
 export function ehGoleiro(valor: string | null | undefined): boolean {
   return posEn(valor) === "GK";
 }
+
+/** Agrupamento de posições usado na escalação. */
+export const GRUPOS_POSICAO = [
+  { chave: "GK", rotulo: "Goleiros", posicoes: ["GK"] },
+  { chave: "CB", rotulo: "Zagueiros", posicoes: ["CB"] },
+  { chave: "LAT", rotulo: "Laterais", posicoes: ["RB", "LB"] },
+  { chave: "VOL", rotulo: "Volantes", posicoes: ["CDM"] },
+  { chave: "MEI", rotulo: "Meias", posicoes: ["CM", "LM", "RM", "CAM"] },
+  { chave: "ATA", rotulo: "Atacantes", posicoes: ["RW", "LW", "CF", "ST"] },
+] as const;
+
+export function grupoDaPosicao(valor: string | null | undefined): string {
+  const p = posEn(valor);
+  const g = GRUPOS_POSICAO.find((x) => (x.posicoes as readonly string[]).includes(p ?? ""));
+  return g?.chave ?? "MEI";
+}
+
