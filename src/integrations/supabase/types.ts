@@ -1054,6 +1054,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      owns_league: { Args: { _league_id: string }; Returns: boolean }
       owns_match: { Args: { _match_id: string }; Returns: boolean }
       owns_save: { Args: { _save_id: string }; Returns: boolean }
     }
