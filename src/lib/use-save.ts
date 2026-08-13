@@ -9,6 +9,10 @@ export type SaveAtual = {
   escudo: string | null;
   seasonId: string | null;
   seasonNome: string | null;
+  leagueId: string | null;
+  ligaNome: string | null;
+  ligaPais: string | null;
+  ligaNivel: number | null;
 };
 
 export function useSaveAtual() {
@@ -26,7 +30,9 @@ export function useSaveAtual() {
       }
       const { data } = await supabase
         .from("saves")
-        .select("id, temporada, escudo_url, clubs(nome, escudo_url)")
+        .select(
+          "id, temporada, escudo_url, league_id, clubs(nome, escudo_url), leagues(id, nome, pais, nivel)",
+        )
         .eq("user_id", userId)
         .order("criado_em", { ascending: false })
         .limit(1)
@@ -35,6 +41,11 @@ export function useSaveAtual() {
       if (!ativo) return;
       if (data) {
         const clube = (data as { clubs: { nome: string; escudo_url: string | null } | null }).clubs;
+        const liga = (
+          data as {
+            leagues: { id: string; nome: string; pais: string; nivel: number } | null;
+          }
+        ).leagues;
         const season = await garantirSeasonAtiva(
           data.id as string,
           (data.temporada as string) || "Temporada 1",
@@ -48,6 +59,10 @@ export function useSaveAtual() {
             ((data as { escudo_url: string | null }).escudo_url ?? clube?.escudo_url) ?? null,
           seasonId: season?.id ?? null,
           seasonNome: season?.nome ?? null,
+          leagueId: liga?.id ?? ((data as { league_id: string | null }).league_id ?? null),
+          ligaNome: liga?.nome ?? null,
+          ligaPais: liga?.pais ?? null,
+          ligaNivel: liga?.nivel ?? null,
         });
       }
       setCarregando(false);
