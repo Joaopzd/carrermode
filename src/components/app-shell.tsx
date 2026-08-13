@@ -2,8 +2,10 @@ import type { ReactNode } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+
 
 export function AppShell({ titulo, children }: { titulo: string; children: ReactNode }) {
   const navigate = useNavigate();
