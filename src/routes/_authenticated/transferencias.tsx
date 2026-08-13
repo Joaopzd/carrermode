@@ -33,6 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import {
   JogadorFormDialog,
   formParaPayload,
@@ -69,6 +70,11 @@ type Transferencia = {
   duracao_emprestimo: string | null;
   janela: string | null;
   data: string;
+  tem_opcao_compra?: boolean | null;
+  valor_opcao_compra?: number | null;
+  obrigacao_compra?: boolean | null;
+  status_opcao?: string | null;
+  transfer_origem_emprestimo_id?: string | null;
 };
 
 type JogadorSimples = {
@@ -135,6 +141,10 @@ function TransferenciasPage() {
   const [dataNeg, setDataNeg] = useState(hojeISO);
   const [janela, setJanela] = useState<Janela>(() => janelaDoDia(hojeISO()));
   const [janelaManual, setJanelaManual] = useState(false);
+  const [temOpcao, setTemOpcao] = useState(false);
+  const [valorOpcao, setValorOpcao] = useState("");
+  const [obrigacaoCompra, setObrigacaoCompra] = useState(false);
+  const [processandoOpcao, setProcessandoOpcao] = useState<string | null>(null);
 
   // cadastro do jogador que chega
   const [cadastroAberto, setCadastroAberto] = useState(false);
@@ -222,6 +232,9 @@ function TransferenciasPage() {
     setDataNeg(hoje);
     setJanela(janelaDoDia(hoje));
     setJanelaManual(false);
+    setTemOpcao(false);
+    setValorOpcao("");
+    setObrigacaoCompra(false);
   }
 
   function abrirWizard() {
@@ -260,6 +273,11 @@ function TransferenciasPage() {
         valor: numOrNull(valor),
         duracao_emprestimo: modalidade === "emprestimo" ? duracao || null : null,
         janela,
+        tem_opcao_compra: modalidade === "emprestimo" ? temOpcao : false,
+        valor_opcao_compra:
+          modalidade === "emprestimo" && temOpcao ? numOrNull(valorOpcao) : null,
+        obrigacao_compra: modalidade === "emprestimo" && temOpcao ? obrigacaoCompra : false,
+        status_opcao: modalidade === "emprestimo" && temOpcao ? "pendente" : "nao_aplicavel",
         data: new Date(`${dataNeg || hojeISO()}T12:00:00`).toISOString(),
       })
       .select("id")
@@ -414,6 +432,81 @@ function TransferenciasPage() {
     void carregar(save.id, save.seasonId);
   }
 
+  async function exercerOpcao(t: Transferencia) {
+    if (!save) return;
+    setProcessandoOpcao(t.id);
+    const hoje = hojeISO();
+    const { error } = await supabase.from("transfers").insert({
+      save_id: save.id,
+      season_id: save.seasonId,
+      tipo: t.tipo,
+      modalidade: "definitiva",
+      player_id: t.player_id,
+      clube_contraparte: t.clube_contraparte,
+      valor: t.valor_opcao_compra ?? null,
+      janela: janelaDoDia(hoje),
+      data: new Date(`${hoje}T12:00:00`).toISOString(),
+      transfer_origem_emprestimo_id: t.id,
+    });
+    if (!error) {
+      await supabase.from("transfers").update({ status_opcao: "exercida" }).eq("id", t.id);
+      if (t.tipo === "saida" && t.player_id) {
+        await supabase
+          .from("players")
+          .update({ motivo_saida: "transferencia_definitiva" })
+          .eq("id", t.player_id);
+      }
+    }
+    setProcessandoOpcao(null);
+    if (error) {
+      toast.error("Não foi possível exercer a opção de compra.");
+      return;
+    }
+    toast.success("Opção de compra exercida!");
+    void carregar(save.id, save.seasonId);
+  }
+
+  async function naoExercerOpcao(t: Transferencia) {
+    if (!save) return;
+    setProcessandoOpcao(t.id);
+    const { error } = await supabase
+      .from("transfers")
+      .update({ status_opcao: "nao_exercida" })
+      .eq("id", t.id);
+    if (!error && t.player_id) {
+      if (t.tipo === "entrada") {
+        await supabase
+          .from("players")
+          .update({
+            ativo: false,
+            status: "Transferido",
+            data_saida: hojeISO(),
+            motivo_saida: "emprestimo",
+            clube_destino: t.clube_contraparte,
+          })
+          .eq("id", t.player_id);
+      } else {
+        await supabase
+          .from("players")
+          .update({
+            ativo: true,
+            status: "Liberado",
+            data_saida: null,
+            motivo_saida: null,
+            clube_destino: null,
+          })
+          .eq("id", t.player_id);
+      }
+    }
+    setProcessandoOpcao(null);
+    if (error) {
+      toast.error("Não foi possível atualizar a opção de compra.");
+      return;
+    }
+    toast.success("Opção de compra não exercida.");
+    void carregar(save.id, save.seasonId);
+  }
+
   function rotuloJogador(t: Transferencia) {
     const entra = t.player_id ? nomePorId[t.player_id] : null;
     const sai = t.jogador_troca_id ? nomePorId[t.jogador_troca_id] : null;
@@ -423,6 +516,10 @@ function TransferenciasPage() {
     }
     return entra ?? sai ?? "Jogador";
   }
+
+  const emprestimosAtivos = lista.filter(
+    (t) => t.modalidade === "emprestimo" && t.tem_opcao_compra && t.status_opcao === "pendente",
+  );
 
   const precisaDadosExternos = tipo === "entrada" || (tipo === "saida" && modalidade === "troca");
 
@@ -553,6 +650,46 @@ function TransferenciasPage() {
               </div>
             </CardContent>
           </Card>
+
+          {emprestimosAtivos.length > 0 ? (
+            <section className="space-y-3">
+              <h2 className="font-display text-2xl tracking-wide">Empréstimos ativos</h2>
+              {emprestimosAtivos.map((t) => (
+                <Card key={t.id} className="hq-card">
+                  <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4">
+                    <div>
+                      <p className="font-display text-lg tracking-wide">{rotuloJogador(t)}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {t.tipo === "entrada" ? "De" : "Para"} {t.clube_contraparte ?? "—"}
+                        {t.duracao_emprestimo ? ` · até ${t.duracao_emprestimo}` : ""}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="outline">
+                        {t.obrigacao_compra ? "Obrigação" : "Opção"} de compra:{" "}
+                        {moeda(t.valor_opcao_compra ?? null)}
+                      </Badge>
+                      <Button
+                        size="sm"
+                        disabled={processandoOpcao === t.id}
+                        onClick={() => void exercerOpcao(t)}
+                      >
+                        Exercer opção de compra
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={processandoOpcao === t.id}
+                        onClick={() => void naoExercerOpcao(t)}
+                      >
+                        Não exercer opção
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </section>
+          ) : null}
 
           {carregando ? (
             <Skeleton className="h-64 w-full rounded-xl" />
@@ -754,10 +891,41 @@ function TransferenciasPage() {
               </div>
 
               {modalidade === "emprestimo" ? (
-                <div className="grid gap-1">
-                  <Label>Duração (data de término)</Label>
-                  <Input type="date" value={duracao} onChange={(e) => setDuracao(e.target.value)} />
-                </div>
+                <>
+                  <div className="grid gap-1">
+                    <Label>Duração (data de término)</Label>
+                    <Input
+                      type="date"
+                      value={duracao}
+                      onChange={(e) => setDuracao(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between rounded-lg border border-border p-3">
+                    <Label htmlFor="opcao-compra">Com opção de compra?</Label>
+                    <Switch id="opcao-compra" checked={temOpcao} onCheckedChange={setTemOpcao} />
+                  </div>
+                  {temOpcao ? (
+                    <>
+                      <div className="grid gap-1">
+                        <Label>Valor da opção de compra</Label>
+                        <Input
+                          type="number"
+                          value={valorOpcao}
+                          onChange={(e) => setValorOpcao(e.target.value)}
+                          placeholder="0"
+                        />
+                      </div>
+                      <div className="flex items-center justify-between rounded-lg border border-border p-3">
+                        <Label htmlFor="obrigacao-compra">É obrigação de compra?</Label>
+                        <Switch
+                          id="obrigacao-compra"
+                          checked={obrigacaoCompra}
+                          onCheckedChange={setObrigacaoCompra}
+                        />
+                      </div>
+                    </>
+                  ) : null}
+                </>
               ) : (
                 <div className="grid gap-1">
                   <Label>{modalidade === "troca" ? "Valor de ajuste" : "Valor"}</Label>

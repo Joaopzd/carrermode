@@ -70,6 +70,7 @@ type Resumo = {
   artilheiro: { nome: string; gols: number } | null;
   melhorNota: { nome: string; nota: number } | null;
   maisMvp: { nome: string; vezes: number } | null;
+  trofeus: number;
   proximo: {
     data_hora: string | null;
     adversario: string | null;
@@ -299,6 +300,12 @@ function Dashboard() {
         }
       }
 
+      const { count: trofeusCount } = await supabase
+        .from("trophy_gallery")
+        .select("id", { count: "exact", head: true })
+        .eq("save_id", saveId)
+        .eq("e_meu_clube_campeao", true);
+
       const clube = (save as { clubs: { nome: string; escudo_url: string | null } | null }).clubs;
       const liga = (save as { leagues: { nome: string } | null }).leagues;
 
@@ -317,6 +324,7 @@ function Dashboard() {
             ? Math.round(overalls.reduce((a, b) => a + b, 0) / overalls.length)
             : null,
         valorTotal,
+        trofeus: trofeusCount ?? 0,
         artilheiro,
         melhorNota,
         maisMvp,
@@ -401,7 +409,7 @@ function Dashboard() {
                 </div>
               </section>
 
-              <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+              <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
                 <ResumoCard
                   icone={<Star className="h-4 w-4" />}
                   rotulo="Overall médio"
@@ -441,6 +449,12 @@ function Dashboard() {
                       ? `${resumo.maisMvp.vezes} MVP(s) na temporada`
                       : "Nenhum MVP registrado"
                   }
+                />
+                <ResumoCard
+                  icone={<Trophy className="h-4 w-4 text-amber-400" />}
+                  rotulo="Troféus"
+                  valor={String(resumo.trofeus)}
+                  detalhe="Títulos do clube na carreira"
                 />
               </section>
 

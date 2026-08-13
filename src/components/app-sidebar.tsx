@@ -9,7 +9,9 @@ import {
   Repeat,
   Shirt,
   Sprout,
+  Settings,
   Target,
+  Trophy,
   UserMinus,
   Users,
 } from "lucide-react";
@@ -36,8 +38,10 @@ export const NAV_ITENS = [
   { title: "Elenco", url: "/elenco", icon: Shirt },
   { title: "Comissão Técnica", url: "/comissao", icon: Users },
   { title: "Metas da Diretoria", url: "/metas", icon: Target },
+  { title: "Galeria de Troféus", url: "/trofeus", icon: Trophy },
   { title: "Ex-Jogadores", url: "/ex-jogadores", icon: UserMinus },
   { title: "Arquivo de Temporadas", url: "/arquivo", icon: Archive },
+  { title: "Regras da Liga", url: "/regras-liga", icon: Settings },
 ] as const;
 
 export function AppSidebar() {

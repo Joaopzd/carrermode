@@ -97,6 +97,42 @@ export type Database = {
           },
         ]
       }
+      competitions: {
+        Row: {
+          condicao_elegibilidade: Json | null
+          criado_em: string
+          escopo: Database["public"]["Enums"]["competition_scope"]
+          id: string
+          nivel_liga: number | null
+          nome: string
+          pais: string | null
+          registra_vice: boolean
+          restrito_a_niveis: Json | null
+        }
+        Insert: {
+          condicao_elegibilidade?: Json | null
+          criado_em?: string
+          escopo: Database["public"]["Enums"]["competition_scope"]
+          id?: string
+          nivel_liga?: number | null
+          nome: string
+          pais?: string | null
+          registra_vice?: boolean
+          restrito_a_niveis?: Json | null
+        }
+        Update: {
+          condicao_elegibilidade?: Json | null
+          criado_em?: string
+          escopo?: Database["public"]["Enums"]["competition_scope"]
+          id?: string
+          nivel_liga?: number | null
+          nome?: string
+          pais?: string | null
+          registra_vice?: boolean
+          restrito_a_niveis?: Json | null
+        }
+        Relationships: []
+      }
       fan_pressure_events: {
         Row: {
           criado_em: string
@@ -138,6 +174,59 @@ export type Database = {
             columns: ["save_id"]
             isOneToOne: false
             referencedRelation: "saves"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      league_rules: {
+        Row: {
+          atualizado_em: string
+          criado_em: string
+          id: string
+          league_id: string
+          temporada_ref: string | null
+          vagas_acesso_direto: number | null
+          vagas_champions: number
+          vagas_conference_league: number
+          vagas_europa_league: number
+          zona_playoff_acesso: number | null
+          zona_playoff_rebaixamento: number | null
+          zona_rebaixamento_direto: number
+        }
+        Insert: {
+          atualizado_em?: string
+          criado_em?: string
+          id?: string
+          league_id: string
+          temporada_ref?: string | null
+          vagas_acesso_direto?: number | null
+          vagas_champions?: number
+          vagas_conference_league?: number
+          vagas_europa_league?: number
+          zona_playoff_acesso?: number | null
+          zona_playoff_rebaixamento?: number | null
+          zona_rebaixamento_direto?: number
+        }
+        Update: {
+          atualizado_em?: string
+          criado_em?: string
+          id?: string
+          league_id?: string
+          temporada_ref?: string | null
+          vagas_acesso_direto?: number | null
+          vagas_champions?: number
+          vagas_conference_league?: number
+          vagas_europa_league?: number
+          zona_playoff_acesso?: number | null
+          zona_playoff_rebaixamento?: number | null
+          zona_rebaixamento_direto?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "league_rules_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
             referencedColumns: ["id"]
           },
         ]
@@ -815,11 +904,16 @@ export type Database = {
           janela: Database["public"]["Enums"]["transfer_window"] | null
           jogador_troca_id: string | null
           modalidade: string | null
+          obrigacao_compra: boolean
           player_id: string | null
           save_id: string
           season_id: string | null
+          status_opcao: Database["public"]["Enums"]["transfer_option_status"]
+          tem_opcao_compra: boolean
           tipo: string
+          transfer_origem_emprestimo_id: string | null
           valor: number | null
+          valor_opcao_compra: number | null
         }
         Insert: {
           clube_contraparte?: string | null
@@ -829,11 +923,16 @@ export type Database = {
           janela?: Database["public"]["Enums"]["transfer_window"] | null
           jogador_troca_id?: string | null
           modalidade?: string | null
+          obrigacao_compra?: boolean
           player_id?: string | null
           save_id: string
           season_id?: string | null
+          status_opcao?: Database["public"]["Enums"]["transfer_option_status"]
+          tem_opcao_compra?: boolean
           tipo: string
+          transfer_origem_emprestimo_id?: string | null
           valor?: number | null
+          valor_opcao_compra?: number | null
         }
         Update: {
           clube_contraparte?: string | null
@@ -843,11 +942,16 @@ export type Database = {
           janela?: Database["public"]["Enums"]["transfer_window"] | null
           jogador_troca_id?: string | null
           modalidade?: string | null
+          obrigacao_compra?: boolean
           player_id?: string | null
           save_id?: string
           season_id?: string | null
+          status_opcao?: Database["public"]["Enums"]["transfer_option_status"]
+          tem_opcao_compra?: boolean
           tipo?: string
+          transfer_origem_emprestimo_id?: string | null
           valor?: number | null
+          valor_opcao_compra?: number | null
         }
         Relationships: [
           {
@@ -878,6 +982,71 @@ export type Database = {
             referencedRelation: "seasons"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "transfers_transfer_origem_emprestimo_id_fkey"
+            columns: ["transfer_origem_emprestimo_id"]
+            isOneToOne: false
+            referencedRelation: "transfers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trophy_gallery: {
+        Row: {
+          campeao_clube: string
+          competition_id: string
+          data_registro: string
+          e_meu_clube_campeao: boolean
+          e_meu_clube_vice: boolean
+          id: string
+          save_id: string
+          season_id: string | null
+          vice_clube: string | null
+        }
+        Insert: {
+          campeao_clube: string
+          competition_id: string
+          data_registro?: string
+          e_meu_clube_campeao?: boolean
+          e_meu_clube_vice?: boolean
+          id?: string
+          save_id: string
+          season_id?: string | null
+          vice_clube?: string | null
+        }
+        Update: {
+          campeao_clube?: string
+          competition_id?: string
+          data_registro?: string
+          e_meu_clube_campeao?: boolean
+          e_meu_clube_vice?: boolean
+          id?: string
+          save_id?: string
+          season_id?: string | null
+          vice_clube?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trophy_gallery_competition_id_fkey"
+            columns: ["competition_id"]
+            isOneToOne: false
+            referencedRelation: "competitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trophy_gallery_save_id_fkey"
+            columns: ["save_id"]
+            isOneToOne: false
+            referencedRelation: "saves"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trophy_gallery_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
@@ -889,6 +1058,7 @@ export type Database = {
       owns_save: { Args: { _save_id: string }; Returns: boolean }
     }
     Enums: {
+      competition_scope: "continental" | "liga" | "copa_nacional" | "supercopa"
       match_venue: "casa" | "fora"
       motivo_saida:
         | "transferencia_definitiva"
@@ -901,6 +1071,11 @@ export type Database = {
         | "cadastro_inicial"
         | "atualizacao_manual"
         | "fim_temporada"
+      transfer_option_status:
+        | "nao_aplicavel"
+        | "pendente"
+        | "exercida"
+        | "nao_exercida"
       transfer_window: "verao" | "inverno"
     }
     CompositeTypes: {
@@ -1029,6 +1204,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      competition_scope: ["continental", "liga", "copa_nacional", "supercopa"],
       match_venue: ["casa", "fora"],
       motivo_saida: [
         "transferencia_definitiva",
@@ -1042,6 +1218,12 @@ export const Constants = {
         "cadastro_inicial",
         "atualizacao_manual",
         "fim_temporada",
+      ],
+      transfer_option_status: [
+        "nao_aplicavel",
+        "pendente",
+        "exercida",
+        "nao_exercida",
       ],
       transfer_window: ["verao", "inverno"],
     },
