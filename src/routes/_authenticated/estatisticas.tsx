@@ -85,6 +85,8 @@ type Partida = {
   adversario: string | null;
   placar_time: number | null;
   placar_adversario: number | null;
+  season_id?: string | null;
+  mvp_player_id?: string | null;
 };
 
 type Linha = Jogador & {
@@ -95,6 +97,8 @@ type Linha = Jogador & {
   amarelos: number;
   vermelhos: number;
   extra: number;
+  mvps: number;
+  mvpsTemporada: number;
 };
 
 const COLUNAS = [
@@ -108,6 +112,7 @@ const COLUNAS = [
   { key: "notaMedia", label: "Nota", num: true },
   { key: "amarelos", label: "CA", num: true },
   { key: "vermelhos", label: "CV", num: true },
+  { key: "mvps", label: "MVPs", num: true },
   { key: "extra", label: "xG / Def", num: true },
 ] as const;
 
@@ -151,7 +156,9 @@ function EstatisticasPage() {
         .or("categoria.eq.principal,categoria.is.null");
       const { data: mts } = await supabase
         .from("matches")
-        .select("id, data_hora, competicao, adversario, placar_time, placar_adversario")
+        .select(
+          "id, data_hora, competicao, adversario, placar_time, placar_adversario, season_id, mvp_player_id",
+        )
         .eq("save_id", save.id);
       const ids = (mts ?? []).map((m) => m.id as string);
       let sts: Stat[] = [];
@@ -176,6 +183,20 @@ function EstatisticasPage() {
     [jogadores],
   );
 
+  const contagemMvp = useMemo(() => {
+    const total: Record<string, number> = {};
+    const temporada: Record<string, number> = {};
+    for (const m of Object.values(partidas)) {
+      const pid = m.mvp_player_id;
+      if (!pid) continue;
+      total[pid] = (total[pid] ?? 0) + 1;
+      if (save?.seasonId && m.season_id === save.seasonId) {
+        temporada[pid] = (temporada[pid] ?? 0) + 1;
+      }
+    }
+    return { total, temporada };
+  }, [partidas, save?.seasonId]);
+
   const linhas = useMemo<Linha[]>(() => {
     const porJogador = new Map<string, Stat[]>();
     for (const s of stats) {
@@ -199,9 +220,11 @@ function EstatisticasPage() {
         extra: gk
           ? ss.reduce((a, s) => a + (s.defesas ?? 0), 0)
           : ss.reduce((a, s) => a + Number(s.xg ?? 0), 0),
+        mvps: contagemMvp.total[j.id] ?? 0,
+        mvpsTemporada: contagemMvp.temporada[j.id] ?? 0,
       };
     });
-  }, [jogadores, stats]);
+  }, [jogadores, stats, contagemMvp]);
 
   const filtradas = useMemo(() => {
     const num = (v: string) => (v.trim() === "" ? null : Number(v));
@@ -433,6 +456,7 @@ function EstatisticasPage() {
                         </TableCell>
                         <TableCell className="text-right">{l.amarelos}</TableCell>
                         <TableCell className="text-right">{l.vermelhos}</TableCell>
+                        <TableCell className="text-right">{l.mvps}</TableCell>
                         <TableCell className="text-right">
                           {ehGoleiro(l.posicao_principal) ? l.extra : l.extra.toFixed(2)}
                         </TableCell>
@@ -457,6 +481,10 @@ function EstatisticasPage() {
               </SheetHeader>
               <div className="mt-4 space-y-6">
                 <div className="flex flex-wrap gap-2">
+                  <Badge className="bg-accent text-accent-foreground">
+                    🌟 {selecionado.mvps} vez(es) MVP
+                    {save?.seasonId ? ` · ${selecionado.mvpsTemporada} na temporada` : ""}
+                  </Badge>
                   <Badge>{posEn(selecionado.posicao_principal) ?? "—"}</Badge>
                   {Array.isArray(selecionado.posicoes_secundarias)
                     ? (selecionado.posicoes_secundarias as string[]).map((p) => (
