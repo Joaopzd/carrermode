@@ -73,11 +73,26 @@ function PartidasPage() {
     mando: "casa" as "casa" | "fora",
   });
 
+  const [nomesMvp, setNomesMvp] = useState<Record<string, string>>({});
+
   const carregar = useCallback(async (saveId: string, seasonId: string | null) => {
     let q = supabase.from("matches").select("*").eq("save_id", saveId);
     if (seasonId) q = q.eq("season_id", seasonId);
     const { data } = await q.order("data_hora", { ascending: false });
-    setPartidas((data ?? []) as PartidaBase[]);
+    const lista = (data ?? []) as PartidaBase[];
+    setPartidas(lista);
+
+    const ids = Array.from(
+      new Set(lista.map((p) => p.mvp_player_id).filter((x): x is string => Boolean(x))),
+    );
+    if (ids.length > 0) {
+      const { data: jogadores } = await supabase.from("players").select("id, nome").in("id", ids);
+      const mapa: Record<string, string> = {};
+      for (const j of (jogadores ?? []) as { id: string; nome: string }[]) mapa[j.id] = j.nome;
+      setNomesMvp(mapa);
+    } else {
+      setNomesMvp({});
+    }
     setCarregando(false);
   }, []);
 
@@ -315,6 +330,11 @@ function PartidasPage() {
                                 {ICONE_COMPETICAO[p.competicao ?? ""] ?? "⚽"}{" "}
                                 {save?.clubeNome ?? "Meu clube"} {p.placar_time ?? 0} x{" "}
                                 {p.placar_adversario ?? 0} {p.adversario}
+                                {p.mvp_player_id && nomesMvp[p.mvp_player_id] ? (
+                                  <span className="ml-2 inline-flex items-center rounded-full bg-accent/15 px-2 py-0.5 align-middle text-[11px] font-medium text-accent">
+                                    ⭐ MVP: {nomesMvp[p.mvp_player_id]}
+                                  </span>
+                                ) : null}
                               </p>
                               <p className="text-xs text-muted-foreground">
                                 {p.competicao ?? "—"}

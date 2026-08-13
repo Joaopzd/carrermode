@@ -598,6 +598,9 @@ export function FecharPartidaDialog({
                         <tr key={j.id} className="border-t">
                           <td className="px-3 py-2">
                             <span className="font-semibold">{j.nome}</span>
+                            {mvp === j.id ? (
+                              <Star className="ml-1 inline h-3.5 w-3.5 fill-accent text-accent" />
+                            ) : null}
                             {!s.titular ? (
                               <span className="ml-1 text-[10px] text-muted-foreground">
                                 (banco)
@@ -658,7 +661,7 @@ export function FecharPartidaDialog({
                       const expandido = linhasAbertas.includes(j.id);
                       return (
                         <Fragment key={j.id}>
-                          <tr className="border-t">
+                          <tr className={`border-t ${mvp === j.id ? "bg-accent/10" : ""}`}>
                             <td className="px-2 py-2">
                               <Button
                                 type="button"
@@ -677,6 +680,9 @@ export function FecharPartidaDialog({
                             </td>
                             <td className="px-3 py-2">
                               <span className="font-medium">{j.nome}</span>
+                              {mvp === j.id ? (
+                                <Star className="ml-1 inline h-3.5 w-3.5 fill-accent text-accent" />
+                              ) : null}
                               {!s.titular ? (
                                 <span className="ml-1 text-[10px] text-muted-foreground">
                                   (banco)
