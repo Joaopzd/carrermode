@@ -36,6 +36,7 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [username, setUsername] = useState("");
+  const [esqueci, setEsqueci] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -54,6 +55,22 @@ function AuthPage() {
     setLoading(false);
     if (error) toast.error(error.message);
   }
+
+  async function recuperar(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email.trim()) {
+      toast.error("Informe seu email.");
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setLoading(false);
+    if (error) toast.error(error.message);
+    else toast.success("Se o email existir, enviamos um link para redefinir a senha.");
+  }
+
 
   async function cadastrar(e: React.FormEvent) {
     e.preventDefault();
