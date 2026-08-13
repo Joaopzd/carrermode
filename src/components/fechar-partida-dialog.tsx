@@ -1,5 +1,5 @@
 import { ehGoleiro, posEn, GRUPOS_POSICAO, grupoDaPosicao } from "@/lib/posicoes";
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { ChevronDown, ChevronRight, Loader2, Save, Star } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -313,13 +313,11 @@ export function FecharPartidaDialog({
     setStats((prev) => {
       const proximo = { ...prev };
       for (const j of escalados) {
-        const atual = { ...(proximo[j.id] ?? STAT_VAZIA) };
+        const atual = { ...(proximo[j.id] ?? STAT_VAZIA) } as Record<string, unknown>;
         for (const campo of CAMPOS_NUMERICOS) {
-          if ((atual[campo] as string).trim() === "") {
-            (atual[campo] as string) = "0";
-          }
+          if (String(atual[campo] ?? "").trim() === "") atual[campo] = "0";
         }
-        proximo[j.id] = atual;
+        proximo[j.id] = atual as unknown as StatJogador;
       }
       return proximo;
     });
@@ -499,7 +497,7 @@ export function FecharPartidaDialog({
                   (j) => grupoDaPosicao(j.posicao_principal) === grupo.chave,
                 );
                 if (doGrupo.length === 0) return null;
-                const aberto = gruposAbertos.includes(grupo.chave);
+                const abertoGrupo = gruposAbertos.includes(grupo.chave);
                 const marcados = doGrupo.filter((j) => selecionados.includes(j.id)).length;
                 return (
                   <div key={grupo.chave} className="rounded-xl border">
@@ -508,7 +506,7 @@ export function FecharPartidaDialog({
                       onClick={() => alternarGrupo(grupo.chave)}
                       className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-semibold"
                     >
-                      {aberto ? (
+                      {abertoGrupo ? (
                         <ChevronDown className="h-4 w-4" />
                       ) : (
                         <ChevronRight className="h-4 w-4" />
@@ -518,7 +516,7 @@ export function FecharPartidaDialog({
                         ({marcados}/{doGrupo.length})
                       </span>
                     </button>
-                    {aberto ? (
+                    {abertoGrupo ? (
                       <div className="grid gap-2 border-t p-3 sm:grid-cols-2">
                         {doGrupo.map((j) => {
                           const marcado = selecionados.includes(j.id);
@@ -659,8 +657,8 @@ export function FecharPartidaDialog({
                       const s = stats[j.id] ?? STAT_VAZIA;
                       const expandido = linhasAbertas.includes(j.id);
                       return (
-                        <>
-                          <tr key={j.id} className="border-t">
+                        <Fragment key={j.id}>
+                          <tr className="border-t">
                             <td className="px-2 py-2">
                               <Button
                                 type="button"
@@ -720,7 +718,7 @@ export function FecharPartidaDialog({
                             </td>
                           </tr>
                           {expandido ? (
-                            <tr key={`${j.id}-detalhe`} className="border-t bg-muted/30">
+                            <tr className="border-t bg-muted/30">
                               <td colSpan={8} className="px-3 py-3">
                                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
                                   {(
@@ -749,7 +747,7 @@ export function FecharPartidaDialog({
                               </td>
                             </tr>
                           ) : null}
-                        </>
+                        </Fragment>
                       );
                     })}
                   </tbody>
