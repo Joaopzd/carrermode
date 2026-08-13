@@ -21,6 +21,8 @@ import {
 } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useSaveAtual } from "@/lib/use-save";
+import { carregarRegras, zonaDaPosicao, type LeagueRules } from "@/lib/league-rules";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/classificacao")({
   head: () => ({
@@ -92,8 +94,11 @@ function ClassificacaoPage() {
   const [rodada, setRodada] = useState("1");
   const [linhas, setLinhas] = useState<LinhaForm[]>([linhaVazia()]);
   const [salvando, setSalvando] = useState(false);
+  const [regras, setRegras] = useState<LeagueRules | null>(null);
 
-  const carregar = useCallback(async (saveId: string, seasonId: string | null) => {
+  const carregar = useCallback(
+    async (saveId: string, seasonId: string | null, leagueId: string | null) => {
+    void carregarRegras(leagueId).then(setRegras);
     let qm = supabase
       .from("matches")
       .select("placar_time, placar_adversario")
@@ -120,14 +125,16 @@ function ClassificacaoPage() {
     const { data: snaps } = await qs.order("rodada", { ascending: false });
     setSnapshots((snaps ?? []) as Snapshot[]);
     setCarregando(false);
-  }, []);
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!save) {
       if (!carregandoSave) setCarregando(false);
       return;
     }
-    void carregar(save.id, save.seasonId);
+    void carregar(save.id, save.seasonId, save.leagueId);
   }, [save, carregandoSave, carregar]);
 
   const ultimaRodada = useMemo(() => {
@@ -149,6 +156,20 @@ function ClassificacaoPage() {
   }, [snapshots, ultimaRodada]);
 
   const pontos = campanha.v * 3 + campanha.e;
+
+  const minhaPosicao = useMemo(() => {
+    if (!save?.clubeNome) return null;
+    const idx = tabelaOficial.findIndex(
+      (s) => s.time.toLowerCase() === save.clubeNome!.toLowerCase(),
+    );
+    return idx >= 0 ? (tabelaOficial[idx]!.posicao ?? idx + 1) : null;
+  }, [tabelaOficial, save]);
+
+  const zonaCampanha = useMemo(
+    () =>
+      minhaPosicao ? zonaDaPosicao(minhaPosicao, tabelaOficial.length, regras) : null,
+    [minhaPosicao, tabelaOficial.length, regras],
+  );
 
   function abrirSync() {
     const proxima = (ultimaRodada ?? 0) + 1;
@@ -222,7 +243,7 @@ function ClassificacaoPage() {
     }
     toast.success(`Rodada ${rod} sincronizada.`);
     setAberto(false);
-    void carregar(save.id, save.seasonId);
+    void carregar(save.id, save.seasonId, save.leagueId);
   }
 
   return (
@@ -246,6 +267,20 @@ function ClassificacaoPage() {
               </TabsList>
 
               <TabsContent value="campanha" className="mt-4 space-y-4">
+                {minhaPosicao ? (
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="text-muted-foreground">
+                      Posição atual: {minhaPosicao}º
+                    </span>
+                    {zonaCampanha ? (
+                      <Badge variant="outline" className={zonaCampanha.badge}>
+                        {zonaCampanha.rotulo}
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline">Zona neutra</Badge>
+                    )}
+                  </div>
+                ) : null}
                 {ultimaRodada == null ? (
                   <p className="rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground">
                     Posição estimada, baseada apenas nos seus jogos.
@@ -368,8 +403,17 @@ function ClassificacaoPage() {
                             const meu =
                               save?.clubeNome &&
                               s.time.toLowerCase() === save.clubeNome.toLowerCase();
+                            const zona = zonaDaPosicao(
+                              s.posicao ?? i + 1,
+                              tabelaOficial.length,
+                              regras,
+                            );
                             return (
-                              <TableRow key={s.id} className={meu ? "bg-primary/10" : ""}>
+                              <TableRow
+                                key={s.id}
+                                title={zona?.rotulo}
+                                className={cn(zona?.linha, meu && "bg-primary/10 font-semibold")}
+                              >
                                 <TableCell className="text-muted-foreground">
                                   {s.posicao ?? i + 1}
                                 </TableCell>
