@@ -26,6 +26,7 @@ import { Route as AuthenticatedMetasRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedPartidasRouteImport } from './routes/_authenticated/partidas'
 import { Route as AuthenticatedTransferenciasRouteImport } from './routes/_authenticated/transferencias'
+import { Route as AuthenticatedTrofeusRouteImport } from './routes/_authenticated/trofeus'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -115,6 +116,11 @@ const AuthenticatedTransferenciasRoute =
     path: '/transferencias',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedTrofeusRoute = AuthenticatedTrofeusRouteImport.update({
+  id: '/trofeus',
+  path: '/trofeus',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -133,6 +139,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/partidas': typeof AuthenticatedPartidasRoute
   '/transferencias': typeof AuthenticatedTransferenciasRoute
+  '/trofeus': typeof AuthenticatedTrofeusRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -151,6 +158,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/partidas': typeof AuthenticatedPartidasRoute
   '/transferencias': typeof AuthenticatedTransferenciasRoute
+  '/trofeus': typeof AuthenticatedTrofeusRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -171,6 +179,7 @@ export interface FileRoutesById {
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/partidas': typeof AuthenticatedPartidasRoute
   '/_authenticated/transferencias': typeof AuthenticatedTransferenciasRoute
+  '/_authenticated/trofeus': typeof AuthenticatedTrofeusRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -191,6 +200,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/partidas'
     | '/transferencias'
+    | '/trofeus'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -209,6 +219,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/partidas'
     | '/transferencias'
+    | '/trofeus'
   id:
     | '__root__'
     | '/'
@@ -228,6 +239,7 @@ export interface FileRouteTypes {
     | '/_authenticated/onboarding'
     | '/_authenticated/partidas'
     | '/_authenticated/transferencias'
+    | '/_authenticated/trofeus'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -358,6 +370,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTransferenciasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/trofeus': {
+      id: '/_authenticated/trofeus'
+      path: '/trofeus'
+      fullPath: '/trofeus'
+      preLoaderRoute: typeof AuthenticatedTrofeusRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -375,6 +394,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedPartidasRoute: typeof AuthenticatedPartidasRoute
   AuthenticatedTransferenciasRoute: typeof AuthenticatedTransferenciasRoute
+  AuthenticatedTrofeusRoute: typeof AuthenticatedTrofeusRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -391,6 +411,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedPartidasRoute: AuthenticatedPartidasRoute,
   AuthenticatedTransferenciasRoute: AuthenticatedTransferenciasRoute,
+  AuthenticatedTrofeusRoute: AuthenticatedTrofeusRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
