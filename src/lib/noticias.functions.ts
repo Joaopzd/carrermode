@@ -6,7 +6,8 @@ export type TipoEvento =
   | "sequencia_negativa"
   | "venda_polemica"
   | "meta_risco"
-  | "meta_cumprida";
+  | "meta_cumprida"
+  | "titulo_conquistado";
 
 const TIPO_NEWS: Record<TipoEvento, string> = {
   jogador_banco: "torcida",
@@ -14,6 +15,7 @@ const TIPO_NEWS: Record<TipoEvento, string> = {
   venda_polemica: "transferencia",
   meta_risco: "diretoria",
   meta_cumprida: "diretoria",
+  titulo_conquistado: "titulo_conquistado",
 };
 
 const TOM: Record<string, string> = {
@@ -21,6 +23,8 @@ const TOM: Record<string, string> = {
   diretoria: "o diretor de futebol do clube em um discurso formal à imprensa",
   transferencia: "um âncora de telejornal esportivo",
   resultado: "um âncora de telejornal esportivo",
+  titulo_conquistado:
+    "um narrador esportivo eufórico celebrando a conquista de um título pelo clube",
 };
 
 function promptSistema(tipoNews: string) {
