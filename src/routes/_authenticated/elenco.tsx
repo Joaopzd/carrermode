@@ -84,13 +84,6 @@ type Jogador = {
   capitao: boolean;
 };
 
-const CORES_STATUS: Record<string, string> = {
-  Liberado: "bg-emerald-500/15 text-emerald-400",
-  Lesionado: "bg-red-500/15 text-red-400",
-  Suspenso: "bg-amber-500/15 text-amber-400",
-  "Em transição": "bg-sky-500/15 text-sky-400",
-  Convocado: "bg-violet-500/15 text-violet-400",
-};
 
 const moeda = (v: number | null) =>
   v === null ? "—" : `£ ${new Intl.NumberFormat("pt-BR").format(v)}`;
