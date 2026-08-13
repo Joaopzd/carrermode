@@ -7,6 +7,7 @@ import { AppShell } from "@/components/app-shell";
 import { PlayerEvolution } from "@/components/player-evolution";
 import { Bandeira } from "@/components/bandeira";
 import { Badge } from "@/components/ui/badge";
+import { contarMvpsJogador } from "@/lib/mvp";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
@@ -84,6 +85,22 @@ function ExJogadoresPage() {
   const [fMotivo, setFMotivo] = useState(TODOS);
   const [selecionado, setSelecionado] = useState<ExJogador | null>(null);
   const [stats, setStats] = useState<Stat[]>([]);
+  const [mvpsJogador, setMvpsJogador] = useState<{ temporada: number; total: number } | null>(null);
+
+  useEffect(() => {
+    if (!save || !selecionado) {
+      setMvpsJogador(null);
+      return;
+    }
+    let ativo = true;
+    void (async () => {
+      const r = await contarMvpsJogador(save.id, selecionado.id, save.seasonId);
+      if (ativo) setMvpsJogador(r);
+    })();
+    return () => {
+      ativo = false;
+    };
+  }, [save, selecionado]);
 
   useEffect(() => {
     if (!save) {
@@ -277,6 +294,10 @@ function ExJogadoresPage() {
                 </SheetTitle>
               </SheetHeader>
               <div className="mt-4 space-y-5">
+                <Badge className="bg-accent text-accent-foreground">
+                  🌟 {mvpsJogador?.total ?? 0} vez(es) MVP
+                  {save?.seasonId ? ` · ${mvpsJogador?.temporada ?? 0} na temporada` : ""}
+                </Badge>
                 <div className="rounded-xl border border-border p-4">
                   <p className="flex items-center gap-2 text-sm font-semibold">
                     <Archive className="h-4 w-4 text-primary" /> Resumo da saída

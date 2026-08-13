@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { contarMvps } from "@/lib/mvp";
 import { encerrarTemporada, garantirSeasonAtiva } from "@/lib/season";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
@@ -68,6 +69,7 @@ type Resumo = {
   valorTotal: number;
   artilheiro: { nome: string; gols: number } | null;
   melhorNota: { nome: string; nota: number } | null;
+  maisMvp: { nome: string; vezes: number } | null;
   proximo: {
     data_hora: string | null;
     adversario: string | null;
@@ -276,6 +278,27 @@ function Dashboard() {
         }
       }
 
+      const mvpMapa = await contarMvps(saveId, seasonId);
+      let maisMvp: Resumo["maisMvp"] = null;
+      if (Object.keys(mvpMapa).length > 0) {
+        const nomePorId = new Map(players.map((p) => [p.id, p.nome]));
+        const faltando = Object.keys(mvpMapa).filter((id) => !nomePorId.has(id));
+        if (faltando.length > 0) {
+          const { data: extras } = await supabase
+            .from("players")
+            .select("id, nome")
+            .in("id", faltando);
+          for (const e of (extras ?? []) as { id: string; nome: string }[]) {
+            nomePorId.set(e.id, e.nome);
+          }
+        }
+        for (const [pid, vezes] of Object.entries(mvpMapa)) {
+          if (!maisMvp || vezes > maisMvp.vezes) {
+            maisMvp = { nome: nomePorId.get(pid) ?? "—", vezes };
+          }
+        }
+      }
+
       const clube = (save as { clubs: { nome: string; escudo_url: string | null } | null }).clubs;
       const liga = (save as { leagues: { nome: string } | null }).leagues;
 
@@ -296,6 +319,7 @@ function Dashboard() {
         valorTotal,
         artilheiro,
         melhorNota,
+        maisMvp,
         proximo: matchesRes.data ?? null,
         ultimos: finalizadasRes.data ?? [],
         noticias: newsRes.data ?? [],
@@ -377,7 +401,7 @@ function Dashboard() {
                 </div>
               </section>
 
-              <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
                 <ResumoCard
                   icone={<Star className="h-4 w-4" />}
                   rotulo="Overall médio"
@@ -406,6 +430,16 @@ function Dashboard() {
                     resumo.melhorNota
                       ? resumo.melhorNota.nota.toFixed(2)
                       : "Sem notas registradas"
+                  }
+                />
+                <ResumoCard
+                  icone={<Star className="h-4 w-4 text-accent" />}
+                  rotulo="Mais vezes MVP"
+                  valor={resumo.maisMvp?.nome ?? "—"}
+                  detalhe={
+                    resumo.maisMvp
+                      ? `${resumo.maisMvp.vezes} MVP(s) na temporada`
+                      : "Nenhum MVP registrado"
                   }
                 />
               </section>
