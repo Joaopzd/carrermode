@@ -138,32 +138,71 @@ function AuthPage() {
               </TabsList>
 
               <TabsContent value="entrar">
-                <form onSubmit={entrar} className="space-y-4 pt-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="login-email">Email</Label>
-                    <Input
-                      id="login-email"
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="login-senha">Senha</Label>
-                    <Input
-                      id="login-senha"
-                      type="password"
-                      required
-                      value={senha}
-                      onChange={(e) => setSenha(e.target.value)}
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    Entrar
-                  </Button>
-                </form>
+                {esqueci ? (
+                  <form onSubmit={recuperar} className="space-y-4 pt-4">
+                    <p className="text-sm text-muted-foreground">
+                      Informe o email da sua conta e enviaremos um link para criar uma nova senha.
+                    </p>
+                    <div className="space-y-2">
+                      <Label htmlFor="rec-email">Email</Label>
+                      <Input
+                        id="rec-email"
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                      />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      Enviar link de recuperação
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="w-full"
+                      onClick={() => setEsqueci(false)}
+                    >
+                      Voltar para o login
+                    </Button>
+                  </form>
+                ) : (
+                  <form onSubmit={entrar} className="space-y-4 pt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="login-email">Email</Label>
+                      <Input
+                        id="login-email"
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="login-senha">Senha</Label>
+                        <button
+                          type="button"
+                          className="text-xs text-muted-foreground underline"
+                          onClick={() => setEsqueci(true)}
+                        >
+                          Esqueci minha senha
+                        </button>
+                      </div>
+                      <Input
+                        id="login-senha"
+                        type="password"
+                        required
+                        value={senha}
+                        onChange={(e) => setSenha(e.target.value)}
+                      />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      Entrar
+                    </Button>
+                  </form>
+                )}
               </TabsContent>
+
 
               <TabsContent value="cadastrar">
                 <form onSubmit={cadastrar} className="space-y-4 pt-4">
