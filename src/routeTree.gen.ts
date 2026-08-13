@@ -25,6 +25,7 @@ import { Route as AuthenticatedExJogadoresRouteImport } from './routes/_authenti
 import { Route as AuthenticatedMetasRouteImport } from './routes/_authenticated/metas'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedPartidasRouteImport } from './routes/_authenticated/partidas'
+import { Route as AuthenticatedRegrasLigaRouteImport } from './routes/_authenticated/regras-liga'
 import { Route as AuthenticatedTransferenciasRouteImport } from './routes/_authenticated/transferencias'
 import { Route as AuthenticatedTrofeusRouteImport } from './routes/_authenticated/trofeus'
 
@@ -110,6 +111,11 @@ const AuthenticatedPartidasRoute = AuthenticatedPartidasRouteImport.update({
   path: '/partidas',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedRegrasLigaRoute = AuthenticatedRegrasLigaRouteImport.update({
+  id: '/regras-liga',
+  path: '/regras-liga',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedTransferenciasRoute =
   AuthenticatedTransferenciasRouteImport.update({
     id: '/transferencias',
@@ -138,6 +144,7 @@ export interface FileRoutesByFullPath {
   '/metas': typeof AuthenticatedMetasRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/partidas': typeof AuthenticatedPartidasRoute
+  '/regras-liga': typeof AuthenticatedRegrasLigaRoute
   '/transferencias': typeof AuthenticatedTransferenciasRoute
   '/trofeus': typeof AuthenticatedTrofeusRoute
 }
@@ -157,6 +164,7 @@ export interface FileRoutesByTo {
   '/metas': typeof AuthenticatedMetasRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/partidas': typeof AuthenticatedPartidasRoute
+  '/regras-liga': typeof AuthenticatedRegrasLigaRoute
   '/transferencias': typeof AuthenticatedTransferenciasRoute
   '/trofeus': typeof AuthenticatedTrofeusRoute
 }
@@ -178,6 +186,7 @@ export interface FileRoutesById {
   '/_authenticated/metas': typeof AuthenticatedMetasRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/partidas': typeof AuthenticatedPartidasRoute
+  '/_authenticated/regras-liga': typeof AuthenticatedRegrasLigaRoute
   '/_authenticated/transferencias': typeof AuthenticatedTransferenciasRoute
   '/_authenticated/trofeus': typeof AuthenticatedTrofeusRoute
 }
@@ -199,6 +208,7 @@ export interface FileRouteTypes {
     | '/metas'
     | '/onboarding'
     | '/partidas'
+    | '/regras-liga'
     | '/transferencias'
     | '/trofeus'
   fileRoutesByTo: FileRoutesByTo
@@ -218,6 +228,7 @@ export interface FileRouteTypes {
     | '/metas'
     | '/onboarding'
     | '/partidas'
+    | '/regras-liga'
     | '/transferencias'
     | '/trofeus'
   id:
@@ -238,6 +249,7 @@ export interface FileRouteTypes {
     | '/_authenticated/metas'
     | '/_authenticated/onboarding'
     | '/_authenticated/partidas'
+    | '/_authenticated/regras-liga'
     | '/_authenticated/transferencias'
     | '/_authenticated/trofeus'
   fileRoutesById: FileRoutesById
@@ -363,6 +375,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPartidasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/regras-liga': {
+      id: '/_authenticated/regras-liga'
+      path: '/regras-liga'
+      fullPath: '/regras-liga'
+      preLoaderRoute: typeof AuthenticatedRegrasLigaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/transferencias': {
       id: '/_authenticated/transferencias'
       path: '/transferencias'
@@ -393,6 +412,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMetasRoute: typeof AuthenticatedMetasRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedPartidasRoute: typeof AuthenticatedPartidasRoute
+  AuthenticatedRegrasLigaRoute: typeof AuthenticatedRegrasLigaRoute
   AuthenticatedTransferenciasRoute: typeof AuthenticatedTransferenciasRoute
   AuthenticatedTrofeusRoute: typeof AuthenticatedTrofeusRoute
 }
@@ -410,6 +430,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMetasRoute: AuthenticatedMetasRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedPartidasRoute: AuthenticatedPartidasRoute,
+  AuthenticatedRegrasLigaRoute: AuthenticatedRegrasLigaRoute,
   AuthenticatedTransferenciasRoute: AuthenticatedTransferenciasRoute,
   AuthenticatedTrofeusRoute: AuthenticatedTrofeusRoute,
 }
