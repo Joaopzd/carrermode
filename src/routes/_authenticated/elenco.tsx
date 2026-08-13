@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { AppShell } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
+import { StatusJogador } from "@/components/status-jogador";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -455,9 +456,7 @@ function ElencoPage() {
                         </span>
                       </td>
                       <td className="px-3 py-2">
-                        <Badge variant="secondary" className={CORES_STATUS[j.status ?? ""] ?? ""}>
-                          {j.status ?? "—"}
-                        </Badge>
+                        <StatusJogador status={j.status} />
                       </td>
                       <td className="px-3 py-2">{j.idade ?? "—"}</td>
                       <td className="px-3 py-2">{moeda(j.valor_mercado)}</td>
@@ -518,9 +517,7 @@ function ElencoPage() {
                       </span>
                     </div>
                     <div className="flex flex-wrap items-center gap-2 text-xs">
-                      <Badge variant="secondary" className={CORES_STATUS[j.status ?? ""] ?? ""}>
-                        {j.status ?? "Sem status"}
-                      </Badge>
+                      <StatusJogador status={j.status} />
                       <div className="flex flex-wrap gap-1">
                         {parsePlaystyles(j.playstyle).map((p) => (
                           <Badge key={p} variant="outline">
