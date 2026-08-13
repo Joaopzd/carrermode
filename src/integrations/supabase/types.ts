@@ -226,6 +226,7 @@ export type Database = {
           passes: number | null
           passes_pct: number | null
           player_id: string | null
+          titular: boolean
           xa: number | null
           xg: number | null
         }
@@ -244,6 +245,7 @@ export type Database = {
           passes?: number | null
           passes_pct?: number | null
           player_id?: string | null
+          titular?: boolean
           xa?: number | null
           xg?: number | null
         }
@@ -262,6 +264,7 @@ export type Database = {
           passes?: number | null
           passes_pct?: number | null
           player_id?: string | null
+          titular?: boolean
           xa?: number | null
           xg?: number | null
         }
@@ -294,6 +297,7 @@ export type Database = {
           desarmes: number | null
           id: string
           mando: Database["public"]["Enums"]["match_venue"]
+          mvp_player_id: string | null
           passes: number | null
           passes_pct: number | null
           placar_adversario: number | null
@@ -316,6 +320,7 @@ export type Database = {
           desarmes?: number | null
           id?: string
           mando?: Database["public"]["Enums"]["match_venue"]
+          mvp_player_id?: string | null
           passes?: number | null
           passes_pct?: number | null
           placar_adversario?: number | null
@@ -338,6 +343,7 @@ export type Database = {
           desarmes?: number | null
           id?: string
           mando?: Database["public"]["Enums"]["match_venue"]
+          mvp_player_id?: string | null
           passes?: number | null
           passes_pct?: number | null
           placar_adversario?: number | null
@@ -350,6 +356,13 @@ export type Database = {
           xg?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "matches_mvp_player_id_fkey"
+            columns: ["mvp_player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "matches_save_id_fkey"
             columns: ["save_id"]
