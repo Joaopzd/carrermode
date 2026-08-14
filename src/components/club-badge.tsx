@@ -1,0 +1,42 @@
+import { Shield } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { escudoPorNome, useClubes } from "@/lib/clubes";
+
+type Props = {
+  nome?: string | null;
+  /** Escudo já conhecido; quando ausente, é buscado pelo nome na tabela clubs. */
+  escudoUrl?: string | null;
+  className?: string;
+  tamanho?: "sm" | "md" | "lg";
+  /** Oculta o nome, mostrando apenas o escudo. */
+  semNome?: boolean;
+};
+
+const TAMANHOS = {
+  sm: "h-4 w-4",
+  md: "h-6 w-6",
+  lg: "h-10 w-10",
+} as const;
+
+/** Nome do clube acompanhado do escudo, com fallback de ícone genérico. */
+export function ClubBadge({ nome, escudoUrl, className, tamanho = "sm", semNome = false }: Props) {
+  const clubes = useClubes();
+  const url = escudoUrl ?? escudoPorNome(clubes, nome);
+  const box = TAMANHOS[tamanho];
+
+  return (
+    <span className={cn("inline-flex min-w-0 items-center gap-1.5", className)}>
+      {url ? (
+        <img
+          src={url}
+          alt={nome ? `Escudo do ${nome}` : "Escudo"}
+          loading="lazy"
+          className={cn(box, "shrink-0 object-contain")}
+        />
+      ) : (
+        <Shield className={cn(box, "shrink-0 text-muted-foreground")} aria-hidden />
+      )}
+      {!semNome && <span className="truncate">{nome?.trim() || "—"}</span>}
+    </span>
+  );
+}
