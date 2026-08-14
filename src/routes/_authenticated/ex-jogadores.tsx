@@ -1,3 +1,4 @@
+import { ClubBadge } from "@/components/club-badge";
 import { posEn } from "@/lib/posicoes";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
@@ -267,7 +268,9 @@ function ExJogadoresPage() {
                       <div className="flex flex-wrap items-center gap-2 text-xs">
                         <Badge variant="secondary">{rotuloMotivo(j.motivo_saida)}</Badge>
                         {j.clube_destino ? (
-                          <span className="text-muted-foreground">→ {j.clube_destino}</span>
+                          <span className="inline-flex items-center gap-1 text-muted-foreground">
+                            → <ClubBadge nome={j.clube_destino} />
+                          </span>
                         ) : null}
                       </div>
                       <p className="text-xs text-muted-foreground">
@@ -309,7 +312,7 @@ function ExJogadoresPage() {
                     </div>
                     <div>
                       <dt className="text-xs text-muted-foreground">Destino</dt>
-                      <dd>{selecionado.clube_destino ?? "—"}</dd>
+                      <dd><ClubBadge nome={selecionado.clube_destino} /></dd>
                     </div>
                     <div>
                       <dt className="text-xs text-muted-foreground">Data</dt>
