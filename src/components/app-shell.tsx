@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export function AppShell({ titulo, children }: { titulo: string; children: ReactNode }) {
   const navigate = useNavigate();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   async function sair() {
     await supabase.auth.signOut();
