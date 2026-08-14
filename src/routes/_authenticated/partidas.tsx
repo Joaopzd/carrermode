@@ -1,3 +1,5 @@
+import { ClubBadge } from "@/components/club-badge";
+import { ClubAutocomplete } from "@/components/club-autocomplete";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { AlertTriangle, CalendarPlus, ClipboardCheck, Pencil, Plus, Trash2 } from "lucide-react";
@@ -255,11 +257,21 @@ function PartidasPage() {
                     <Card key={p.id}>
                       <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4">
                         <div>
-                          <p className="font-semibold">
-                            {ICONE_COMPETICAO[p.competicao ?? ""] ?? "⚽"}{" "}
-                            {(p as { mando?: string }).mando === "fora"
-                              ? `${p.adversario} x ${save?.clubeNome ?? "Meu clube"}`
-                              : `${save?.clubeNome ?? "Meu clube"} x ${p.adversario}`}
+                          <p className="flex flex-wrap items-center gap-1.5 font-semibold">
+                            <span>{ICONE_COMPETICAO[p.competicao ?? ""] ?? "⚽"}</span>
+                            {(p as { mando?: string }).mando === "fora" ? (
+                              <>
+                                <ClubBadge nome={p.adversario} />
+                                <span>x</span>
+                                <ClubBadge nome={save?.clubeNome} escudoUrl={save?.escudo} />
+                              </>
+                            ) : (
+                              <>
+                                <ClubBadge nome={save?.clubeNome} escudoUrl={save?.escudo} />
+                                <span>x</span>
+                                <ClubBadge nome={p.adversario} />
+                              </>
+                            )}
                           </p>
                           <p className="text-xs text-muted-foreground">
                             {(p as { mando?: string }).mando === "fora"
@@ -326,10 +338,13 @@ function PartidasPage() {
                               {r.letra}
                             </span>
                             <div>
-                              <p className="font-semibold">
-                                {ICONE_COMPETICAO[p.competicao ?? ""] ?? "⚽"}{" "}
-                                {save?.clubeNome ?? "Meu clube"} {p.placar_time ?? 0} x{" "}
-                                {p.placar_adversario ?? 0} {p.adversario}
+                              <p className="flex flex-wrap items-center gap-1.5 font-semibold">
+                                <span>{ICONE_COMPETICAO[p.competicao ?? ""] ?? "⚽"}</span>
+                                <ClubBadge nome={save?.clubeNome} escudoUrl={save?.escudo} />
+                                <span>
+                                  {p.placar_time ?? 0} x {p.placar_adversario ?? 0}
+                                </span>
+                                <ClubBadge nome={p.adversario} />
                                 {p.mvp_player_id && nomesMvp[p.mvp_player_id] ? (
                                   <span className="ml-2 inline-flex items-center rounded-full bg-accent/15 px-2 py-0.5 align-middle text-[11px] font-medium text-accent">
                                     ⭐ MVP: {nomesMvp[p.mvp_player_id]}
@@ -443,9 +458,10 @@ function PartidasPage() {
             </div>
             <div className="grid gap-1">
               <Label>Adversário</Label>
-              <Input
+              <ClubAutocomplete
                 value={form.adversario}
-                onChange={(e) => setForm({ ...form, adversario: e.target.value })}
+                leagueId={save?.leagueId ?? null}
+                onChange={(v) => setForm({ ...form, adversario: v })}
                 placeholder="Nome do clube adversário"
               />
             </div>

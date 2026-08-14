@@ -1,3 +1,5 @@
+import { ClubBadge } from "@/components/club-badge";
+import { ClubAutocomplete } from "@/components/club-autocomplete";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -660,7 +662,8 @@ function TransferenciasPage() {
                     <div>
                       <p className="font-display text-lg tracking-wide">{rotuloJogador(t)}</p>
                       <p className="text-xs text-muted-foreground">
-                        {t.tipo === "entrada" ? "De" : "Para"} {t.clube_contraparte ?? "—"}
+                        {t.tipo === "entrada" ? "De" : "Para"}{" "}
+                        <ClubBadge nome={t.clube_contraparte} className="align-middle" />
                         {t.duracao_emprestimo ? ` · até ${t.duracao_emprestimo}` : ""}
                       </p>
                     </div>
@@ -727,7 +730,8 @@ function TransferenciasPage() {
                       <div>
                         <p className="font-display text-lg tracking-wide">{rotuloJogador(t)}</p>
                         <p className="text-xs text-muted-foreground">
-                          {t.tipo === "entrada" ? "De" : "Para"} {t.clube_contraparte ?? "—"} ·{" "}
+                          {t.tipo === "entrada" ? "De" : "Para"}{" "}
+                          <ClubBadge nome={t.clube_contraparte} className="align-middle" /> ·{" "}
                           {new Date(t.data).toLocaleDateString("pt-BR")}
                           {t.duracao_emprestimo ? ` · até ${t.duracao_emprestimo}` : ""}
                         </p>
@@ -883,9 +887,9 @@ function TransferenciasPage() {
 
               <div className="grid gap-1">
                 <Label>{tipo === "entrada" ? "Clube de origem" : "Clube de destino"}</Label>
-                <Input
+                <ClubAutocomplete
                   value={clubeContraparte}
-                  onChange={(e) => setClubeContraparte(e.target.value)}
+                  onChange={setClubeContraparte}
                   placeholder="Nome do clube"
                 />
               </div>
@@ -1025,11 +1029,9 @@ function TransferenciasPage() {
               </div>
               <div className="grid gap-1">
                 <Label>Clube contraparte</Label>
-                <Input
+                <ClubAutocomplete
                   value={editando.clube_contraparte ?? ""}
-                  onChange={(e) =>
-                    setEditando((p) => (p ? { ...p, clube_contraparte: e.target.value } : p))
-                  }
+                  onChange={(v) => setEditando((p) => (p ? { ...p, clube_contraparte: v } : p))}
                 />
               </div>
               <div className="grid gap-1">

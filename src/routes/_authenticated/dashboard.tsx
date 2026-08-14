@@ -1,3 +1,4 @@
+import { ClubBadge } from "@/components/club-badge";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
@@ -470,7 +471,7 @@ function Dashboard() {
                     {resumo.proximo ? (
                       <div className="space-y-1">
                         <p className="font-display text-3xl">
-                          {resumo.proximo.adversario ?? "Adversário a definir"}
+                          <ClubBadge nome={resumo.proximo.adversario ?? "Adversário a definir"} tamanho="md" />
                         </p>
                         <p className="text-sm text-muted-foreground">
                           {resumo.proximo.competicao ?? "Competição"} ·{" "}
@@ -511,7 +512,7 @@ function Dashboard() {
                               >
                                 {r}
                               </span>
-                              <span className="flex-1 truncate">{m.adversario ?? "—"}</span>
+                              <ClubBadge nome={m.adversario} className="flex-1" />
                               <span className="font-semibold tabular-nums">
                                 {gp} × {gc}
                               </span>

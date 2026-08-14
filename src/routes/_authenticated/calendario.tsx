@@ -1,3 +1,5 @@
+import { ClubBadge } from "@/components/club-badge";
+import { ClubAutocomplete } from "@/components/club-autocomplete";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -248,7 +250,8 @@ function CalendarioPage() {
                 </p>
                 {atrasadas.map((p) => (
                   <p key={p.id} className="text-sm text-muted-foreground">
-                    {ICONE_COMPETICAO[p.competicao ?? ""] ?? "⚽"} {p.adversario} ·{" "}
+                    {ICONE_COMPETICAO[p.competicao ?? ""] ?? "⚽"}{" "}
+                    <ClubBadge nome={p.adversario} className="align-middle" /> ·{" "}
                     {p.data_hora ? new Date(p.data_hora).toLocaleDateString("pt-BR") : "—"}
                   </p>
                 ))}
@@ -306,7 +309,8 @@ function CalendarioPage() {
                                   : "bg-primary/15 text-primary"
                               }`}
                             >
-                              {ICONE_COMPETICAO[j.competicao ?? ""] ?? "⚽"} {j.adversario}
+                              {ICONE_COMPETICAO[j.competicao ?? ""] ?? "⚽"}{" "}
+                              <ClubBadge nome={j.adversario} className="align-middle" />
                             </div>
                           ))}
                           {jogos.length > 2 ? (
@@ -350,7 +354,8 @@ function CalendarioPage() {
               </p>
               {partidasDoDia.map((p) => (
                 <p key={p.id}>
-                  {ICONE_COMPETICAO[p.competicao ?? ""] ?? "⚽"} {p.adversario} ·{" "}
+                  {ICONE_COMPETICAO[p.competicao ?? ""] ?? "⚽"}{" "}
+                  <ClubBadge nome={p.adversario} className="align-middle" /> ·{" "}
                   {p.status === "finalizada"
                     ? `${p.placar_time ?? 0} x ${p.placar_adversario ?? 0}`
                     : "agendada"}
@@ -409,11 +414,12 @@ function CalendarioPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="adv">Adversário</Label>
-              <Input
+              <ClubAutocomplete
                 id="adv"
                 placeholder="Nome do clube adversário"
                 value={form.adversario}
-                onChange={(e) => setForm({ ...form, adversario: e.target.value })}
+                leagueId={save?.leagueId ?? null}
+                onChange={(v) => setForm({ ...form, adversario: v })}
               />
             </div>
           </div>

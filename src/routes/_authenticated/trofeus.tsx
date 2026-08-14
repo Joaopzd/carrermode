@@ -1,3 +1,5 @@
+import { ClubBadge } from "@/components/club-badge";
+import { ClubAutocomplete } from "@/components/club-autocomplete";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Trophy, Plus, Medal } from "lucide-react";
@@ -256,7 +258,7 @@ function TrofeusPage() {
                         <div className="space-y-1 text-sm">
                           <p>
                             <span className="text-muted-foreground">Campeão:</span>{" "}
-                            <span className="font-semibold">{r.campeao_clube}</span>
+                            <ClubBadge nome={r.campeao_clube} className="align-middle font-semibold" />
                             {r.e_meu_clube_campeao ? (
                               <Badge className="ml-2 bg-amber-500/20 text-amber-500">
                                 Meu clube
@@ -266,7 +268,7 @@ function TrofeusPage() {
                           {c.registra_vice ? (
                             <p>
                               <span className="text-muted-foreground">Vice:</span>{" "}
-                              {r.vice_clube ?? "—"}
+                              <ClubBadge nome={r.vice_clube} className="align-middle" />
                               {r.e_meu_clube_vice ? (
                                 <Badge variant="outline" className="ml-2">
                                   Meu clube
@@ -309,20 +311,18 @@ function TrofeusPage() {
           <div className="grid gap-3">
             <div className="grid gap-1">
               <Label>Campeão</Label>
-              <Input
-                list="lista-clubes"
+              <ClubAutocomplete
                 value={campeao}
-                onChange={(e) => setCampeao(e.target.value)}
+                onChange={setCampeao}
                 placeholder="Nome do clube"
               />
             </div>
             {alvo?.registra_vice ? (
               <div className="grid gap-1">
                 <Label>Vice-campeão</Label>
-                <Input
-                  list="lista-clubes"
+                <ClubAutocomplete
                   value={vice}
-                  onChange={(e) => setVice(e.target.value)}
+                  onChange={setVice}
                   placeholder="Nome do clube"
                 />
               </div>

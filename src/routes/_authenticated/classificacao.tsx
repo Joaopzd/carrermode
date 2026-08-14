@@ -1,3 +1,5 @@
+import { ClubBadge } from "@/components/club-badge";
+import { ClubAutocomplete } from "@/components/club-autocomplete";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Plus, RefreshCw, Trash2 } from "lucide-react";
@@ -417,7 +419,9 @@ function ClassificacaoPage() {
                                 <TableCell className="text-muted-foreground">
                                   {s.posicao ?? i + 1}
                                 </TableCell>
-                                <TableCell className="font-medium">{s.time}</TableCell>
+                                <TableCell className="font-medium">
+                                  <ClubBadge nome={s.time} />
+                                </TableCell>
                                 <TableCell className="text-right font-bold">{s.pontos}</TableCell>
                                 <TableCell className="text-right">{s.jogos}</TableCell>
                                 <TableCell className="text-right">{s.vitorias}</TableCell>
@@ -471,10 +475,11 @@ function ClassificacaoPage() {
                   key={i}
                   className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_repeat(6,3.5rem)_2rem]"
                 >
-                  <Input
+                  <ClubAutocomplete
                     placeholder="Time"
                     value={l.time}
-                    onChange={(e) => atualizar(i, "time", e.target.value)}
+                    leagueId={save?.leagueId ?? null}
+                    onChange={(v) => atualizar(i, "time", v)}
                   />
                   {(["pontos", "vitorias", "empates", "derrotas", "gols_pro", "gols_contra"] as const).map(
                     (campo) => (
