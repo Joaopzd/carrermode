@@ -33,7 +33,11 @@ export function AppShell({ titulo, children }: { titulo: string; children: React
             </div>
           </header>
 
-          <main className="hq-surface flex-1">{children}</main>
+          <main className="hq-surface flex-1">
+            <PageTransition chave={pathname} className="min-h-full">
+              {children}
+            </PageTransition>
+          </main>
         </div>
       </div>
     </SidebarProvider>
