@@ -283,6 +283,8 @@ function ExJogadoresPage() {
                     </CardContent>
                   </Card>
                 </button>
+                </HoverCard>
+                </StaggerItem>
               ))}
             </div>
           )}

@@ -314,6 +314,8 @@ function PartidasPage() {
                         </div>
                       </CardContent>
                     </Card>
+                    </HoverCard>
+                    </StaggerItem>
                   ))
                 )}
               </section>
@@ -387,6 +389,8 @@ function PartidasPage() {
                           </div>
                         </CardContent>
                       </Card>
+                      </HoverCard>
+                      </StaggerItem>
                     );
                   })
                 )}
