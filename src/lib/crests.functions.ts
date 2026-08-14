@@ -57,12 +57,18 @@ export const sincronizarEscudos = createServerFn({ method: "POST" })
           continue;
         }
         const json = (await res.json()) as {
-          teams?: Array<{ strTeamBadge?: string | null; strSport?: string | null }> | null;
+          teams?: Array<{
+            strTeamBadge?: string | null;
+            strBadge?: string | null;
+            strSport?: string | null;
+          }> | null;
         };
+        const temBadge = (t: { strTeamBadge?: string | null; strBadge?: string | null }) =>
+          t.strTeamBadge ?? t.strBadge ?? null;
         const time =
-          json.teams?.find((t) => t.strSport === "Soccer" && t.strTeamBadge) ??
-          json.teams?.find((t) => t.strTeamBadge);
-        const badge = time?.strTeamBadge ?? null;
+          json.teams?.find((t) => t.strSport === "Soccer" && temBadge(t)) ??
+          json.teams?.find((t) => temBadge(t));
+        const badge = time ? temBadge(time) : null;
         if (!badge) {
           naoEncontrados++;
           continue;
