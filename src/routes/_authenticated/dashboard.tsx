@@ -381,10 +381,10 @@ function Dashboard() {
                 </div>
                 <div className="min-w-0">
 
-                  <h1 className="text-gradient-pitch text-3xl sm:text-4xl">
+                  <h1 className="font-display text-4xl leading-tight tracking-wide text-foreground sm:text-5xl">
                     {resumo.clubeNome ?? "Clube a definir"}
                   </h1>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm font-medium text-foreground/70">
                     {resumo.ligaNome ?? "Liga"} · Temporada {resumo.temporada}
                   </p>
                 </div>
@@ -392,7 +392,7 @@ function Dashboard() {
                   <p className="font-display text-xl tracking-wide">
                     {resumo.manager?.nome_usado ?? resumo.manager?.nome ?? "Treinador"}
                   </p>
-                  <p className="text-xs uppercase tracking-[0.2em] text-primary">
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">
                     {resumo.manager?.estilo_tatico ?? "Estilo a definir"}
                   </p>
                   <div className="flex items-center gap-2">
@@ -466,7 +466,7 @@ function Dashboard() {
                 <Card>
                   <CardHeader className="flex-row items-center gap-2 pb-2">
                     <CalendarClock className="h-4 w-4 text-primary" />
-                    <CardTitle className="text-base uppercase tracking-wide">
+                    <CardTitle className="text-base font-semibold uppercase tracking-[0.06em]">
                       Próximo jogo
                     </CardTitle>
                   </CardHeader>
@@ -491,14 +491,14 @@ function Dashboard() {
 
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-base uppercase tracking-wide">
+                    <CardTitle className="text-base font-semibold uppercase tracking-[0.06em]">
                       Últimos 5 resultados
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     {resumo.ultimos.length > 0 ? (
                       <ul className="space-y-2">
-                        {resumo.ultimos.map((m) => {
+                        {resumo.ultimos.map((m, i) => {
                           const gp = m.placar_time ?? 0;
                           const gc = m.placar_adversario ?? 0;
                           const r = gp > gc ? "V" : gp === gc ? "E" : "D";
@@ -509,7 +509,8 @@ function Dashboard() {
                                 ? "bg-accent text-accent-foreground"
                                 : "bg-destructive text-destructive-foreground";
                           return (
-                            <li key={m.id} className="flex items-center gap-3 text-sm">
+                            <StaggerItem key={m.id} index={i}>
+                            <li className="flex items-center gap-3 text-sm">
                               <span
                                 className={`flex h-7 w-7 items-center justify-center rounded-md font-display text-base ${cor}`}
                               >
@@ -520,6 +521,7 @@ function Dashboard() {
                                 {gp} × {gc}
                               </span>
                             </li>
+                            </StaggerItem>
                           );
                         })}
                       </ul>
@@ -534,17 +536,18 @@ function Dashboard() {
                 <Card>
                   <CardHeader className="flex-row items-center gap-2 pb-2">
                     <Newspaper className="h-4 w-4 text-primary" />
-                    <CardTitle className="text-base uppercase tracking-wide">
+                    <CardTitle className="text-base font-semibold uppercase tracking-[0.06em]">
                       Feed de notícias
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     {resumo.noticias.length > 0 ? (
                       <ul className="divide-y divide-border">
-                        {resumo.noticias.map((n) => {
+                        {resumo.noticias.map((n, i) => {
                           const Icone = ICONE_NOTICIA[n.tipo] ?? Newspaper;
                           return (
-                            <li key={n.id} className="flex gap-3 py-3 first:pt-0 last:pb-0">
+                            <StaggerItem key={n.id} index={i}>
+                            <li className="flex gap-3 py-3 first:pt-0 last:pb-0">
                               <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted text-primary">
                                 <Icone className="h-4 w-4" />
                               </span>
