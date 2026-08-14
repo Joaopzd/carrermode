@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
+import { PageTransition } from "@/components/motion";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -9,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export function AppShell({ titulo, children }: { titulo: string; children: ReactNode }) {
   const navigate = useNavigate();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   async function sair() {
     await supabase.auth.signOut();
@@ -31,7 +33,11 @@ export function AppShell({ titulo, children }: { titulo: string; children: React
             </div>
           </header>
 
-          <main className="hq-surface flex-1">{children}</main>
+          <main className="hq-surface flex-1">
+            <PageTransition chave={pathname} className="min-h-full">
+              {children}
+            </PageTransition>
+          </main>
         </div>
       </div>
     </SidebarProvider>

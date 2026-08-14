@@ -4,6 +4,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Archive, UserMinus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { HoverCard, StaggerItem } from "@/components/motion";
 import { AppShell } from "@/components/app-shell";
 import { PlayerEvolution } from "@/components/player-evolution";
 import { Bandeira } from "@/components/bandeira";
@@ -242,12 +243,13 @@ function ExJogadoresPage() {
             </Card>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {filtrados.map((j) => (
+              {filtrados.map((j, i) => (
+                <StaggerItem key={j.id} index={i}>
+                <HoverCard className="h-full">
                 <button
-                  key={j.id}
                   type="button"
                   onClick={() => void abrir(j)}
-                  className="text-left"
+                  className="h-full w-full text-left"
                 >
                   <Card className="hq-card h-full transition-colors hover:border-primary/60">
                     <CardContent className="space-y-2 py-4">
@@ -281,6 +283,8 @@ function ExJogadoresPage() {
                     </CardContent>
                   </Card>
                 </button>
+                </HoverCard>
+                </StaggerItem>
               ))}
             </div>
           )}

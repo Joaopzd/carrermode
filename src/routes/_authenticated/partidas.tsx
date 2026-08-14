@@ -24,6 +24,7 @@ import {
 import { COMPETICOES } from "@/lib/match-data";
 import { lerDataCarreira, partidasAtrasadas } from "@/lib/carreira-data";
 import { supabase } from "@/integrations/supabase/client";
+import { HoverCard, StaggerItem } from "@/components/motion";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -253,8 +254,10 @@ function PartidasPage() {
                     </CardContent>
                   </Card>
                 ) : (
-                  agendadas.map((p) => (
-                    <Card key={p.id}>
+                  agendadas.map((p, i) => (
+                    <StaggerItem key={p.id} index={i}>
+                    <HoverCard>
+                    <Card>
                       <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4">
                         <div>
                           <p className="flex flex-wrap items-center gap-1.5 font-semibold">
@@ -311,6 +314,8 @@ function PartidasPage() {
                         </div>
                       </CardContent>
                     </Card>
+                    </HoverCard>
+                    </StaggerItem>
                   ))
                 )}
               </section>
@@ -326,10 +331,12 @@ function PartidasPage() {
                     </CardContent>
                   </Card>
                 ) : (
-                  finalizadas.map((p) => {
+                  finalizadas.map((p, i) => {
                     const r = resultado(p);
                     return (
-                      <Card key={p.id}>
+                      <StaggerItem key={p.id} index={i}>
+                      <HoverCard>
+                      <Card>
                         <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4">
                           <div className="flex items-center gap-3">
                             <span
@@ -382,6 +389,8 @@ function PartidasPage() {
                           </div>
                         </CardContent>
                       </Card>
+                      </HoverCard>
+                      </StaggerItem>
                     );
                   })
                 )}

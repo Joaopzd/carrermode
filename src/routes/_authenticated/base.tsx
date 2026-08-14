@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowUpCircle, Sparkles, Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
+import { HoverCard, StaggerItem } from "@/components/motion";
 import { AppShell } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -156,10 +157,12 @@ function BasePage() {
             </Card>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {jogadores.map((j) => {
+              {jogadores.map((j, i) => {
                 const evolucao = Math.max(0, (j.potencial ?? 0) - (j.overall ?? 0));
                 return (
-                  <Card key={j.id} className="hq-card">
+                  <StaggerItem key={j.id} index={i}>
+                  <HoverCard className="h-full">
+                  <Card className="hq-card h-full">
                     <CardContent className="space-y-3 py-4">
                       <div className="flex items-start justify-between gap-2">
                         <div>
@@ -231,6 +234,8 @@ function BasePage() {
                       </div>
                     </CardContent>
                   </Card>
+                  </HoverCard>
+                  </StaggerItem>
                 );
               })}
             </div>

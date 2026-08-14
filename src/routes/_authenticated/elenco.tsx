@@ -45,6 +45,7 @@ import {
 } from "@/components/jogador-form-dialog";
 import { PlaystyleSelect } from "@/components/playstyle-select";
 import { parsePlaystyles } from "@/lib/playstyles";
+import { CrossFade, HoverCard, StaggerItem } from "@/components/motion";
 import { Bandeira } from "@/components/bandeira";
 import { supabase } from "@/integrations/supabase/client";
 import { PAISES, POSICOES, STATUS_JOGADOR } from "@/lib/onboarding-data";
@@ -411,7 +412,9 @@ function ElencoPage() {
                 </p>
               </CardContent>
             </Card>
-          ) : visao === "lista" ? (
+          ) : (
+            <CrossFade chave={visao}>
+            {visao === "lista" ? (
             <Card className="hq-card overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -477,10 +480,12 @@ function ElencoPage() {
                 </tbody>
               </table>
             </Card>
-          ) : (
+            ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {filtrados.map((j) => (
-                <Card key={j.id} className="hq-card">
+              {filtrados.map((j, i) => (
+                <StaggerItem key={j.id} index={i}>
+                <HoverCard className="h-full">
+                <Card className="hq-card h-full">
                   <CardContent className="space-y-3 py-4">
                     <div className="flex items-start justify-between gap-2">
                       <div>
@@ -543,8 +548,12 @@ function ElencoPage() {
                     </div>
                   </CardContent>
                 </Card>
+                </HoverCard>
+                </StaggerItem>
               ))}
             </div>
+            )}
+            </CrossFade>
           )}
         </div>
       </div>

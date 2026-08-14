@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TabSlide } from "@/components/motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -268,7 +269,8 @@ function ClassificacaoPage() {
                 <TabsTrigger value="tabela">Tabela da Liga</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="campanha" className="mt-4 space-y-4">
+              <TabsContent value="campanha" className="mt-4">
+                <TabSlide chave="campanha" className="space-y-4">
                 {minhaPosicao ? (
                   <div className="flex items-center gap-2 text-sm">
                     <span className="text-muted-foreground">
@@ -357,9 +359,11 @@ function ClassificacaoPage() {
                     </Card>
                   </>
                 )}
+                </TabSlide>
               </TabsContent>
 
-              <TabsContent value="tabela" className="mt-4 space-y-4">
+              <TabsContent value="tabela" className="mt-4">
+                <TabSlide chave="tabela" className="space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground">Última rodada sincronizada:</span>
@@ -438,6 +442,7 @@ function ClassificacaoPage() {
                     </div>
                   </Card>
                 )}
+                </TabSlide>
               </TabsContent>
             </Tabs>
           )}

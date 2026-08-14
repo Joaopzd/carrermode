@@ -1,3 +1,4 @@
+import { Collapse } from "@/components/motion";
 import { ehGoleiro, posEn, GRUPOS_POSICAO, grupoDaPosicao } from "@/lib/posicoes";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { ChevronDown, ChevronRight, Loader2, Save, Star } from "lucide-react";
@@ -516,7 +517,7 @@ export function FecharPartidaDialog({
                         ({marcados}/{doGrupo.length})
                       </span>
                     </button>
-                    {abertoGrupo ? (
+                    <Collapse aberto={abertoGrupo}>
                       <div className="grid gap-2 border-t p-3 sm:grid-cols-2">
                         {doGrupo.map((j) => {
                           const marcado = selecionados.includes(j.id);
@@ -552,7 +553,7 @@ export function FecharPartidaDialog({
                           );
                         })}
                       </div>
-                    ) : null}
+                    </Collapse>
                   </div>
                 );
               })}
@@ -723,10 +724,10 @@ export function FecharPartidaDialog({
                               />
                             </td>
                           </tr>
-                          {expandido ? (
-                            <tr className="border-t bg-muted/30">
-                              <td colSpan={8} className="px-3 py-3">
-                                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+                          <tr className="border-t bg-muted/30">
+                              <td colSpan={8} className="p-0">
+                                <Collapse aberto={expandido}>
+                                <div className="grid px-3 py-3 grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
                                   {(
                                     [
                                       ["xg", "xG"],
@@ -750,9 +751,9 @@ export function FecharPartidaDialog({
                                     </div>
                                   ))}
                                 </div>
+                                </Collapse>
                               </td>
                             </tr>
-                          ) : null}
                         </Fragment>
                       );
                     })}
