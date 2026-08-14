@@ -650,24 +650,36 @@ function ResumoCard({
   icone,
   rotulo,
   valor,
+  numero,
+  decimais = 0,
   detalhe,
 }: {
   icone: React.ReactNode;
   rotulo: string;
-  valor: string;
+  valor?: string;
+  numero?: number | null;
+  decimais?: number;
   detalhe: string;
 }) {
   return (
-    <Card className="glow-panel">
-      <CardContent className="pt-6">
-        <p className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">
-          <span className="text-primary">{icone}</span>
-          {rotulo}
-        </p>
-        <p className="mt-2 truncate font-display text-3xl">{valor}</p>
-        <p className="text-xs text-muted-foreground">{detalhe}</p>
-      </CardContent>
-    </Card>
+    <HoverCard className="h-full">
+      <Card className="glow-panel h-full">
+        <CardContent className="pt-6">
+          <p className="flex items-center gap-2 text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+            <span className="text-primary">{icone}</span>
+            {rotulo}
+          </p>
+          <p className="mt-2 truncate text-2xl font-bold leading-tight text-foreground">
+            {numero != null ? (
+              <CountUp valor={numero} decimais={decimais} />
+            ) : (
+              (valor ?? "—")
+            )}
+          </p>
+          <p className="mt-1 text-xs font-medium text-muted-foreground">{detalhe}</p>
+        </CardContent>
+      </Card>
+    </HoverCard>
   );
 }
 
