@@ -6,6 +6,7 @@ import {
   GaugeCircle,
   LineChart,
   ListOrdered,
+  Replace,
   Repeat,
   Shirt,
   Sprout,
@@ -42,6 +43,7 @@ export const NAV_ITENS = [
   { title: "Ex-Jogadores", url: "/ex-jogadores", icon: UserMinus },
   { title: "Arquivo de Temporadas", url: "/arquivo", icon: Archive },
   { title: "Regras da Liga", url: "/regras-liga", icon: Settings },
+  { title: "Trocar Clube", url: "/trocar-clube", icon: Replace },
 ] as const;
 
 export function AppSidebar() {
