@@ -3,13 +3,13 @@ import { cn } from "@/lib/utils";
 import { escudoPorNome, useClubes } from "@/lib/clubes";
 
 type Props = {
-  nome?: string | null;
+  nome?: string | null | undefined;
   /** Escudo já conhecido; quando ausente, é buscado pelo nome na tabela clubs. */
-  escudoUrl?: string | null;
-  className?: string;
-  tamanho?: "sm" | "md" | "lg";
+  escudoUrl?: string | null | undefined;
+  className?: string | undefined;
+  tamanho?: "sm" | "md" | "lg" | undefined;
   /** Oculta o nome, mostrando apenas o escudo. */
-  semNome?: boolean;
+  semNome?: boolean | undefined;
 };
 
 const TAMANHOS = {

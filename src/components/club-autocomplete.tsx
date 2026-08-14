@@ -7,11 +7,11 @@ import { cn } from "@/lib/utils";
 type Props = {
   value: string;
   onChange: (valor: string) => void;
-  placeholder?: string;
-  className?: string;
-  id?: string;
+  placeholder?: string | undefined;
+  className?: string | undefined;
+  id?: string | undefined;
   /** Prioriza clubes desta liga nas sugestões. */
-  leagueId?: string | null;
+  leagueId?: string | null | undefined;
 };
 
 function normalizar(v: string) {
