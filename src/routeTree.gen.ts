@@ -27,6 +27,7 @@ import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authentic
 import { Route as AuthenticatedPartidasRouteImport } from './routes/_authenticated/partidas'
 import { Route as AuthenticatedRegrasLigaRouteImport } from './routes/_authenticated/regras-liga'
 import { Route as AuthenticatedTransferenciasRouteImport } from './routes/_authenticated/transferencias'
+import { Route as AuthenticatedTrocarClubeRouteImport } from './routes/_authenticated/trocar-clube'
 import { Route as AuthenticatedTrofeusRouteImport } from './routes/_authenticated/trofeus'
 
 const IndexRoute = IndexRouteImport.update({
@@ -122,6 +123,12 @@ const AuthenticatedTransferenciasRoute =
     path: '/transferencias',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedTrocarClubeRoute =
+  AuthenticatedTrocarClubeRouteImport.update({
+    id: '/trocar-clube',
+    path: '/trocar-clube',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedTrofeusRoute = AuthenticatedTrofeusRouteImport.update({
   id: '/trofeus',
   path: '/trofeus',
@@ -146,6 +153,7 @@ export interface FileRoutesByFullPath {
   '/partidas': typeof AuthenticatedPartidasRoute
   '/regras-liga': typeof AuthenticatedRegrasLigaRoute
   '/transferencias': typeof AuthenticatedTransferenciasRoute
+  '/trocar-clube': typeof AuthenticatedTrocarClubeRoute
   '/trofeus': typeof AuthenticatedTrofeusRoute
 }
 export interface FileRoutesByTo {
@@ -166,6 +174,7 @@ export interface FileRoutesByTo {
   '/partidas': typeof AuthenticatedPartidasRoute
   '/regras-liga': typeof AuthenticatedRegrasLigaRoute
   '/transferencias': typeof AuthenticatedTransferenciasRoute
+  '/trocar-clube': typeof AuthenticatedTrocarClubeRoute
   '/trofeus': typeof AuthenticatedTrofeusRoute
 }
 export interface FileRoutesById {
@@ -188,6 +197,7 @@ export interface FileRoutesById {
   '/_authenticated/partidas': typeof AuthenticatedPartidasRoute
   '/_authenticated/regras-liga': typeof AuthenticatedRegrasLigaRoute
   '/_authenticated/transferencias': typeof AuthenticatedTransferenciasRoute
+  '/_authenticated/trocar-clube': typeof AuthenticatedTrocarClubeRoute
   '/_authenticated/trofeus': typeof AuthenticatedTrofeusRoute
 }
 export interface FileRouteTypes {
@@ -210,6 +220,7 @@ export interface FileRouteTypes {
     | '/partidas'
     | '/regras-liga'
     | '/transferencias'
+    | '/trocar-clube'
     | '/trofeus'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -230,6 +241,7 @@ export interface FileRouteTypes {
     | '/partidas'
     | '/regras-liga'
     | '/transferencias'
+    | '/trocar-clube'
     | '/trofeus'
   id:
     | '__root__'
@@ -251,6 +263,7 @@ export interface FileRouteTypes {
     | '/_authenticated/partidas'
     | '/_authenticated/regras-liga'
     | '/_authenticated/transferencias'
+    | '/_authenticated/trocar-clube'
     | '/_authenticated/trofeus'
   fileRoutesById: FileRoutesById
 }
@@ -389,6 +402,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTransferenciasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/trocar-clube': {
+      id: '/_authenticated/trocar-clube'
+      path: '/trocar-clube'
+      fullPath: '/trocar-clube'
+      preLoaderRoute: typeof AuthenticatedTrocarClubeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/trofeus': {
       id: '/_authenticated/trofeus'
       path: '/trofeus'
@@ -414,6 +434,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPartidasRoute: typeof AuthenticatedPartidasRoute
   AuthenticatedRegrasLigaRoute: typeof AuthenticatedRegrasLigaRoute
   AuthenticatedTransferenciasRoute: typeof AuthenticatedTransferenciasRoute
+  AuthenticatedTrocarClubeRoute: typeof AuthenticatedTrocarClubeRoute
   AuthenticatedTrofeusRoute: typeof AuthenticatedTrofeusRoute
 }
 
@@ -432,6 +453,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPartidasRoute: AuthenticatedPartidasRoute,
   AuthenticatedRegrasLigaRoute: AuthenticatedRegrasLigaRoute,
   AuthenticatedTransferenciasRoute: AuthenticatedTransferenciasRoute,
+  AuthenticatedTrocarClubeRoute: AuthenticatedTrocarClubeRoute,
   AuthenticatedTrofeusRoute: AuthenticatedTrofeusRoute,
 }
 

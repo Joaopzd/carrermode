@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { garantirEscudosSincronizados } from "@/lib/clubes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -112,6 +113,12 @@ function Onboarding() {
   );
 
   const [jogadores, setJogadores] = useState<Jogador[]>([jogadorVazio()]);
+
+  // Assim que as ligas/clubes semeados são carregados, dispara em segundo plano
+  // a sincronização de escudos — sem depender de clique manual.
+  useEffect(() => {
+    void garantirEscudosSincronizados();
+  }, []);
 
   useEffect(() => {
     void (async () => {
