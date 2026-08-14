@@ -338,10 +338,13 @@ function PartidasPage() {
                               {r.letra}
                             </span>
                             <div>
-                              <p className="font-semibold">
-                                {ICONE_COMPETICAO[p.competicao ?? ""] ?? "⚽"}{" "}
-                                {save?.clubeNome ?? "Meu clube"} {p.placar_time ?? 0} x{" "}
-                                {p.placar_adversario ?? 0} {p.adversario}
+                              <p className="flex flex-wrap items-center gap-1.5 font-semibold">
+                                <span>{ICONE_COMPETICAO[p.competicao ?? ""] ?? "⚽"}</span>
+                                <ClubBadge nome={save?.clubeNome} escudoUrl={save?.escudo} />
+                                <span>
+                                  {p.placar_time ?? 0} x {p.placar_adversario ?? 0}
+                                </span>
+                                <ClubBadge nome={p.adversario} />
                                 {p.mvp_player_id && nomesMvp[p.mvp_player_id] ? (
                                   <span className="ml-2 inline-flex items-center rounded-full bg-accent/15 px-2 py-0.5 align-middle text-[11px] font-medium text-accent">
                                     ⭐ MVP: {nomesMvp[p.mvp_player_id]}
