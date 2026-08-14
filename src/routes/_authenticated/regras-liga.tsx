@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { carregarRegras, type LeagueRules } from "@/lib/league-rules";
 import { useSaveAtual } from "@/lib/use-save";
+import { AdminEscudos } from "@/components/admin-escudos";
 
 export const Route = createFileRoute("/_authenticated/regras-liga")({
   head: () => ({
@@ -112,7 +113,7 @@ function RegrasLigaPage() {
   return (
     <AppShell titulo="Regras da Liga">
       <div className="pitch-lines min-h-full px-4 py-8 sm:px-8">
-        <div className="mx-auto max-w-2xl space-y-6">
+        <div className="mx-auto max-w-3xl space-y-6">
           <header>
             <h1 className="text-gradient-pitch text-4xl">Regras da Liga</h1>
             <p className="text-sm text-muted-foreground">
@@ -150,6 +151,8 @@ function RegrasLigaPage() {
               </CardContent>
             </Card>
           )}
+
+          <AdminEscudos leagueIdPadrao={save?.leagueId ?? null} />
         </div>
       </div>
     </AppShell>
