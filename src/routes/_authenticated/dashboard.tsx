@@ -22,6 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { contarMvps } from "@/lib/mvp";
 import { encerrarTemporada, garantirSeasonAtiva } from "@/lib/season";
 import { AppShell } from "@/components/app-shell";
+import { CountUp, HoverCard, StaggerItem } from "@/components/motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -414,7 +415,9 @@ function Dashboard() {
                 <ResumoCard
                   icone={<Star className="h-4 w-4" />}
                   rotulo="Overall médio"
-                  valor={resumo.overallMedio != null ? String(resumo.overallMedio) : "—"}
+                  {...(resumo.overallMedio != null
+                    ? { numero: resumo.overallMedio }
+                    : { valor: "—" })}
                   detalhe="Elenco cadastrado"
                 />
                 <ResumoCard
@@ -454,7 +457,7 @@ function Dashboard() {
                 <ResumoCard
                   icone={<Trophy className="h-4 w-4 text-amber-400" />}
                   rotulo="Troféus"
-                  valor={String(resumo.trofeus)}
+                  numero={resumo.trofeus}
                   detalhe="Títulos do clube na carreira"
                 />
               </section>
