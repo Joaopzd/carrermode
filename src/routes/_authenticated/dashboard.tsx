@@ -558,6 +558,7 @@ function Dashboard() {
                                 )}
                               </div>
                             </li>
+                            </StaggerItem>
                           );
                         })}
                       </ul>
