@@ -672,18 +672,20 @@ function ResumoCard({
     <HoverCard className="h-full">
       <Card className="glow-panel h-full">
         <CardContent className="pt-6">
-          <p className="flex items-center gap-2 text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-            <span className="text-primary">{icone}</span>
-            {rotulo}
+          <p className="flex items-start gap-2 text-[0.7rem] font-semibold uppercase leading-snug tracking-[0.08em] text-muted-foreground">
+            <span className="mt-0.5 shrink-0 text-primary">{icone}</span>
+            <span className="break-words">{rotulo}</span>
           </p>
-          <p className="mt-2 truncate text-2xl font-bold leading-tight text-foreground">
+          <p className="mt-2 break-words text-xl font-bold leading-tight text-foreground">
             {numero != null ? (
               <CountUp valor={numero} decimais={decimais} />
             ) : (
               (valor ?? "—")
             )}
           </p>
-          <p className="mt-1 text-xs font-medium text-muted-foreground">{detalhe}</p>
+          <p className="mt-1 break-words text-xs font-medium leading-snug text-muted-foreground">
+            {detalhe}
+          </p>
         </CardContent>
       </Card>
     </HoverCard>
