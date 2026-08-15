@@ -379,17 +379,16 @@ function Dashboard() {
                     <ImagePlus className="h-3.5 w-3.5" />
                   </Button>
                 </div>
-                <div className="min-w-0">
-
-                  <h1 className="font-display text-4xl leading-tight tracking-wide text-foreground sm:text-5xl">
+                <div className="min-w-0 flex-1">
+                  <h1 className="font-display text-3xl leading-tight tracking-wide text-foreground break-words sm:text-4xl">
                     {resumo.clubeNome ?? "Clube a definir"}
                   </h1>
-                  <p className="text-sm font-medium text-foreground/70">
+                  <p className="text-sm font-medium text-foreground/70 break-words">
                     {resumo.ligaNome ?? "Liga"} · Temporada {resumo.temporada}
                   </p>
                 </div>
-                <div className="ml-auto flex flex-col items-end gap-2 text-right">
-                  <p className="font-display text-xl tracking-wide">
+                <div className="ml-auto flex flex-col items-start gap-2 sm:items-end sm:text-right">
+                  <p className="font-display text-lg tracking-wide break-words">
                     {resumo.manager?.nome_usado ?? resumo.manager?.nome ?? "Treinador"}
                   </p>
                   <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">
