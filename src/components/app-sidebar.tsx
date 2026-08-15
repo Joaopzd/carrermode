@@ -33,6 +33,7 @@ export const NAV_ITENS = [
   { title: "Calendário", url: "/calendario", icon: CalendarDays },
   { title: "Partidas", url: "/partidas", icon: ClipboardList },
   { title: "Estatísticas do Elenco", url: "/estatisticas", icon: LineChart },
+  { title: "Análise de Elenco", url: "/analise-elenco", icon: PieChart },
   { title: "Classificação", url: "/classificacao", icon: ListOrdered },
   { title: "Transferências", url: "/transferencias", icon: Repeat },
   { title: "Categorias de Base", url: "/base", icon: Sprout },

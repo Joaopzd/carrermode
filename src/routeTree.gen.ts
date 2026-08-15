@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as AuthenticatedAnaliseElencoRouteImport } from './routes/_authenticated/analise-elenco'
 import { Route as AuthenticatedArquivoRouteImport } from './routes/_authenticated/arquivo'
 import { Route as AuthenticatedBaseRouteImport } from './routes/_authenticated/base'
 import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
@@ -49,6 +50,12 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAnaliseElencoRoute =
+  AuthenticatedAnaliseElencoRouteImport.update({
+    id: '/analise-elenco',
+    path: '/analise-elenco',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedArquivoRoute = AuthenticatedArquivoRouteImport.update({
   id: '/arquivo',
   path: '/arquivo',
@@ -139,6 +146,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/analise-elenco': typeof AuthenticatedAnaliseElencoRoute
   '/arquivo': typeof AuthenticatedArquivoRoute
   '/base': typeof AuthenticatedBaseRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
@@ -160,6 +168,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/analise-elenco': typeof AuthenticatedAnaliseElencoRoute
   '/arquivo': typeof AuthenticatedArquivoRoute
   '/base': typeof AuthenticatedBaseRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
@@ -183,6 +192,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/analise-elenco': typeof AuthenticatedAnaliseElencoRoute
   '/_authenticated/arquivo': typeof AuthenticatedArquivoRoute
   '/_authenticated/base': typeof AuthenticatedBaseRoute
   '/_authenticated/calendario': typeof AuthenticatedCalendarioRoute
@@ -206,6 +216,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/reset-password'
+    | '/analise-elenco'
     | '/arquivo'
     | '/base'
     | '/calendario'
@@ -227,6 +238,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/reset-password'
+    | '/analise-elenco'
     | '/arquivo'
     | '/base'
     | '/calendario'
@@ -249,6 +261,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/reset-password'
+    | '/_authenticated/analise-elenco'
     | '/_authenticated/arquivo'
     | '/_authenticated/base'
     | '/_authenticated/calendario'
@@ -303,6 +316,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/analise-elenco': {
+      id: '/_authenticated/analise-elenco'
+      path: '/analise-elenco'
+      fullPath: '/analise-elenco'
+      preLoaderRoute: typeof AuthenticatedAnaliseElencoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/arquivo': {
       id: '/_authenticated/arquivo'
@@ -420,6 +440,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAnaliseElencoRoute: typeof AuthenticatedAnaliseElencoRoute
   AuthenticatedArquivoRoute: typeof AuthenticatedArquivoRoute
   AuthenticatedBaseRoute: typeof AuthenticatedBaseRoute
   AuthenticatedCalendarioRoute: typeof AuthenticatedCalendarioRoute
@@ -439,6 +460,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAnaliseElencoRoute: AuthenticatedAnaliseElencoRoute,
   AuthenticatedArquivoRoute: AuthenticatedArquivoRoute,
   AuthenticatedBaseRoute: AuthenticatedBaseRoute,
   AuthenticatedCalendarioRoute: AuthenticatedCalendarioRoute,
