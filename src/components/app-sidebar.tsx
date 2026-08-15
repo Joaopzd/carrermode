@@ -6,6 +6,7 @@ import {
   GaugeCircle,
   LineChart,
   ListOrdered,
+  PieChart,
   Replace,
   Repeat,
   Shirt,
