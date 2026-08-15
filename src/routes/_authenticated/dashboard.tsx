@@ -410,7 +410,7 @@ function Dashboard() {
                 </div>
               </section>
 
-              <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
+              <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
                 <ResumoCard
                   icone={<Star className="h-4 w-4" />}
                   rotulo="Overall médio"
