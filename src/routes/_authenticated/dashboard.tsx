@@ -379,17 +379,16 @@ function Dashboard() {
                     <ImagePlus className="h-3.5 w-3.5" />
                   </Button>
                 </div>
-                <div className="min-w-0">
-
-                  <h1 className="font-display text-4xl leading-tight tracking-wide text-foreground sm:text-5xl">
+                <div className="min-w-0 flex-1">
+                  <h1 className="font-display text-3xl leading-tight tracking-wide text-foreground break-words sm:text-4xl">
                     {resumo.clubeNome ?? "Clube a definir"}
                   </h1>
-                  <p className="text-sm font-medium text-foreground/70">
+                  <p className="text-sm font-medium text-foreground/70 break-words">
                     {resumo.ligaNome ?? "Liga"} · Temporada {resumo.temporada}
                   </p>
                 </div>
-                <div className="ml-auto flex flex-col items-end gap-2 text-right">
-                  <p className="font-display text-xl tracking-wide">
+                <div className="ml-auto flex flex-col items-start gap-2 sm:items-end sm:text-right">
+                  <p className="font-display text-lg tracking-wide break-words">
                     {resumo.manager?.nome_usado ?? resumo.manager?.nome ?? "Treinador"}
                   </p>
                   <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">
@@ -411,7 +410,7 @@ function Dashboard() {
                 </div>
               </section>
 
-              <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
+              <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
                 <ResumoCard
                   icone={<Star className="h-4 w-4" />}
                   rotulo="Overall médio"
@@ -473,9 +472,9 @@ function Dashboard() {
                   <CardContent>
                     {resumo.proximo ? (
                       <div className="space-y-1">
-                        <p className="font-display text-3xl">
+                        <div className="font-display text-2xl break-words">
                           <ClubBadge nome={resumo.proximo.adversario ?? "Adversário a definir"} tamanho="md" />
-                        </p>
+                        </div>
                         <p className="text-sm text-muted-foreground">
                           {resumo.proximo.competicao ?? "Competição"} ·{" "}
                           {resumo.proximo.data_hora
@@ -672,18 +671,20 @@ function ResumoCard({
     <HoverCard className="h-full">
       <Card className="glow-panel h-full">
         <CardContent className="pt-6">
-          <p className="flex items-center gap-2 text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-            <span className="text-primary">{icone}</span>
-            {rotulo}
+          <p className="flex items-start gap-2 text-[0.7rem] font-semibold uppercase leading-snug tracking-[0.08em] text-muted-foreground">
+            <span className="mt-0.5 shrink-0 text-primary">{icone}</span>
+            <span className="break-words">{rotulo}</span>
           </p>
-          <p className="mt-2 truncate text-2xl font-bold leading-tight text-foreground">
+          <p className="mt-2 break-words text-xl font-bold leading-tight text-foreground">
             {numero != null ? (
               <CountUp valor={numero} decimais={decimais} />
             ) : (
               (valor ?? "—")
             )}
           </p>
-          <p className="mt-1 text-xs font-medium text-muted-foreground">{detalhe}</p>
+          <p className="mt-1 break-words text-xs font-medium leading-snug text-muted-foreground">
+            {detalhe}
+          </p>
         </CardContent>
       </Card>
     </HoverCard>
