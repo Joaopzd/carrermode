@@ -474,7 +474,7 @@ function Dashboard() {
                       <div className="space-y-1">
                         <div className="font-display text-2xl break-words">
                           <ClubBadge nome={resumo.proximo.adversario ?? "Adversário a definir"} tamanho="md" />
-                        </p>
+                        </div>
                         <p className="text-sm text-muted-foreground">
                           {resumo.proximo.competicao ?? "Competição"} ·{" "}
                           {resumo.proximo.data_hora
