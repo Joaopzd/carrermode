@@ -472,7 +472,7 @@ function Dashboard() {
                   <CardContent>
                     {resumo.proximo ? (
                       <div className="space-y-1">
-                        <p className="font-display text-3xl">
+                        <div className="font-display text-2xl break-words">
                           <ClubBadge nome={resumo.proximo.adversario ?? "Adversário a definir"} tamanho="md" />
                         </p>
                         <p className="text-sm text-muted-foreground">
