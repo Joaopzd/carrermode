@@ -148,14 +148,27 @@ export function AdminEscudos({ leagueIdPadrao }: Props) {
         <CardTitle className="font-display text-2xl tracking-wide">Escudos dos clubes</CardTitle>
         <p className="text-sm text-muted-foreground">
           Busca automática de escudos na base pública TheSportsDB.
-          {pendentes !== null ? ` ${pendentes} clube(s) sem escudo.` : ""}
+        </p>
+        <p className="text-sm font-medium">
+          {pendentes === null
+            ? "Verificando pendências…"
+            : pendentes === 0
+              ? "Nenhum clube pendente — sincronização completa."
+              : `${pendentes} clube(s) pendente(s) de escudo.`}
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-wrap items-center gap-3">
           <Button onClick={() => void sincronizar()} disabled={sincronizando}>
             <RefreshCw className={`mr-2 h-4 w-4 ${sincronizando ? "animate-spin" : ""}`} />
-            {sincronizando ? "Sincronizando…" : "Sincronizar escudos"}
+            {sincronizando
+              ? "Sincronizando…"
+              : pendentes && pendentes > 0
+                ? `Sincronizar escudos (${pendentes})`
+                : "Sincronizar escudos"}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => void atualizarPendentes()}>
+            Atualizar contagem
           </Button>
           {progresso ? <span className="text-xs text-muted-foreground">{progresso}</span> : null}
         </div>
