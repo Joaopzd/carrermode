@@ -63,33 +63,63 @@ export function AdminEscudos({ leagueIdPadrao }: Props) {
     void carregarLista(ligaId);
   }, [ligaId, carregarLista]);
 
+  async function atualizarPendentes() {
+    try {
+      const { pendentes: p } = await contarEscudosPendentes({ data: undefined });
+      setPendentes(p);
+      return p;
+    } catch {
+      return pendentes ?? 0;
+    }
+  }
+
   async function sincronizar() {
     setSincronizando(true);
     setProgresso("Consultando clubes sem escudo…");
     try {
       let voltas = 0;
-      let restantes = (await contarEscudosPendentes({ data: undefined })).pendentes;
-      setPendentes(restantes);
+      let restantes = await atualizarPendentes();
       if (restantes === 0) {
         toast.success("Todos os clubes já têm escudo.");
       }
       while (restantes > 0 && voltas < 40) {
-        setProgresso(`Sincronizando… ${restantes} clube(s) restante(s)`);
-        const r = await sincronizarEscudos({ data: { limite: 10, delayMs: 2000 } });
+        setProgresso(`Sincronizando… ${restantes} clube(s) pendente(s)`);
         voltas++;
-        if (r.processados === 0) break;
-        restantes = r.pendentes;
+
+        // Cada lote tem até 3 tentativas; falhas de rede não interrompem o processo.
+        let resultado: Awaited<ReturnType<typeof sincronizarEscudos>> | null = null;
+        for (let tentativa = 1; tentativa <= 3; tentativa++) {
+          try {
+            resultado = await sincronizarEscudos({ data: { limite: 10, delayMs: 2000 } });
+            break;
+          } catch (e) {
+            console.error("Falha no lote de escudos (tentativa " + tentativa + ")", e);
+            if (tentativa === 3) break;
+            setProgresso(`Falha no lote — nova tentativa (${tentativa + 1}/3) em 3s…`);
+            await new Promise((r) => setTimeout(r, 3000));
+          }
+        }
+
+        if (!resultado) {
+          toast.error("Lote falhou 3 vezes. Você pode retomar a sincronização depois.");
+          break;
+        }
+        if (resultado.processados === 0) break;
+        restantes = resultado.pendentes;
         setPendentes(restantes);
-        if (r.atualizados === 0 && r.naoEncontrados === r.processados) {
+        if (resultado.atualizados === 0 && resultado.naoEncontrados === resultado.processados) {
           toast.info("Os clubes restantes não foram encontrados na base externa.");
           break;
         }
       }
       await carregarClubes(true);
       await carregarLista(ligaId);
-      toast.success("Sincronização de escudos concluída.");
+      const finais = await atualizarPendentes();
+      if (finais === 0) toast.success("Sincronização concluída: nenhum clube pendente.");
+      else toast.info(`Sincronização pausada: ainda há ${finais} clube(s) pendente(s).`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Falha ao sincronizar escudos.");
+      void atualizarPendentes();
     } finally {
       setProgresso("");
       setSincronizando(false);
