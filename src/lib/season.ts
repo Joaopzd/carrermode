@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { carregarRegras, zonaDaPosicao } from "@/lib/league-rules";
 
 export type Season = {
   id: string;
