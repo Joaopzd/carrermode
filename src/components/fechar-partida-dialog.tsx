@@ -61,10 +61,8 @@ type StatJogador = {
   clean_sheet: boolean;
   defesas: string;
   gols: string;
-  xg: string;
   chutes: string;
   assistencias: string;
-  xa: string;
   passes: string;
   passes_pct: string;
   desarmes: string;
@@ -78,10 +76,8 @@ const STAT_VAZIA: StatJogador = {
   clean_sheet: false,
   defesas: "",
   gols: "",
-  xg: "",
   chutes: "",
   assistencias: "",
-  xa: "",
   passes: "",
   passes_pct: "",
   desarmes: "",
@@ -93,10 +89,8 @@ const STAT_VAZIA: StatJogador = {
 const CAMPOS_NUMERICOS: (keyof StatJogador)[] = [
   "defesas",
   "gols",
-  "xg",
   "chutes",
   "assistencias",
-  "xa",
   "passes",
   "passes_pct",
   "desarmes",
@@ -210,10 +204,8 @@ export function FecharPartidaDialog({
         clean_sheet: boolean | null;
         defesas: number | null;
         gols: number | null;
-        xg: number | null;
         chutes: number | null;
         assistencias: number | null;
-        xa: number | null;
         passes: number | null;
         passes_pct: number | null;
         desarmes: number | null;
@@ -230,10 +222,8 @@ export function FecharPartidaDialog({
           clean_sheet: Boolean(s.clean_sheet),
           defesas: s.defesas?.toString() ?? "",
           gols: s.gols?.toString() ?? "",
-          xg: s.xg?.toString() ?? "",
           chutes: s.chutes?.toString() ?? "",
           assistencias: s.assistencias?.toString() ?? "",
-          xa: s.xa?.toString() ?? "",
           passes: s.passes?.toString() ?? "",
           passes_pct: s.passes_pct?.toString() ?? "",
           desarmes: s.desarmes?.toString() ?? "",
@@ -371,10 +361,8 @@ export function FecharPartidaDialog({
           clean_sheet: goleiro ? s.clean_sheet : false,
           defesas: goleiro ? num(s.defesas) : null,
           gols: num(s.gols),
-          xg: goleiro ? null : num(s.xg),
           chutes: goleiro ? null : num(s.chutes),
           assistencias: num(s.assistencias),
-          xa: goleiro ? null : num(s.xa),
           passes: num(s.passes),
           passes_pct: num(s.passes_pct),
           desarmes: goleiro ? null : num(s.desarmes),
@@ -730,9 +718,7 @@ export function FecharPartidaDialog({
                                 <div className="grid px-3 py-3 grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
                                   {(
                                     [
-                                      ["xg", "xG"],
                                       ["chutes", "Chutes"],
-                                      ["xa", "xA"],
                                       ["passes", "Passes"],
                                       ["passes_pct", "% passes"],
                                       ["desarmes", "Desarmes"],
