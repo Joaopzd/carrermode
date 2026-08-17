@@ -715,7 +715,7 @@ export function FecharPartidaDialog({
                           <tr className="border-t bg-muted/30">
                               <td colSpan={8} className="p-0">
                                 <Collapse aberto={expandido}>
-                                <div className="grid px-3 py-3 grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+                                <div className="grid px-3 py-3 grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
                                   {(
                                     [
                                       ["chutes", "Chutes"],
