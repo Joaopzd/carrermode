@@ -20,7 +20,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { contarMvps } from "@/lib/mvp";
-import { encerrarTemporada, garantirSeasonAtiva } from "@/lib/season";
+import { encerrarTemporada, garantirSeasonAtiva, type TransicaoLiga } from "@/lib/season";
 import { AppShell } from "@/components/app-shell";
 import { CountUp, HoverCard, StaggerItem } from "@/components/motion";
 import { Button } from "@/components/ui/button";
