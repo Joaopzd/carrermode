@@ -20,7 +20,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { contarMvps } from "@/lib/mvp";
-import { encerrarTemporada, garantirSeasonAtiva } from "@/lib/season";
+import { encerrarTemporada, garantirSeasonAtiva, type TransicaoLiga } from "@/lib/season";
 import { AppShell } from "@/components/app-shell";
 import { CountUp, HoverCard, StaggerItem } from "@/components/motion";
 import { Button } from "@/components/ui/button";
@@ -113,15 +113,17 @@ function Dashboard() {
   const [salvandoEscudo, setSalvandoEscudo] = useState(false);
   const [confirmandoEncerrar, setConfirmandoEncerrar] = useState(false);
   const [encerrando, setEncerrando] = useState(false);
+  const [transicao, setTransicao] = useState<
+    (TransicaoLiga & { novaTemporada: string | null }) | null
+  >(null);
 
   async function confirmarEncerrarTemporada() {
     if (!resumo?.seasonId) return;
     setEncerrando(true);
     try {
-      const { nova } = await encerrarTemporada(resumo.saveId, resumo.seasonId);
-      toast.success(`Temporada encerrada! Nova temporada: ${nova?.nome ?? "criada"}.`);
+      const { nova, transicao: t } = await encerrarTemporada(resumo.saveId, resumo.seasonId);
       setConfirmandoEncerrar(false);
-      window.location.reload();
+      setTransicao({ ...t, novaTemporada: nova?.nome ?? null });
     } catch {
       toast.error("Não foi possível encerrar a temporada.");
     } finally {
@@ -578,7 +580,9 @@ function Dashboard() {
             <DialogTitle>Encerrar {resumo?.seasonNome ?? "temporada"}?</DialogTitle>
             <DialogDescription>
               Vamos calcular o resumo da temporada (posição final, artilheiro e saldo de
-              transferências), arquivá-la e abrir automaticamente uma nova temporada ativa.
+              transferências), ler a classificação final para definir acesso, rebaixamento ou
+              classificação continental, arquivar a temporada e abrir a próxima já na divisão
+              correta.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -589,6 +593,55 @@ function Dashboard() {
               {encerrando ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
               Encerrar e iniciar nova
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={transicao !== null} onOpenChange={() => window.location.reload()}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {transicao?.movimento === "acesso"
+                ? "🎉 Acesso conquistado!"
+                : transicao?.movimento === "rebaixamento"
+                  ? "⬇️ Rebaixamento confirmado"
+                  : "🏁 Temporada encerrada"}
+            </DialogTitle>
+            <DialogDescription>
+              Nova temporada: {transicao?.novaTemporada ?? "criada"}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 text-sm">
+            <p>
+              Posição final:{" "}
+              <span className="font-semibold">
+                {transicao?.posicao ? `${transicao.posicao}º` : "não informada"}
+              </span>
+              {transicao?.zona ? ` · ${transicao.zona}` : ""}
+            </p>
+            <p>
+              Divisão:{" "}
+              <span className="font-semibold">
+                {transicao?.ligaNova
+                  ? `${transicao.ligaAnterior ?? "—"} → ${transicao.ligaNova}`
+                  : (transicao?.ligaAnterior ?? "—")}
+              </span>
+            </p>
+            {transicao && transicao.competicoes.length > 0 ? (
+              <p>
+                Classificado para:{" "}
+                <span className="font-semibold">{transicao.competicoes.join(", ")}</span>
+              </p>
+            ) : null}
+            {!transicao?.posicao ? (
+              <p className="text-xs text-muted-foreground">
+                Registre a tabela da liga em Classificação para que o sistema identifique
+                automaticamente acesso, rebaixamento e vagas continentais.
+              </p>
+            ) : null}
+          </div>
+          <DialogFooter>
+            <Button onClick={() => window.location.reload()}>Começar nova temporada</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

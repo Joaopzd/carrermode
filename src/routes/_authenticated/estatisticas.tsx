@@ -69,7 +69,6 @@ type Stat = {
   nota: number | null;
   cartao_amarelo: boolean;
   cartao_vermelho: boolean;
-  xg: number | null;
   defesas: number | null;
   chutes: number | null;
   passes: number | null;
@@ -96,7 +95,7 @@ type Linha = Jogador & {
   notaMedia: number | null;
   amarelos: number;
   vermelhos: number;
-  extra: number;
+  defesas: number;
   mvps: number;
   mvpsTemporada: number;
 };
@@ -113,7 +112,7 @@ const COLUNAS = [
   { key: "amarelos", label: "CA", num: true },
   { key: "vermelhos", label: "CV", num: true },
   { key: "mvps", label: "MVPs", num: true },
-  { key: "extra", label: "xG / Def", num: true },
+  { key: "defesas", label: "Def", num: true },
 ] as const;
 
 type ColKey = (typeof COLUNAS)[number]["key"];
@@ -217,9 +216,7 @@ function EstatisticasPage() {
         notaMedia: notas.length ? notas.reduce((a, b) => a + b, 0) / notas.length : null,
         amarelos: ss.filter((s) => s.cartao_amarelo).length,
         vermelhos: ss.filter((s) => s.cartao_vermelho).length,
-        extra: gk
-          ? ss.reduce((a, s) => a + (s.defesas ?? 0), 0)
-          : ss.reduce((a, s) => a + Number(s.xg ?? 0), 0),
+        defesas: gk ? ss.reduce((a, s) => a + (s.defesas ?? 0), 0) : 0,
         mvps: contagemMvp.total[j.id] ?? 0,
         mvpsTemporada: contagemMvp.temporada[j.id] ?? 0,
       };
@@ -458,7 +455,7 @@ function EstatisticasPage() {
                         <TableCell className="text-right">{l.vermelhos}</TableCell>
                         <TableCell className="text-right">{l.mvps}</TableCell>
                         <TableCell className="text-right">
-                          {ehGoleiro(l.posicao_principal) ? l.extra : l.extra.toFixed(2)}
+                          {ehGoleiro(l.posicao_principal) ? l.defesas : "—"}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -583,8 +580,8 @@ function EstatisticasPage() {
                           </div>
                           <p className="mt-1 text-xs leading-5 text-muted-foreground">
                             {m?.competicao ?? "—"} · Nota {s.nota ?? "—"} · Gols {s.gols ?? 0} ·
-                            Assist. {s.assistencias ?? 0} · xG {Number(s.xg ?? 0).toFixed(2)} ·
-                            Chutes {s.chutes ?? 0} · Passes {s.passes ?? 0} · Acerto {s.passes_pct ?? 0}%
+                            Assist. {s.assistencias ?? 0} · Chutes {s.chutes ?? 0} · Passes{" "}
+                            {s.passes ?? 0} · Acerto {s.passes_pct ?? 0}%
                             · Desarmes {s.desarmes ?? 0} · Defesas {s.defesas ?? 0} · Clean sheet{" "}
                             {s.clean_sheet ? "Sim" : "Não"}
                             {s.cartao_amarelo ? " · 🟨" : ""}
