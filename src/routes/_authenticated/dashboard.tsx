@@ -597,6 +597,55 @@ function Dashboard() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={transicao !== null} onOpenChange={() => window.location.reload()}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {transicao?.movimento === "acesso"
+                ? "🎉 Acesso conquistado!"
+                : transicao?.movimento === "rebaixamento"
+                  ? "⬇️ Rebaixamento confirmado"
+                  : "🏁 Temporada encerrada"}
+            </DialogTitle>
+            <DialogDescription>
+              Nova temporada: {transicao?.novaTemporada ?? "criada"}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 text-sm">
+            <p>
+              Posição final:{" "}
+              <span className="font-semibold">
+                {transicao?.posicao ? `${transicao.posicao}º` : "não informada"}
+              </span>
+              {transicao?.zona ? ` · ${transicao.zona}` : ""}
+            </p>
+            <p>
+              Divisão:{" "}
+              <span className="font-semibold">
+                {transicao?.ligaNova
+                  ? `${transicao.ligaAnterior ?? "—"} → ${transicao.ligaNova}`
+                  : (transicao?.ligaAnterior ?? "—")}
+              </span>
+            </p>
+            {transicao && transicao.competicoes.length > 0 ? (
+              <p>
+                Classificado para:{" "}
+                <span className="font-semibold">{transicao.competicoes.join(", ")}</span>
+              </p>
+            ) : null}
+            {!transicao?.posicao ? (
+              <p className="text-xs text-muted-foreground">
+                Registre a tabela da liga em Classificação para que o sistema identifique
+                automaticamente acesso, rebaixamento e vagas continentais.
+              </p>
+            ) : null}
+          </div>
+          <DialogFooter>
+            <Button onClick={() => window.location.reload()}>Começar nova temporada</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={editandoEscudo} onOpenChange={setEditandoEscudo}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
