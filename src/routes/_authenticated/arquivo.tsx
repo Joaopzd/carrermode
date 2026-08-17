@@ -160,6 +160,20 @@ function ArquivoPage() {
                     r.artilheiro ? `${r.artilheiro.nome} (${r.artilheiro.gols})` : "—",
                   ],
                   [
+                    "Desfecho",
+                    r.movimento === "acesso"
+                      ? `Acesso${r.liga_nova ? ` → ${r.liga_nova}` : ""}`
+                      : r.movimento === "rebaixamento"
+                        ? `Rebaixamento${r.liga_nova ? ` → ${r.liga_nova}` : ""}`
+                        : (r.zona_final ?? "Permanência"),
+                  ],
+                  [
+                    "Classificado para",
+                    r.competicoes_classificado?.length
+                      ? r.competicoes_classificado.join(", ")
+                      : "—",
+                  ],
+                  [
                     "Saldo de transferências",
                     r.saldo_transferencias != null
                       ? Number(r.saldo_transferencias).toLocaleString("pt-BR")
