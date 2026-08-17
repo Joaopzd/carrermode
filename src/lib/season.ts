@@ -94,6 +94,98 @@ function proximoNomeTemporada(nome: string): string {
   return `${nome} (nova)`;
 }
 
+const normalizar = (v: string | null | undefined) =>
+  (v ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+
+/**
+ * Lê a classificação final da temporada e decide o destino do clube na próxima:
+ * acesso, rebaixamento ou permanência — além das competições conquistadas.
+ * Quando há mudança de divisão, atualiza a liga do save.
+ */
+export async function apurarTransicaoLiga(
+  saveId: string,
+  tabelaFinal: { time: string; posicao: number | null }[],
+): Promise<TransicaoLiga> {
+  const vazio: TransicaoLiga = {
+    posicao: null,
+    zona: null,
+    movimento: "permanencia",
+    ligaAnterior: null,
+    ligaNova: null,
+    competicoes: [],
+  };
+
+  const { data: saveRow } = await supabase
+    .from("saves")
+    .select("id, league_id, clubs(nome), leagues(id, nome, pais, nivel)")
+    .eq("id", saveId)
+    .maybeSingle();
+  if (!saveRow) return vazio;
+
+  const clube = (saveRow as { clubs: { nome: string } | null }).clubs;
+  const liga = (
+    saveRow as { leagues: { id: string; nome: string; pais: string; nivel: number } | null }
+  ).leagues;
+  if (!liga || !clube) return { ...vazio, ligaAnterior: liga?.nome ?? null };
+
+  const minhaLinha = tabelaFinal.find((l) => normalizar(l.time) === normalizar(clube.nome));
+  const posicao = minhaLinha?.posicao ?? null;
+  if (!posicao) return { ...vazio, ligaAnterior: liga.nome };
+
+  const regras = await carregarRegras(liga.id);
+  const zona = zonaDaPosicao(posicao, tabelaFinal.length, regras);
+
+  const competicoes: string[] = [];
+  let movimento: TransicaoLiga["movimento"] = "permanencia";
+  let nivelAlvo: number | null = null;
+
+  if (zona?.chave === "acesso") {
+    movimento = "acesso";
+    nivelAlvo = liga.nivel - 1;
+  } else if (zona?.chave === "rebaixamento") {
+    movimento = "rebaixamento";
+    nivelAlvo = liga.nivel + 1;
+  } else if (zona?.chave === "champions") {
+    competicoes.push("UEFA Champions League");
+  } else if (zona?.chave === "europa") {
+    competicoes.push("UEFA Europa League");
+  } else if (zona?.chave === "conference") {
+    competicoes.push("UEFA Conference League");
+  }
+
+  let ligaNova: string | null = null;
+  if (nivelAlvo != null && nivelAlvo >= 1) {
+    const { data: destino } = await supabase
+      .from("leagues")
+      .select("id, nome")
+      .eq("pais", liga.pais)
+      .eq("nivel", nivelAlvo)
+      .limit(1)
+      .maybeSingle();
+    if (destino) {
+      ligaNova = destino.nome as string;
+      await supabase.from("saves").update({ league_id: destino.id as string }).eq("id", saveId);
+    } else {
+      // Sem divisão correspondente cadastrada: mantém a liga atual.
+      movimento = "permanencia";
+    }
+  }
+
+  return {
+    posicao,
+    zona: zona?.rotulo ?? null,
+    movimento,
+    ligaAnterior: liga.nome,
+    ligaNova,
+    competicoes,
+  };
+}
+
+
 /** Calcula o resumo da season ativa, encerra e abre a próxima. */
 export async function encerrarTemporada(saveId: string, seasonId: string) {
   const [partidasRes, statsRes, playersRes, transfersRes, standingsRes, seasonRes] =
