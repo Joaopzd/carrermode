@@ -315,5 +315,36 @@ export async function encerrarTemporada(saveId: string, seasonId: string) {
     .select("*")
     .single();
 
-  return { resumo, nova: criada as unknown as Season | null };
+  const novaSeason = (criada as unknown as Season | null) ?? null;
+
+  if (
+    transicao.movimento !== "permanencia" ||
+    transicao.competicoes.length > 0
+  ) {
+    const titulo =
+      transicao.movimento === "acesso"
+        ? `Acesso conquistado! Rumo à ${transicao.ligaNova ?? "divisão superior"}`
+        : transicao.movimento === "rebaixamento"
+          ? `Rebaixamento confirmado para a ${transicao.ligaNova ?? "divisão inferior"}`
+          : `Classificação europeia garantida`;
+    const corpo = [
+      transicao.posicao ? `Terminamos a temporada em ${transicao.posicao}º lugar.` : null,
+      transicao.zona ? `Zona final: ${transicao.zona}.` : null,
+      transicao.competicoes.length > 0
+        ? `Competições na próxima temporada: ${transicao.competicoes.join(", ")}.`
+        : null,
+      transicao.ligaNova ? `Nova divisão: ${transicao.ligaNova}.` : null,
+    ]
+      .filter(Boolean)
+      .join(" ");
+    await supabase.from("news_feed").insert({
+      save_id: saveId,
+      season_id: novaSeason?.id ?? null,
+      tipo: "temporada",
+      titulo,
+      corpo,
+    });
+  }
+
+  return { resumo, nova: novaSeason, transicao };
 }
