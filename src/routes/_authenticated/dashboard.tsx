@@ -113,15 +113,17 @@ function Dashboard() {
   const [salvandoEscudo, setSalvandoEscudo] = useState(false);
   const [confirmandoEncerrar, setConfirmandoEncerrar] = useState(false);
   const [encerrando, setEncerrando] = useState(false);
+  const [transicao, setTransicao] = useState<
+    (TransicaoLiga & { novaTemporada: string | null }) | null
+  >(null);
 
   async function confirmarEncerrarTemporada() {
     if (!resumo?.seasonId) return;
     setEncerrando(true);
     try {
-      const { nova } = await encerrarTemporada(resumo.saveId, resumo.seasonId);
-      toast.success(`Temporada encerrada! Nova temporada: ${nova?.nome ?? "criada"}.`);
+      const { nova, transicao: t } = await encerrarTemporada(resumo.saveId, resumo.seasonId);
       setConfirmandoEncerrar(false);
-      window.location.reload();
+      setTransicao({ ...t, novaTemporada: nova?.nome ?? null });
     } catch {
       toast.error("Não foi possível encerrar a temporada.");
     } finally {
