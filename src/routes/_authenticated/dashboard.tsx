@@ -580,7 +580,9 @@ function Dashboard() {
             <DialogTitle>Encerrar {resumo?.seasonNome ?? "temporada"}?</DialogTitle>
             <DialogDescription>
               Vamos calcular o resumo da temporada (posição final, artilheiro e saldo de
-              transferências), arquivá-la e abrir automaticamente uma nova temporada ativa.
+              transferências), ler a classificação final para definir acesso, rebaixamento ou
+              classificação continental, arquivar a temporada e abrir a próxima já na divisão
+              correta.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
