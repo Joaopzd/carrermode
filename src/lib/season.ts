@@ -24,6 +24,20 @@ export type ResumoSeason = {
   saldo_transferencias?: number;
   entradas?: number;
   saidas?: number;
+  zona_final?: string | null;
+  movimento?: "acesso" | "rebaixamento" | "permanencia";
+  liga_anterior?: string | null;
+  liga_nova?: string | null;
+  competicoes_classificado?: string[];
+};
+
+export type TransicaoLiga = {
+  posicao: number | null;
+  zona: string | null;
+  movimento: "acesso" | "rebaixamento" | "permanencia";
+  ligaAnterior: string | null;
+  ligaNova: string | null;
+  competicoes: string[];
 };
 
 export const MOTIVOS_SAIDA = [
