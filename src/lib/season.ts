@@ -255,8 +255,18 @@ export async function encerrarTemporada(saveId: string, seasonId: string) {
   const linhasUltima = (standingsRes.data ?? []).filter((l) => l.rodada === ultimaRodada);
   const seasonAtual = seasonRes.data as unknown as Season | null;
 
+  const transicao = await apurarTransicaoLiga(
+    saveId,
+    linhasUltima.map((l) => ({ time: l.time, posicao: l.posicao })),
+  );
+
   const resumo: ResumoSeason = {
-    posicao_final: linhasUltima[0]?.posicao ?? null,
+    posicao_final: transicao.posicao ?? linhasUltima[0]?.posicao ?? null,
+    zona_final: transicao.zona,
+    movimento: transicao.movimento,
+    liga_anterior: transicao.ligaAnterior,
+    liga_nova: transicao.ligaNova,
+    competicoes_classificado: transicao.competicoes,
     pontos: v * 3 + e,
     jogos: partidas.length,
     vitorias: v,
