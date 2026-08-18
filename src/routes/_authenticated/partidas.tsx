@@ -435,7 +435,9 @@ function PartidasPage() {
               <Label>Competição</Label>
               <Select
                 value={form.competicao}
-                onValueChange={(v) => setForm({ ...form, competicao: v })}
+                onValueChange={(v) =>
+                  setForm({ ...form, competicao: v, fase: ehCopa(v) ? form.fase : "" })
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -449,6 +451,23 @@ function PartidasPage() {
                 </SelectContent>
               </Select>
             </div>
+            {ehCopa(form.competicao) ? (
+              <div className="grid gap-1">
+                <Label>Fase da copa</Label>
+                <Select value={form.fase} onValueChange={(v) => setForm({ ...form, fase: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a fase" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {FASES_COPA.map((f) => (
+                      <SelectItem key={f} value={f}>
+                        {f}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : null}
             <div className="grid gap-1">
               <Label>Mando de campo</Label>
               <div className="grid grid-cols-2 gap-2">
