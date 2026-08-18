@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { COMPETICOES } from "@/lib/match-data";
+import { COMPETICOES, FASES_COPA, ehCopa } from "@/lib/match-data";
 import { lerDataCarreira, partidasAtrasadas } from "@/lib/carreira-data";
 import { supabase } from "@/integrations/supabase/client";
 import { HoverCard, StaggerItem } from "@/components/motion";
