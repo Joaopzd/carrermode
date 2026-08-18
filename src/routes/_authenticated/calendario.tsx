@@ -34,7 +34,15 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSaveAtual } from "@/lib/use-save";
-import { COMPETICOES, DIAS_SEMANA, ICONE_COMPETICAO, MESES, chaveDia } from "@/lib/match-data";
+import {
+  COMPETICOES,
+  DIAS_SEMANA,
+  FASES_COPA,
+  ICONE_COMPETICAO,
+  MESES,
+  chaveDia,
+  ehCopa,
+} from "@/lib/match-data";
 import {
   formatarDia,
   lerDataCarreira,
