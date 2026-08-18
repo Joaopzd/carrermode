@@ -74,6 +74,7 @@ function PartidasPage() {
     competicao: "Liga",
     adversario: "",
     mando: "casa" as "casa" | "fora",
+    fase: "",
   });
 
   const [nomesMvp, setNomesMvp] = useState<Record<string, string>>({});
@@ -118,6 +119,7 @@ function PartidasPage() {
       competicao: "Liga",
       adversario: "",
       mando: "casa",
+      fase: "",
     });
     setFormAberto(true);
   }
@@ -132,6 +134,7 @@ function PartidasPage() {
       competicao: p.competicao ?? "Liga",
       adversario: p.adversario ?? "",
       mando: ((p as { mando?: string }).mando as "casa" | "fora") ?? "casa",
+      fase: (p as { fase?: string | null }).fase ?? "",
     });
     setFormAberto(true);
   }
@@ -149,6 +152,7 @@ function PartidasPage() {
       competicao: form.competicao,
       adversario: form.adversario.trim(),
       mando: form.mando,
+      fase: ehCopa(form.competicao) && form.fase ? form.fase : null,
     };
     const { error } = editandoId
       ? await supabase.from("matches").update(payload).eq("id", editandoId)
