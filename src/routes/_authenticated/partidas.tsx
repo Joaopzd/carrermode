@@ -285,6 +285,7 @@ function PartidasPage() {
                               ? "✈️ Fora"
                               : "🏟️ Casa"}{" "}
                             · {p.competicao ?? "—"}
+                            {p.fase ? ` · ${p.fase}` : ""}
                             {p.data_hora
                               ? ` · ${new Date(p.data_hora).toLocaleString("pt-BR", {
                                   day: "2-digit",
@@ -364,6 +365,7 @@ function PartidasPage() {
                               </p>
                               <p className="text-xs text-muted-foreground">
                                 {p.competicao ?? "—"}
+                                {p.fase ? ` · ${p.fase}` : ""}
                                 {p.data_hora
                                   ? ` · ${new Date(p.data_hora).toLocaleDateString("pt-BR")}`
                                   : ""}
