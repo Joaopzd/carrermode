@@ -384,6 +384,7 @@ export type Database = {
           criado_em: string
           data_hora: string | null
           desarmes: number | null
+          fase: string | null
           id: string
           mando: Database["public"]["Enums"]["match_venue"]
           mvp_player_id: string | null
@@ -407,6 +408,7 @@ export type Database = {
           criado_em?: string
           data_hora?: string | null
           desarmes?: number | null
+          fase?: string | null
           id?: string
           mando?: Database["public"]["Enums"]["match_venue"]
           mvp_player_id?: string | null
@@ -430,6 +432,7 @@ export type Database = {
           criado_em?: string
           data_hora?: string | null
           desarmes?: number | null
+          fase?: string | null
           id?: string
           mando?: Database["public"]["Enums"]["match_venue"]
           mvp_player_id?: string | null
