@@ -169,6 +169,7 @@ function CalendarioPage() {
       competicao: form.competicao,
       adversario: form.adversario.trim(),
       mando: form.mando,
+      fase: ehCopa(form.competicao) && form.fase ? form.fase : null,
       status: "agendada",
     });
     setSalvando(false);
@@ -177,7 +178,7 @@ function CalendarioPage() {
       return;
     }
     toast.success("Partida agendada!");
-    setForm({ hora: "16:00", competicao: "Liga", adversario: "", mando: "casa" });
+    setForm({ hora: "16:00", competicao: "Liga", adversario: "", mando: "casa", fase: "" });
     setDiaSelecionado(null);
     void carregar(save.id, save.seasonId);
   }
