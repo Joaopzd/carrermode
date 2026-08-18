@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { COMPETICOES } from "@/lib/match-data";
+import { COMPETICOES, FASES_COPA, ehCopa } from "@/lib/match-data";
 import { lerDataCarreira, partidasAtrasadas } from "@/lib/carreira-data";
 import { supabase } from "@/integrations/supabase/client";
 import { HoverCard, StaggerItem } from "@/components/motion";
@@ -74,6 +74,7 @@ function PartidasPage() {
     competicao: "Liga",
     adversario: "",
     mando: "casa" as "casa" | "fora",
+    fase: "",
   });
 
   const [nomesMvp, setNomesMvp] = useState<Record<string, string>>({});
@@ -118,6 +119,7 @@ function PartidasPage() {
       competicao: "Liga",
       adversario: "",
       mando: "casa",
+      fase: "",
     });
     setFormAberto(true);
   }
@@ -132,6 +134,7 @@ function PartidasPage() {
       competicao: p.competicao ?? "Liga",
       adversario: p.adversario ?? "",
       mando: ((p as { mando?: string }).mando as "casa" | "fora") ?? "casa",
+      fase: (p as { fase?: string | null }).fase ?? "",
     });
     setFormAberto(true);
   }
@@ -149,6 +152,7 @@ function PartidasPage() {
       competicao: form.competicao,
       adversario: form.adversario.trim(),
       mando: form.mando,
+      fase: ehCopa(form.competicao) && form.fase ? form.fase : null,
     };
     const { error } = editandoId
       ? await supabase.from("matches").update(payload).eq("id", editandoId)
@@ -281,6 +285,7 @@ function PartidasPage() {
                               ? "✈️ Fora"
                               : "🏟️ Casa"}{" "}
                             · {p.competicao ?? "—"}
+                            {p.fase ? ` · ${p.fase}` : ""}
                             {p.data_hora
                               ? ` · ${new Date(p.data_hora).toLocaleString("pt-BR", {
                                   day: "2-digit",
@@ -360,6 +365,7 @@ function PartidasPage() {
                               </p>
                               <p className="text-xs text-muted-foreground">
                                 {p.competicao ?? "—"}
+                                {p.fase ? ` · ${p.fase}` : ""}
                                 {p.data_hora
                                   ? ` · ${new Date(p.data_hora).toLocaleDateString("pt-BR")}`
                                   : ""}
@@ -431,7 +437,9 @@ function PartidasPage() {
               <Label>Competição</Label>
               <Select
                 value={form.competicao}
-                onValueChange={(v) => setForm({ ...form, competicao: v })}
+                onValueChange={(v) =>
+                  setForm({ ...form, competicao: v, fase: ehCopa(v) ? form.fase : "" })
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -445,6 +453,23 @@ function PartidasPage() {
                 </SelectContent>
               </Select>
             </div>
+            {ehCopa(form.competicao) ? (
+              <div className="grid gap-1">
+                <Label>Fase da copa</Label>
+                <Select value={form.fase} onValueChange={(v) => setForm({ ...form, fase: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a fase" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {FASES_COPA.map((f) => (
+                      <SelectItem key={f} value={f}>
+                        {f}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : null}
             <div className="grid gap-1">
               <Label>Mando de campo</Label>
               <div className="grid grid-cols-2 gap-2">

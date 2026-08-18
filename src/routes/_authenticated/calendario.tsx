@@ -34,7 +34,15 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSaveAtual } from "@/lib/use-save";
-import { COMPETICOES, DIAS_SEMANA, ICONE_COMPETICAO, MESES, chaveDia } from "@/lib/match-data";
+import {
+  COMPETICOES,
+  DIAS_SEMANA,
+  FASES_COPA,
+  ICONE_COMPETICAO,
+  MESES,
+  chaveDia,
+  ehCopa,
+} from "@/lib/match-data";
 import {
   formatarDia,
   lerDataCarreira,
@@ -86,6 +94,7 @@ function CalendarioPage() {
     competicao: "Liga",
     adversario: "",
     mando: "casa" as "casa" | "fora",
+    fase: "",
   });
   const [dataAtual, setDataAtual] = useState("2026-07-01");
 
@@ -160,6 +169,7 @@ function CalendarioPage() {
       competicao: form.competicao,
       adversario: form.adversario.trim(),
       mando: form.mando,
+      fase: ehCopa(form.competicao) && form.fase ? form.fase : null,
       status: "agendada",
     });
     setSalvando(false);
@@ -168,7 +178,7 @@ function CalendarioPage() {
       return;
     }
     toast.success("Partida agendada!");
-    setForm({ hora: "16:00", competicao: "Liga", adversario: "", mando: "casa" });
+    setForm({ hora: "16:00", competicao: "Liga", adversario: "", mando: "casa", fase: "" });
     setDiaSelecionado(null);
     void carregar(save.id, save.seasonId);
   }
@@ -378,7 +388,9 @@ function CalendarioPage() {
               <Label>Competição</Label>
               <Select
                 value={form.competicao}
-                onValueChange={(v) => setForm({ ...form, competicao: v })}
+                onValueChange={(v) =>
+                  setForm({ ...form, competicao: v, fase: ehCopa(v) ? form.fase : "" })
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -392,6 +404,23 @@ function CalendarioPage() {
                 </SelectContent>
               </Select>
             </div>
+            {ehCopa(form.competicao) ? (
+              <div className="space-y-2">
+                <Label>Fase da copa</Label>
+                <Select value={form.fase} onValueChange={(v) => setForm({ ...form, fase: v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a fase" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {FASES_COPA.map((f) => (
+                      <SelectItem key={f} value={f}>
+                        {f}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : null}
             <div className="space-y-2">
               <Label>Mando de campo</Label>
               <div className="grid grid-cols-2 gap-2">

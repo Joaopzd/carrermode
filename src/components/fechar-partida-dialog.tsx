@@ -32,6 +32,7 @@ export type PartidaBase = {
   id: string;
   data_hora: string | null;
   competicao: string | null;
+  fase?: string | null;
   adversario: string | null;
   status: string;
   placar_time: number | null;

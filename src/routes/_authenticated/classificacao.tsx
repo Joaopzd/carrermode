@@ -104,14 +104,14 @@ function ClassificacaoPage() {
     void carregarRegras(leagueId).then(setRegras);
     let qm = supabase
       .from("matches")
-      .select("placar_time, placar_adversario")
-      .eq("save_id", saveId)
-      .eq("competicao", "Liga")
-      .eq("status", "finalizada");
+      .select("competicao, fase, status, placar_time, placar_adversario, data_hora")
+      .eq("save_id", saveId);
     if (seasonId) qm = qm.eq("season_id", seasonId);
     const { data: mts } = await qm;
+    const todas = (mts ?? []) as PartidaResumo[];
     const acc = { jogos: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0 };
-    for (const m of mts ?? []) {
+    for (const m of todas) {
+      if (m.competicao !== "Liga" || m.status !== "finalizada") continue;
       const a = m.placar_time ?? 0;
       const b = m.placar_adversario ?? 0;
       acc.jogos += 1;
@@ -122,6 +122,7 @@ function ClassificacaoPage() {
       else acc.e += 1;
     }
     setCampanha(acc);
+    setCopas(resumirCopas(todas));
 
     let qs = supabase.from("standings_snapshot").select("*").eq("save_id", saveId);
     if (seasonId) qs = qs.eq("season_id", seasonId);
