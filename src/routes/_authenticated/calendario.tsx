@@ -94,6 +94,7 @@ function CalendarioPage() {
     competicao: "Liga",
     adversario: "",
     mando: "casa" as "casa" | "fora",
+    fase: "",
   });
   const [dataAtual, setDataAtual] = useState("2026-07-01");
 
