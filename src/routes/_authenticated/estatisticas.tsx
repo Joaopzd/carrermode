@@ -112,7 +112,7 @@ const COLUNAS = [
   { key: "amarelos", label: "CA", num: true },
   { key: "vermelhos", label: "CV", num: true },
   { key: "mvps", label: "MVPs", num: true },
-  { key: "defesas", label: "Def", num: true },
+  { key: "cs", label: "CS", num: true },
 ] as const;
 
 type ColKey = (typeof COLUNAS)[number]["key"];
