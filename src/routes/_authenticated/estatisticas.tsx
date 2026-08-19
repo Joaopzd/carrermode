@@ -197,6 +197,16 @@ function EstatisticasPage() {
       }
     }
     return { total, temporada };
+  }, [partidas, save?.seasonId, fComp]);
+
+  const competicoes = useMemo(() => {
+    const set = new Set<string>();
+    for (const m of Object.values(partidas)) {
+      if (!m.competicao) continue;
+      if (save?.seasonId && m.season_id !== save.seasonId) continue;
+      set.add(m.competicao);
+    }
+    return [...set].sort((a, b) => a.localeCompare(b, "pt-BR"));
   }, [partidas, save?.seasonId]);
 
   const linhas = useMemo<Linha[]>(() => {
