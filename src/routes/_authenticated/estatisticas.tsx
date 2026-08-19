@@ -457,9 +457,7 @@ function EstatisticasPage() {
                         <TableCell className="text-right">{l.amarelos}</TableCell>
                         <TableCell className="text-right">{l.vermelhos}</TableCell>
                         <TableCell className="text-right">{l.mvps}</TableCell>
-                        <TableCell className="text-right">
-                          {ehGoleiro(l.posicao_principal) ? l.defesas : "—"}
-                        </TableCell>
+                        <TableCell className="text-right">{l.cs}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
