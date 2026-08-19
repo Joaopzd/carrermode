@@ -95,7 +95,7 @@ type Linha = Jogador & {
   notaMedia: number | null;
   amarelos: number;
   vermelhos: number;
-  defesas: number;
+  cs: number;
   mvps: number;
   mvpsTemporada: number;
 };
