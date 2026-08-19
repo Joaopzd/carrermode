@@ -127,6 +127,7 @@ function EstatisticasPage() {
   const [partidas, setPartidas] = useState<Record<string, Partida>>({});
   const [carregando, setCarregando] = useState(true);
 
+  const [fComp, setFComp] = useState(GERAL);
   const [fPos, setFPos] = useState(TODOS);
   const [fStatus, setFStatus] = useState(TODOS);
   const [fNac, setFNac] = useState(TODOS);
