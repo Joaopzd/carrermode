@@ -118,6 +118,7 @@ const COLUNAS = [
 type ColKey = (typeof COLUNAS)[number]["key"];
 
 const TODOS = "__todos__";
+const GERAL = "__geral__";
 
 function EstatisticasPage() {
   const { save, carregando: carregandoSave } = useSaveAtual();
