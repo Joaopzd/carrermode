@@ -26,6 +26,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useSaveAtual } from "@/lib/use-save";
 import { carregarRegras, zonaDaPosicao, type LeagueRules } from "@/lib/league-rules";
 import { cn } from "@/lib/utils";
+import { ehCopa, ordemFase, ICONE_COMPETICAO } from "@/lib/match-data";
 
 export const Route = createFileRoute("/_authenticated/classificacao")({
   head: () => ({
