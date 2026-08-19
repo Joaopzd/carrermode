@@ -26,6 +26,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useSaveAtual } from "@/lib/use-save";
 import { carregarRegras, zonaDaPosicao, type LeagueRules } from "@/lib/league-rules";
 import { cn } from "@/lib/utils";
+import { ehCopa, ordemFase, ICONE_COMPETICAO } from "@/lib/match-data";
 
 export const Route = createFileRoute("/_authenticated/classificacao")({
   head: () => ({
@@ -55,6 +56,64 @@ type Snapshot = {
   saldo: number;
   posicao: number | null;
 };
+
+type PartidaResumo = {
+  competicao: string | null;
+  fase: string | null;
+  status: string;
+  placar_time: number | null;
+  placar_adversario: number | null;
+  data_hora: string | null;
+};
+
+type ResumoCopa = {
+  competicao: string;
+  jogos: number;
+  v: number;
+  e: number;
+  d: number;
+  gp: number;
+  gc: number;
+  faseAtual: string | null;
+  proximaFase: string | null;
+};
+
+function resumirCopas(partidas: PartidaResumo[]): ResumoCopa[] {
+  const mapa = new Map<string, ResumoCopa>();
+  for (const m of partidas) {
+    const comp = m.competicao ?? "";
+    if (!ehCopa(comp)) continue;
+    let r = mapa.get(comp);
+    if (!r) {
+      r = {
+        competicao: comp,
+        jogos: 0,
+        v: 0,
+        e: 0,
+        d: 0,
+        gp: 0,
+        gc: 0,
+        faseAtual: null,
+        proximaFase: null,
+      };
+      mapa.set(comp, r);
+    }
+    if (m.status === "finalizada") {
+      const a = m.placar_time ?? 0;
+      const b = m.placar_adversario ?? 0;
+      r.jogos += 1;
+      r.gp += a;
+      r.gc += b;
+      if (a > b) r.v += 1;
+      else if (a < b) r.d += 1;
+      else r.e += 1;
+      if (ordemFase(m.fase) > ordemFase(r.faseAtual)) r.faseAtual = m.fase ?? r.faseAtual;
+    } else if (m.status === "agendada") {
+      if (ordemFase(m.fase) > ordemFase(r.proximaFase)) r.proximaFase = m.fase ?? r.proximaFase;
+    }
+  }
+  return [...mapa.values()].sort((a, b) => a.competicao.localeCompare(b.competicao));
+}
 
 type LinhaForm = {
   time: string;
@@ -92,6 +151,7 @@ function ClassificacaoPage() {
     gc: 0,
   });
   const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
+  const [copas, setCopas] = useState<ResumoCopa[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [aberto, setAberto] = useState(false);
   const [rodada, setRodada] = useState("1");
@@ -360,6 +420,43 @@ function ClassificacaoPage() {
                     </Card>
                   </>
                 )}
+
+                {copas.length > 0 ? (
+                  <div className="space-y-3">
+                    <h2 className="font-display text-2xl">Desempenho em copas</h2>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {copas.map((c) => (
+                        <Card key={c.competicao}>
+                          <CardContent className="space-y-2 py-4">
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="font-semibold">
+                                <span className="mr-1">{ICONE_COMPETICAO[c.competicao] ?? "🏆"}</span>
+                                {c.competicao}
+                              </p>
+                              <Badge variant={c.proximaFase ? "default" : "secondary"}>
+                                {c.proximaFase
+                                  ? `Próxima: ${c.proximaFase}`
+                                  : c.faseAtual
+                                    ? `Fase: ${c.faseAtual}`
+                                    : "Sem fase definida"}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              {c.jogos} jogo{c.jogos === 1 ? "" : "s"} · {c.v}V {c.e}E {c.d}D ·{" "}
+                              {c.gp}:{c.gc} ({c.gp - c.gc >= 0 ? "+" : ""}
+                              {c.gp - c.gc})
+                            </p>
+                            {c.faseAtual ? (
+                              <p className="text-xs text-muted-foreground">
+                                Última fase disputada: {c.faseAtual}
+                              </p>
+                            ) : null}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
                 </TabSlide>
               </TabsContent>
 

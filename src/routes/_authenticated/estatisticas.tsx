@@ -86,6 +86,7 @@ type Partida = {
   placar_adversario: number | null;
   season_id?: string | null;
   mvp_player_id?: string | null;
+  status?: string | null;
 };
 
 type Linha = Jogador & {
@@ -95,7 +96,7 @@ type Linha = Jogador & {
   notaMedia: number | null;
   amarelos: number;
   vermelhos: number;
-  defesas: number;
+  cs: number;
   mvps: number;
   mvpsTemporada: number;
 };
@@ -112,12 +113,13 @@ const COLUNAS = [
   { key: "amarelos", label: "CA", num: true },
   { key: "vermelhos", label: "CV", num: true },
   { key: "mvps", label: "MVPs", num: true },
-  { key: "defesas", label: "Def", num: true },
+  { key: "cs", label: "CS", num: true },
 ] as const;
 
 type ColKey = (typeof COLUNAS)[number]["key"];
 
 const TODOS = "__todos__";
+const GERAL = "__geral__";
 
 function EstatisticasPage() {
   const { save, carregando: carregandoSave } = useSaveAtual();
@@ -126,6 +128,7 @@ function EstatisticasPage() {
   const [partidas, setPartidas] = useState<Record<string, Partida>>({});
   const [carregando, setCarregando] = useState(true);
 
+  const [fComp, setFComp] = useState(GERAL);
   const [fPos, setFPos] = useState(TODOS);
   const [fStatus, setFStatus] = useState(TODOS);
   const [fNac, setFNac] = useState(TODOS);
@@ -156,7 +159,7 @@ function EstatisticasPage() {
       const { data: mts } = await supabase
         .from("matches")
         .select(
-          "id, data_hora, competicao, adversario, placar_time, placar_adversario, season_id, mvp_player_id",
+          "id, data_hora, competicao, adversario, placar_time, placar_adversario, season_id, mvp_player_id, status",
         )
         .eq("save_id", save.id);
       const ids = (mts ?? []).map((m) => m.id as string);
@@ -188,18 +191,30 @@ function EstatisticasPage() {
     for (const m of Object.values(partidas)) {
       const pid = m.mvp_player_id;
       if (!pid) continue;
+      if (fComp !== GERAL && m.competicao !== fComp) continue;
       total[pid] = (total[pid] ?? 0) + 1;
       if (save?.seasonId && m.season_id === save.seasonId) {
         temporada[pid] = (temporada[pid] ?? 0) + 1;
       }
     }
     return { total, temporada };
+  }, [partidas, save?.seasonId, fComp]);
+
+  const competicoes = useMemo(() => {
+    const set = new Set<string>();
+    for (const m of Object.values(partidas)) {
+      if (!m.competicao || m.status !== "finalizada") continue;
+      if (save?.seasonId && m.season_id !== save.seasonId) continue;
+      set.add(m.competicao);
+    }
+    return [...set].sort((a, b) => a.localeCompare(b, "pt-BR"));
   }, [partidas, save?.seasonId]);
 
   const linhas = useMemo<Linha[]>(() => {
     const porJogador = new Map<string, Stat[]>();
     for (const s of stats) {
       if (!s.player_id) continue;
+      if (fComp !== GERAL && partidas[s.match_id]?.competicao !== fComp) continue;
       const arr = porJogador.get(s.player_id) ?? [];
       arr.push(s);
       porJogador.set(s.player_id, arr);
@@ -207,7 +222,7 @@ function EstatisticasPage() {
     return jogadores.map((j) => {
       const ss = porJogador.get(j.id) ?? [];
       const notas = ss.map((s) => s.nota).filter((n): n is number => n != null);
-      const gk = ehGoleiro(j.posicao_principal);
+      void ehGoleiro;
       return {
         ...j,
         jogos: ss.length,
@@ -216,12 +231,12 @@ function EstatisticasPage() {
         notaMedia: notas.length ? notas.reduce((a, b) => a + b, 0) / notas.length : null,
         amarelos: ss.filter((s) => s.cartao_amarelo).length,
         vermelhos: ss.filter((s) => s.cartao_vermelho).length,
-        defesas: gk ? ss.reduce((a, s) => a + (s.defesas ?? 0), 0) : 0,
+        cs: ss.filter((s) => s.clean_sheet).length,
         mvps: contagemMvp.total[j.id] ?? 0,
         mvpsTemporada: contagemMvp.temporada[j.id] ?? 0,
       };
     });
-  }, [jogadores, stats, contagemMvp]);
+  }, [jogadores, stats, contagemMvp, fComp, partidas]);
 
   const filtradas = useMemo(() => {
     const num = (v: string) => (v.trim() === "" ? null : Number(v));
@@ -285,6 +300,27 @@ function EstatisticasPage() {
               Números acumulados de cada jogador do elenco principal.
             </p>
           </header>
+
+          {competicoes.length > 0 ? (
+            <div className="space-y-2">
+              <Label>Competição</Label>
+              <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+                {[GERAL, ...competicoes].map((c) => {
+                  const ativo = fComp === c;
+                  return (
+                    <button key={c} type="button" onClick={() => setFComp(c)}>
+                      <Badge
+                        variant={ativo ? "default" : "outline"}
+                        className="cursor-pointer whitespace-nowrap px-3 py-1"
+                      >
+                        {c === GERAL ? "Geral" : c}
+                      </Badge>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
 
           <Card>
             <CardContent className="grid gap-4 py-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -454,9 +490,7 @@ function EstatisticasPage() {
                         <TableCell className="text-right">{l.amarelos}</TableCell>
                         <TableCell className="text-right">{l.vermelhos}</TableCell>
                         <TableCell className="text-right">{l.mvps}</TableCell>
-                        <TableCell className="text-right">
-                          {ehGoleiro(l.posicao_principal) ? l.defesas : "—"}
-                        </TableCell>
+                        <TableCell className="text-right">{l.cs}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
