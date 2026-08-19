@@ -300,6 +300,27 @@ function EstatisticasPage() {
             </p>
           </header>
 
+          {competicoes.length > 0 ? (
+            <div className="space-y-2">
+              <Label>Competição</Label>
+              <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+                {[GERAL, ...competicoes].map((c) => {
+                  const ativo = fComp === c;
+                  return (
+                    <button key={c} type="button" onClick={() => setFComp(c)}>
+                      <Badge
+                        variant={ativo ? "default" : "outline"}
+                        className="cursor-pointer whitespace-nowrap px-3 py-1"
+                      >
+                        {c === GERAL ? "Geral" : c}
+                      </Badge>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+
           <Card>
             <CardContent className="grid gap-4 py-5 sm:grid-cols-2 lg:grid-cols-4">
               <div className="space-y-1.5">
