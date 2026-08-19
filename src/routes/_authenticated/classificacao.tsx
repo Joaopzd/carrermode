@@ -420,6 +420,43 @@ function ClassificacaoPage() {
                     </Card>
                   </>
                 )}
+
+                {copas.length > 0 ? (
+                  <div className="space-y-3">
+                    <h2 className="font-display text-2xl">Desempenho em copas</h2>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {copas.map((c) => (
+                        <Card key={c.competicao}>
+                          <CardContent className="space-y-2 py-4">
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="font-semibold">
+                                <span className="mr-1">{ICONE_COMPETICAO[c.competicao] ?? "🏆"}</span>
+                                {c.competicao}
+                              </p>
+                              <Badge variant={c.proximaFase ? "default" : "secondary"}>
+                                {c.proximaFase
+                                  ? `Próxima: ${c.proximaFase}`
+                                  : c.faseAtual
+                                    ? `Fase: ${c.faseAtual}`
+                                    : "Sem fase definida"}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              {c.jogos} jogo{c.jogos === 1 ? "" : "s"} · {c.v}V {c.e}E {c.d}D ·{" "}
+                              {c.gp}:{c.gc} ({c.gp - c.gc >= 0 ? "+" : ""}
+                              {c.gp - c.gc})
+                            </p>
+                            {c.faseAtual ? (
+                              <p className="text-xs text-muted-foreground">
+                                Última fase disputada: {c.faseAtual}
+                              </p>
+                            ) : null}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
                 </TabSlide>
               </TabsContent>
 
