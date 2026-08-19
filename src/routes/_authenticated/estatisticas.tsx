@@ -86,6 +86,7 @@ type Partida = {
   placar_adversario: number | null;
   season_id?: string | null;
   mvp_player_id?: string | null;
+  status?: string | null;
 };
 
 type Linha = Jogador & {
@@ -158,7 +159,7 @@ function EstatisticasPage() {
       const { data: mts } = await supabase
         .from("matches")
         .select(
-          "id, data_hora, competicao, adversario, placar_time, placar_adversario, season_id, mvp_player_id",
+          "id, data_hora, competicao, adversario, placar_time, placar_adversario, season_id, mvp_player_id, status",
         )
         .eq("save_id", save.id);
       const ids = (mts ?? []).map((m) => m.id as string);
@@ -202,7 +203,7 @@ function EstatisticasPage() {
   const competicoes = useMemo(() => {
     const set = new Set<string>();
     for (const m of Object.values(partidas)) {
-      if (!m.competicao) continue;
+      if (!m.competicao || m.status !== "finalizada") continue;
       if (save?.seasonId && m.season_id !== save.seasonId) continue;
       set.add(m.competicao);
     }
