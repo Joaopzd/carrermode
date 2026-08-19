@@ -151,6 +151,7 @@ function ClassificacaoPage() {
     gc: 0,
   });
   const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
+  const [copas, setCopas] = useState<ResumoCopa[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [aberto, setAberto] = useState(false);
   const [rodada, setRodada] = useState("1");
