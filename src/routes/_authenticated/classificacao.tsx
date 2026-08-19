@@ -56,6 +56,64 @@ type Snapshot = {
   posicao: number | null;
 };
 
+type PartidaResumo = {
+  competicao: string | null;
+  fase: string | null;
+  status: string;
+  placar_time: number | null;
+  placar_adversario: number | null;
+  data_hora: string | null;
+};
+
+type ResumoCopa = {
+  competicao: string;
+  jogos: number;
+  v: number;
+  e: number;
+  d: number;
+  gp: number;
+  gc: number;
+  faseAtual: string | null;
+  proximaFase: string | null;
+};
+
+function resumirCopas(partidas: PartidaResumo[]): ResumoCopa[] {
+  const mapa = new Map<string, ResumoCopa>();
+  for (const m of partidas) {
+    const comp = m.competicao ?? "";
+    if (!ehCopa(comp)) continue;
+    let r = mapa.get(comp);
+    if (!r) {
+      r = {
+        competicao: comp,
+        jogos: 0,
+        v: 0,
+        e: 0,
+        d: 0,
+        gp: 0,
+        gc: 0,
+        faseAtual: null,
+        proximaFase: null,
+      };
+      mapa.set(comp, r);
+    }
+    if (m.status === "finalizada") {
+      const a = m.placar_time ?? 0;
+      const b = m.placar_adversario ?? 0;
+      r.jogos += 1;
+      r.gp += a;
+      r.gc += b;
+      if (a > b) r.v += 1;
+      else if (a < b) r.d += 1;
+      else r.e += 1;
+      if (ordemFase(m.fase) > ordemFase(r.faseAtual)) r.faseAtual = m.fase ?? r.faseAtual;
+    } else if (m.status === "agendada") {
+      if (ordemFase(m.fase) > ordemFase(r.proximaFase)) r.proximaFase = m.fase ?? r.proximaFase;
+    }
+  }
+  return [...mapa.values()].sort((a, b) => a.competicao.localeCompare(b.competicao));
+}
+
 type LinhaForm = {
   time: string;
   pontos: string;
