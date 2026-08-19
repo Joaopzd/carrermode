@@ -208,7 +208,7 @@ function EstatisticasPage() {
     return jogadores.map((j) => {
       const ss = porJogador.get(j.id) ?? [];
       const notas = ss.map((s) => s.nota).filter((n): n is number => n != null);
-      const gk = ehGoleiro(j.posicao_principal);
+      void ehGoleiro;
       return {
         ...j,
         jogos: ss.length,
