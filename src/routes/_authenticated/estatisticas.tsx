@@ -217,12 +217,12 @@ function EstatisticasPage() {
         notaMedia: notas.length ? notas.reduce((a, b) => a + b, 0) / notas.length : null,
         amarelos: ss.filter((s) => s.cartao_amarelo).length,
         vermelhos: ss.filter((s) => s.cartao_vermelho).length,
-        defesas: gk ? ss.reduce((a, s) => a + (s.defesas ?? 0), 0) : 0,
+        cs: ss.filter((s) => s.clean_sheet).length,
         mvps: contagemMvp.total[j.id] ?? 0,
         mvpsTemporada: contagemMvp.temporada[j.id] ?? 0,
       };
     });
-  }, [jogadores, stats, contagemMvp]);
+  }, [jogadores, stats, contagemMvp, fComp, partidas]);
 
   const filtradas = useMemo(() => {
     const num = (v: string) => (v.trim() === "" ? null : Number(v));
