@@ -178,6 +178,60 @@ export type Database = {
           },
         ]
       }
+      league_leaders: {
+        Row: {
+          atualizado_em: string
+          categoria: Database["public"]["Enums"]["league_leader_kind"]
+          clube: string | null
+          criado_em: string
+          id: string
+          jogador: string
+          posicao: number
+          save_id: string
+          season_id: string | null
+          valor: number | null
+        }
+        Insert: {
+          atualizado_em?: string
+          categoria: Database["public"]["Enums"]["league_leader_kind"]
+          clube?: string | null
+          criado_em?: string
+          id?: string
+          jogador: string
+          posicao: number
+          save_id: string
+          season_id?: string | null
+          valor?: number | null
+        }
+        Update: {
+          atualizado_em?: string
+          categoria?: Database["public"]["Enums"]["league_leader_kind"]
+          clube?: string | null
+          criado_em?: string
+          id?: string
+          jogador?: string
+          posicao?: number
+          save_id?: string
+          season_id?: string | null
+          valor?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "league_leaders_save_id_fkey"
+            columns: ["save_id"]
+            isOneToOne: false
+            referencedRelation: "saves"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "league_leaders_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       league_rules: {
         Row: {
           atualizado_em: string
@@ -1063,6 +1117,7 @@ export type Database = {
     }
     Enums: {
       competition_scope: "continental" | "liga" | "copa_nacional" | "supercopa"
+      league_leader_kind: "artilheiro" | "assistente" | "clean_sheet"
       match_venue: "casa" | "fora"
       motivo_saida:
         | "transferencia_definitiva"
@@ -1209,6 +1264,7 @@ export const Constants = {
   public: {
     Enums: {
       competition_scope: ["continental", "liga", "copa_nacional", "supercopa"],
+      league_leader_kind: ["artilheiro", "assistente", "clean_sheet"],
       match_venue: ["casa", "fora"],
       motivo_saida: [
         "transferencia_definitiva",
