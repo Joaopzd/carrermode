@@ -4,6 +4,7 @@ import {
   CalendarDays,
   ClipboardList,
   GaugeCircle,
+  History,
   LineChart,
   ListOrdered,
   PieChart,
