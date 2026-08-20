@@ -43,6 +43,7 @@ export const NAV_ITENS = [
   { title: "Metas da Diretoria", url: "/metas", icon: Target },
   { title: "Galeria de Troféus", url: "/trofeus", icon: Trophy },
   { title: "Ex-Jogadores", url: "/ex-jogadores", icon: UserMinus },
+  { title: "Histórico", url: "/historico", icon: History },
   { title: "Arquivo de Temporadas", url: "/arquivo", icon: Archive },
   { title: "Regras da Liga", url: "/regras-liga", icon: Settings },
   { title: "Trocar Clube", url: "/trocar-clube", icon: Replace },
