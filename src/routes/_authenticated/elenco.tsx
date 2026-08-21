@@ -38,6 +38,8 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonCardsElenco, SkeletonListaElenco } from "@/components/loading";
+import { useIndicadorCarregamento, useSkeletonDelay } from "@/lib/loading-bus";
 import {
   JogadorFormDialog,
   formParaPayload,
@@ -111,6 +113,8 @@ function ElencoPage() {
   const { save, carregando: carregandoSave } = useSaveAtual();
   const [jogadores, setJogadores] = useState<Jogador[]>([]);
   const [carregando, setCarregando] = useState(true);
+  useIndicadorCarregamento(carregando);
+  const mostrarSkeleton = useSkeletonDelay(carregando);
   const [busca, setBusca] = useState("");
   const [posicao, setPosicao] = useState("todas");
   const [status, setStatus] = useState("todos");

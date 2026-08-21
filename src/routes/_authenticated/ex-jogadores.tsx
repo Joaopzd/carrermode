@@ -86,6 +86,8 @@ function ExJogadoresPage() {
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [transfers, setTransfers] = useState<Transfer[]>([]);
   const [carregando, setCarregando] = useState(true);
+  useIndicadorCarregamento(carregando);
+  const mostrarSkeleton = useSkeletonDelay(carregando);
   const [fTemporada, setFTemporada] = useState(TODOS);
   const [fMotivo, setFMotivo] = useState(TODOS);
   const [selecionado, setSelecionado] = useState<ExJogador | null>(null);

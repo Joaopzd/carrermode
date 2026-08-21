@@ -15,6 +15,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonGraficos } from "@/components/loading";
+import { useIndicadorCarregamento, useSkeletonDelay } from "@/lib/loading-bus";
 import { supabase } from "@/integrations/supabase/client";
 import { POSICOES, posEn } from "@/lib/posicoes";
 import { useSaveAtual } from "@/lib/use-save";
@@ -79,6 +81,8 @@ function AnaliseElencoPage() {
   const { save, carregando: carregandoSave } = useSaveAtual();
   const [jogadores, setJogadores] = useState<Jogador[]>([]);
   const [carregando, setCarregando] = useState(true);
+  useIndicadorCarregamento(carregando);
+  const mostrarSkeleton = useSkeletonDelay(carregando);
   const [incluirSecundarias, setIncluirSecundarias] = useState(false);
 
   useEffect(() => {

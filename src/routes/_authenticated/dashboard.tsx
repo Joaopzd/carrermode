@@ -36,6 +36,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonDashboard } from "@/components/loading";
+import { useIndicadorCarregamento, useSkeletonDelay } from "@/lib/loading-bus";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -107,6 +109,8 @@ function moeda(v: number) {
 function Dashboard() {
   const navigate = useNavigate();
   const [carregando, setCarregando] = useState(true);
+  useIndicadorCarregamento(carregando);
+  const mostrarSkeleton = useSkeletonDelay(carregando);
   const [resumo, setResumo] = useState<Resumo | null>(null);
   const [editandoEscudo, setEditandoEscudo] = useState(false);
   const [urlEscudo, setUrlEscudo] = useState("");

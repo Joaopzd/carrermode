@@ -130,6 +130,8 @@ function EstatisticasPage() {
   const [stats, setStats] = useState<Stat[]>([]);
   const [partidas, setPartidas] = useState<Record<string, Partida>>({});
   const [carregando, setCarregando] = useState(true);
+  useIndicadorCarregamento(carregando);
+  const mostrarSkeleton = useSkeletonDelay(carregando);
 
   const [fComp, setFComp] = useState(GERAL);
   const [fPos, setFPos] = useState(TODOS);
