@@ -349,14 +349,7 @@ function Dashboard() {
       <div className="pitch-lines min-h-full px-4 py-6 sm:px-8">
         <div className="mx-auto max-w-6xl space-y-6">
           {carregando || !resumo ? (
-            <div className="space-y-4">
-              <Skeleton className="h-28 w-full" />
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {[0, 1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-28 w-full" />
-                ))}
-              </div>
-            </div>
+            mostrarSkeleton || !resumo ? <SkeletonDashboard /> : <div className="h-96" />
           ) : (
             <>
               <section className="glow-panel flex flex-wrap items-center gap-4 rounded-xl border border-border bg-card p-5">

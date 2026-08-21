@@ -156,8 +156,10 @@ function AnaliseElencoPage() {
             </p>
           </header>
 
-          {carregando ? (
-            <Skeleton className="h-96 w-full rounded-xl" />
+          {mostrarSkeleton ? (
+            <SkeletonGraficos />
+          ) : carregando ? (
+            <div className="h-96" />
           ) : semDados ? (
             <Card className="border-dashed">
               <CardContent className="py-14 text-center text-sm text-muted-foreground">

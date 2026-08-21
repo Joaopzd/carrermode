@@ -405,8 +405,10 @@ function ElencoPage() {
             </div>
           </div>
 
-          {carregando ? (
-            <Skeleton className="h-72 w-full rounded-xl" />
+          {mostrarSkeleton ? (
+            visao === "lista" ? <SkeletonListaElenco /> : <SkeletonCardsElenco />
+          ) : carregando ? (
+            <div className="h-72" />
           ) : filtrados.length === 0 ? (
             <Card className="border-dashed">
               <CardContent className="py-14 text-center">

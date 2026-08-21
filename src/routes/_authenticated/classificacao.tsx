@@ -325,8 +325,10 @@ function ClassificacaoPage() {
             </p>
           </header>
 
-          {carregando ? (
-            <Skeleton className="h-72 w-full rounded-xl" />
+          {mostrarSkeleton ? (
+            <SkeletonLinhasTabela linhas={12} colunas={9} />
+          ) : carregando ? (
+            <div className="h-72" />
           ) : (
             <Tabs defaultValue={ultimaRodada != null ? "tabela" : "campanha"}>
               <TabsList>

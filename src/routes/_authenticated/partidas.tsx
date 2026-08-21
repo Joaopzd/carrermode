@@ -235,8 +235,10 @@ function PartidasPage() {
             </Card>
           ) : null}
 
-          {carregando ? (
-            <Skeleton className="h-64 w-full rounded-xl" />
+          {mostrarSkeleton ? (
+            <SkeletonListaItens itens={6} />
+          ) : carregando ? (
+            <div className="h-64" />
           ) : partidas.length === 0 ? (
             <Card className="border-dashed">
               <CardContent className="py-14 text-center">
