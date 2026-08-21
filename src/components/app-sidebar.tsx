@@ -79,7 +79,12 @@ export const GRUPOS_NAV = [
 ] as const;
 
 /** Lista plana usada por outras telas (títulos, breadcrumbs). */
-export const NAV_ITENS = [DASHBOARD, ...GRUPOS_NAV.flatMap((g) => g.itens)] as const;
+type NavItem = { title: string; url: string; icon: typeof GaugeCircle };
+
+export const NAV_ITENS: readonly NavItem[] = [
+  DASHBOARD,
+  ...GRUPOS_NAV.flatMap((g) => g.itens as readonly NavItem[]),
+];
 
 const CHAVE_STORAGE = "carreira:nav-grupos";
 
@@ -103,7 +108,8 @@ export function AppSidebar() {
         setAbertos((atual) => {
           const proximo = { ...atual };
           for (const g of GRUPOS_NAV) {
-            if (typeof salvo[g.id] === "boolean") proximo[g.id] = salvo[g.id];
+            const v = salvo[g.id];
+            if (typeof v === "boolean") proximo[g.id] = v;
           }
           if (grupoAtivo) proximo[grupoAtivo] = true;
           return proximo;
