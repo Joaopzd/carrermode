@@ -4,6 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, ChevronsUpDown } from "lucide-react";
 import { Bandeira } from "@/components/bandeira";
 import { PlayerEvolution } from "@/components/player-evolution";
+import { OverallCard } from "@/components/overall-card";
+import { SkeletonLinhasTabela } from "@/components/loading";
+import { useIndicadorCarregamento, useSkeletonDelay } from "@/lib/loading-bus";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { Card, CardContent } from "@/components/ui/card";
@@ -420,8 +423,10 @@ function EstatisticasPage() {
             </CardContent>
           </Card>
 
-          {carregando ? (
-            <Skeleton className="h-80 w-full rounded-xl" />
+          {mostrarSkeleton ? (
+            <SkeletonLinhasTabela linhas={10} colunas={11} />
+          ) : carregando ? (
+            <div className="h-80" />
           ) : filtradas.length === 0 ? (
             <Card className="border-dashed">
               <CardContent className="py-14 text-center">
@@ -529,9 +534,10 @@ function EstatisticasPage() {
                   ) : null}
                 </div>
 
+                <OverallCard playerId={selecionado.id} overall={selecionado.overall} />
+
                 <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
                   {[
-                    ["Overall", selecionado.overall ?? "—"],
                     ["Idade", selecionado.idade ?? "—"],
                     ["Altura", selecionado.altura ? `${selecionado.altura} cm` : "—"],
                     [

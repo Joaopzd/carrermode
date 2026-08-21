@@ -7,6 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { HoverCard, StaggerItem } from "@/components/motion";
 import { AppShell } from "@/components/app-shell";
 import { PlayerEvolution } from "@/components/player-evolution";
+import { OverallCard } from "@/components/overall-card";
+import { SkeletonListaItens } from "@/components/loading";
+import { useIndicadorCarregamento, useSkeletonDelay } from "@/lib/loading-bus";
 import { Bandeira } from "@/components/bandeira";
 import { Badge } from "@/components/ui/badge";
 import { contarMvpsJogador } from "@/lib/mvp";
@@ -229,8 +232,10 @@ function ExJogadoresPage() {
             </CardContent>
           </Card>
 
-          {carregando ? (
-            <Skeleton className="h-64 w-full rounded-xl" />
+          {mostrarSkeleton ? (
+            <SkeletonListaItens itens={6} />
+          ) : carregando ? (
+            <div className="h-64" />
           ) : filtrados.length === 0 ? (
             <Card className="border-dashed">
               <CardContent className="py-14 text-center">
@@ -344,6 +349,8 @@ function ExJogadoresPage() {
                     </div>
                   </dl>
                 </div>
+
+                <OverallCard playerId={selecionado.id} overall={selecionado.overall} />
 
                 <div className="grid grid-cols-3 gap-3 text-center">
                   {[
