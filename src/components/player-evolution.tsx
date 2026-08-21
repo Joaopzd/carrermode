@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
-import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import {
   ChartContainer,
@@ -9,14 +8,7 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
-
-type HistoryPoint = {
-  id: string;
-  overall: number;
-  registrado_em: string;
-  season_id: string;
-  motivo: string;
-};
+import { calcularVariacao, usePlayerOverallHistory } from "@/lib/overall-history";
 
 type Props = {
   playerId: string;
@@ -28,33 +20,7 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function PlayerEvolution({ playerId, currentOverall }: Props) {
-  const [history, setHistory] = useState<HistoryPoint[]>([]);
-  const [seasonNames, setSeasonNames] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let active = true;
-    setLoading(true);
-    void (async () => {
-      const { data } = await supabase
-        .from("player_overall_history")
-        .select("id, overall, registrado_em, season_id, motivo, seasons(nome)")
-        .eq("player_id", playerId)
-        .order("registrado_em", { ascending: true });
-      if (!active) return;
-      const rows = (data ?? []) as unknown as (HistoryPoint & {
-        seasons: { nome: string } | null;
-      })[];
-      setHistory(rows);
-      setSeasonNames(
-        Object.fromEntries(rows.map((row) => [row.season_id, row.seasons?.nome ?? "Temporada"])),
-      );
-      setLoading(false);
-    })();
-    return () => {
-      active = false;
-    };
-  }, [playerId]);
+  const { history, seasonNames, loading } = usePlayerOverallHistory(playerId);
 
   const points = useMemo(() => {
     const countBySeason = new Map<string, number>();
@@ -72,9 +38,7 @@ export function PlayerEvolution({ playerId, currentOverall }: Props) {
 
   if (loading) return <Skeleton className="h-52 w-full" />;
 
-  const initial = points[0]?.overall ?? currentOverall;
-  const current = currentOverall ?? points[points.length - 1]?.overall ?? null;
-  const variation = initial != null && current != null ? current - initial : null;
+  const { initial, current, variation } = calcularVariacao(history, currentOverall);
 
   return (
     <section className="space-y-3">

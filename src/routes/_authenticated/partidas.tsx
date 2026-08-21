@@ -29,6 +29,8 @@ import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonListaItens } from "@/components/loading";
+import { useIndicadorCarregamento, useSkeletonDelay } from "@/lib/loading-bus";
 import { FecharPartidaDialog, type PartidaBase } from "@/components/fechar-partida-dialog";
 import { ICONE_COMPETICAO } from "@/lib/match-data";
 import { useSaveAtual } from "@/lib/use-save";
@@ -62,6 +64,8 @@ function PartidasPage() {
   const { save, carregando: carregandoSave } = useSaveAtual();
   const [partidas, setPartidas] = useState<PartidaBase[]>([]);
   const [carregando, setCarregando] = useState(true);
+  useIndicadorCarregamento(carregando);
+  const mostrarSkeleton = useSkeletonDelay(carregando);
   const [selecionada, setSelecionada] = useState<PartidaBase | null>(null);
   const [aberto, setAberto] = useState(false);
   const [formAberto, setFormAberto] = useState(false);
@@ -231,8 +235,10 @@ function PartidasPage() {
             </Card>
           ) : null}
 
-          {carregando ? (
-            <Skeleton className="h-64 w-full rounded-xl" />
+          {mostrarSkeleton ? (
+            <SkeletonListaItens itens={6} />
+          ) : carregando ? (
+            <div className="h-64" />
           ) : partidas.length === 0 ? (
             <Card className="border-dashed">
               <CardContent className="py-14 text-center">

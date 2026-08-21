@@ -12,6 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonLinhasTabela } from "@/components/loading";
+import { useIndicadorCarregamento, useSkeletonDelay } from "@/lib/loading-bus";
 import { TabSlide } from "@/components/motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -153,6 +155,8 @@ function ClassificacaoPage() {
   const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
   const [copas, setCopas] = useState<ResumoCopa[]>([]);
   const [carregando, setCarregando] = useState(true);
+  useIndicadorCarregamento(carregando);
+  const mostrarSkeleton = useSkeletonDelay(carregando);
   const [aberto, setAberto] = useState(false);
   const [rodada, setRodada] = useState("1");
   const [linhas, setLinhas] = useState<LinhaForm[]>([linhaVazia()]);
@@ -321,8 +325,10 @@ function ClassificacaoPage() {
             </p>
           </header>
 
-          {carregando ? (
-            <Skeleton className="h-72 w-full rounded-xl" />
+          {mostrarSkeleton ? (
+            <SkeletonLinhasTabela linhas={12} colunas={9} />
+          ) : carregando ? (
+            <div className="h-72" />
           ) : (
             <Tabs defaultValue={ultimaRodada != null ? "tabela" : "campanha"}>
               <TabsList>
