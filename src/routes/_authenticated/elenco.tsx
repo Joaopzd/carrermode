@@ -88,7 +88,6 @@ type Jogador = {
   capitao: boolean;
 };
 
-
 const moeda = (v: number | null) =>
   v === null ? "—" : `£ ${new Intl.NumberFormat("pt-BR").format(v)}`;
 
@@ -408,7 +407,11 @@ function ElencoPage() {
           </div>
 
           {mostrarSkeleton ? (
-            visao === "lista" ? <SkeletonListaElenco /> : <SkeletonCardsElenco />
+            visao === "lista" ? (
+              <SkeletonListaElenco />
+            ) : (
+              <SkeletonCardsElenco />
+            )
           ) : carregando ? (
             <div className="h-72" />
           ) : filtrados.length === 0 ? (
@@ -422,155 +425,155 @@ function ElencoPage() {
             </Card>
           ) : (
             <CrossFade chave={visao}>
-            {visao === "lista" ? (
-            <Card className="hq-card overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border text-left text-xs uppercase tracking-widest text-muted-foreground">
-                    <th className="px-3 py-2">Nome</th>
-                    <th className="px-3 py-2">Posição</th>
-                    <th className="px-3 py-2">Overall</th>
-                    <th className="px-3 py-2">Status</th>
-                    <th className="px-3 py-2">Idade</th>
-                    <th className="px-3 py-2">Valor</th>
-                    <th className="px-3 py-2">Salário</th>
-                    <th className="px-3 py-2 text-right">Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtrados.map((j) => (
-                    <tr key={j.id} className="border-b border-border/50 last:border-0">
-                      <td className="px-3 py-2">
-                        <button
-                          type="button"
-                          onClick={() => setPerfilId(j.id)}
-                          className="flex items-center gap-1.5 text-left hover:underline"
-                        >
-                          <Bandeira pais={j.nacionalidade} />
-                          <span className="font-medium">{j.nome}</span>
-                          {j.capitao && (
-                            <span className="rounded bg-primary/15 px-1 text-[10px] font-semibold text-primary">
-                              C
+              {visao === "lista" ? (
+                <Card className="hq-card overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border text-left text-xs uppercase tracking-widest text-muted-foreground">
+                        <th className="px-3 py-2">Nome</th>
+                        <th className="px-3 py-2">Posição</th>
+                        <th className="px-3 py-2">Overall</th>
+                        <th className="px-3 py-2">Status</th>
+                        <th className="px-3 py-2">Idade</th>
+                        <th className="px-3 py-2">Valor</th>
+                        <th className="px-3 py-2">Salário</th>
+                        <th className="px-3 py-2 text-right">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filtrados.map((j) => (
+                        <tr key={j.id} className="border-b border-border/50 last:border-0">
+                          <td className="px-3 py-2">
+                            <button
+                              type="button"
+                              onClick={() => setPerfilId(j.id)}
+                              className="flex items-center gap-1.5 text-left hover:underline"
+                            >
+                              <Bandeira pais={j.nacionalidade} />
+                              <span className="font-medium">{j.nome}</span>
+                              {j.capitao && (
+                                <span className="rounded bg-primary/15 px-1 text-[10px] font-semibold text-primary">
+                                  C
+                                </span>
+                              )}
+                            </button>
+                          </td>
+                          <td className="px-3 py-2">{posEn(j.posicao_principal) ?? "—"}</td>
+                          <td className="px-3 py-2">
+                            <span
+                              className={`rounded-md px-2 py-0.5 font-display ${corOverall(j.overall)}`}
+                            >
+                              {j.overall ?? "—"}
                             </span>
-                          )}
-                        </button>
-                      </td>
-                      <td className="px-3 py-2">{posEn(j.posicao_principal) ?? "—"}</td>
-                      <td className="px-3 py-2">
-                        <span
-                          className={`rounded-md px-2 py-0.5 font-display ${corOverall(j.overall)}`}
-                        >
-                          {j.overall ?? "—"}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2">
-                        <StatusJogador status={j.status} />
-                      </td>
-                      <td className="px-3 py-2">{j.idade ?? "—"}</td>
-                      <td className="px-3 py-2">{moeda(j.valor_mercado)}</td>
-                      <td className="px-3 py-2">{moeda(j.salario)}</td>
-                      <td className="px-3 py-2 text-right whitespace-nowrap">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          aria-label={`Editar ${j.nome}`}
-                          onClick={() => setEditando(j)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          aria-label={`Excluir ${j.nome}`}
-                          onClick={() => setExcluindo(j)}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-400" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </Card>
-            ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {filtrados.map((j, i) => (
-                <StaggerItem key={j.id} index={i}>
-                <HoverCard className="h-full">
-                <Card className="hq-card h-full">
-                  <CardContent className="space-y-3 py-4">
-                    <div
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => setPerfilId(j.id)}
-                      onKeyDown={(e) => e.key === "Enter" && setPerfilId(j.id)}
-                      className="flex cursor-pointer items-start justify-between gap-2"
-                    >
-                      <div>
-                        <p className="font-display text-xl leading-tight tracking-wide">
-                          {j.nome}
-                          {j.favorito_torcida && (
-                            <Heart className="ml-1 inline h-4 w-4 fill-primary text-primary" />
-                          )}
-                          {j.capitao && (
-                            <span className="ml-1.5 inline-flex items-center rounded bg-primary/15 px-1.5 py-0.5 align-middle text-[10px] font-semibold tracking-widest text-primary">
-                              C
-                            </span>
-                          )}
-                        </p>
-                        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <span>{posEn(j.posicao_principal) ?? "—"}</span>
-                          <span>·</span>
-                          <Bandeira pais={j.nacionalidade} />
-                          <span>{j.nacionalidade ?? "—"}</span>
-                          <span>· {j.idade ?? "—"} anos</span>
-                        </p>
-                      </div>
-                      <span
-                        className={`rounded-lg px-2 py-1 font-display text-lg ${corOverall(j.overall)}`}
-                      >
-                        {j.overall ?? "—"}
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2 text-xs">
-                      <StatusJogador status={j.status} />
-                      <div className="flex flex-wrap gap-1">
-                        {parsePlaystyles(j.playstyle).map((p) => (
-                          <Badge key={p} variant="outline">
-                            {p}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-1 text-xs text-muted-foreground">
-                      <span>Valor: {moeda(j.valor_mercado)}</span>
-                      <span>Salário: {moeda(j.salario)}</span>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => setEditando(j)}
-                      >
-                        <Pencil className="mr-1 h-4 w-4" /> Editar
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        aria-label={`Excluir ${j.nome}`}
-                        onClick={() => setExcluindo(j)}
-                      >
-                        <Trash2 className="h-4 w-4 text-red-400" />
-                      </Button>
-                    </div>
-                  </CardContent>
+                          </td>
+                          <td className="px-3 py-2">
+                            <StatusJogador status={j.status} />
+                          </td>
+                          <td className="px-3 py-2">{j.idade ?? "—"}</td>
+                          <td className="px-3 py-2">{moeda(j.valor_mercado)}</td>
+                          <td className="px-3 py-2">{moeda(j.salario)}</td>
+                          <td className="px-3 py-2 text-right whitespace-nowrap">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label={`Editar ${j.nome}`}
+                              onClick={() => setEditando(j)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label={`Excluir ${j.nome}`}
+                              onClick={() => setExcluindo(j)}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-400" />
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </Card>
-                </HoverCard>
-                </StaggerItem>
-              ))}
-            </div>
-            )}
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {filtrados.map((j, i) => (
+                    <StaggerItem key={j.id} index={i}>
+                      <HoverCard className="h-full">
+                        <Card className="hq-card h-full">
+                          <CardContent className="space-y-3 py-4">
+                            <div
+                              role="button"
+                              tabIndex={0}
+                              onClick={() => setPerfilId(j.id)}
+                              onKeyDown={(e) => e.key === "Enter" && setPerfilId(j.id)}
+                              className="flex cursor-pointer items-start justify-between gap-2"
+                            >
+                              <div>
+                                <p className="font-display text-xl leading-tight tracking-wide">
+                                  {j.nome}
+                                  {j.favorito_torcida && (
+                                    <Heart className="ml-1 inline h-4 w-4 fill-primary text-primary" />
+                                  )}
+                                  {j.capitao && (
+                                    <span className="ml-1.5 inline-flex items-center rounded bg-primary/15 px-1.5 py-0.5 align-middle text-[10px] font-semibold tracking-widest text-primary">
+                                      C
+                                    </span>
+                                  )}
+                                </p>
+                                <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                  <span>{posEn(j.posicao_principal) ?? "—"}</span>
+                                  <span>·</span>
+                                  <Bandeira pais={j.nacionalidade} />
+                                  <span>{j.nacionalidade ?? "—"}</span>
+                                  <span>· {j.idade ?? "—"} anos</span>
+                                </p>
+                              </div>
+                              <span
+                                className={`rounded-lg px-2 py-1 font-display text-lg ${corOverall(j.overall)}`}
+                              >
+                                {j.overall ?? "—"}
+                              </span>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2 text-xs">
+                              <StatusJogador status={j.status} />
+                              <div className="flex flex-wrap gap-1">
+                                {parsePlaystyles(j.playstyle).map((p) => (
+                                  <Badge key={p} variant="outline">
+                                    {p}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-1 text-xs text-muted-foreground">
+                              <span>Valor: {moeda(j.valor_mercado)}</span>
+                              <span>Salário: {moeda(j.salario)}</span>
+                            </div>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1"
+                                onClick={() => setEditando(j)}
+                              >
+                                <Pencil className="mr-1 h-4 w-4" /> Editar
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                aria-label={`Excluir ${j.nome}`}
+                                onClick={() => setExcluindo(j)}
+                              >
+                                <Trash2 className="h-4 w-4 text-red-400" />
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </HoverCard>
+                    </StaggerItem>
+                  ))}
+                </div>
+              )}
             </CrossFade>
           )}
         </div>
@@ -755,8 +758,14 @@ function ElencoPage() {
             O jogador deixará o elenco ativo e será preservado em Ex-jogadores com todo o histórico.
           </p>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setEncerrando(null)}>Cancelar</Button>
-            <Button variant="destructive" onClick={() => void encerrarVinculo()} disabled={removendo}>
+            <Button variant="ghost" onClick={() => setEncerrando(null)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => void encerrarVinculo()}
+              disabled={removendo}
+            >
               {removendo ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
               Confirmar saída
             </Button>

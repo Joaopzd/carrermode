@@ -252,45 +252,45 @@ function ExJogadoresPage() {
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {filtrados.map((j, i) => (
                 <StaggerItem key={j.id} index={i}>
-                <HoverCard className="h-full">
-                <button
-                  type="button"
-                  onClick={() => void abrir(j)}
-                  className="h-full w-full text-left"
-                >
-                  <Card className="hq-card h-full transition-colors hover:border-primary/60">
-                    <CardContent className="space-y-2 py-4">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <p className="font-display text-xl leading-tight tracking-wide">
-                            {j.nome}
+                  <HoverCard className="h-full">
+                    <button
+                      type="button"
+                      onClick={() => void abrir(j)}
+                      className="h-full w-full text-left"
+                    >
+                      <Card className="hq-card h-full transition-colors hover:border-primary/60">
+                        <CardContent className="space-y-2 py-4">
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <p className="font-display text-xl leading-tight tracking-wide">
+                                {j.nome}
+                              </p>
+                              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                <Bandeira pais={j.nacionalidade} />
+                                {posEn(j.posicao_principal) ?? "—"} · {j.idade ?? "—"} anos
+                              </p>
+                            </div>
+                            <span className="rounded-lg bg-muted px-2 py-1 font-display text-lg">
+                              {j.overall ?? "—"}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2 text-xs">
+                            <Badge variant="secondary">{rotuloMotivo(j.motivo_saida)}</Badge>
+                            {j.clube_destino ? (
+                              <span className="inline-flex items-center gap-1 text-muted-foreground">
+                                → <ClubBadge nome={j.clube_destino} />
+                              </span>
+                            ) : null}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {j.data_saida
+                              ? new Date(j.data_saida).toLocaleDateString("pt-BR")
+                              : "Data não informada"}
                           </p>
-                          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <Bandeira pais={j.nacionalidade} />
-                            {posEn(j.posicao_principal) ?? "—"} · {j.idade ?? "—"} anos
-                          </p>
-                        </div>
-                        <span className="rounded-lg bg-muted px-2 py-1 font-display text-lg">
-                          {j.overall ?? "—"}
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2 text-xs">
-                        <Badge variant="secondary">{rotuloMotivo(j.motivo_saida)}</Badge>
-                        {j.clube_destino ? (
-                          <span className="inline-flex items-center gap-1 text-muted-foreground">
-                            → <ClubBadge nome={j.clube_destino} />
-                          </span>
-                        ) : null}
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        {j.data_saida
-                          ? new Date(j.data_saida).toLocaleDateString("pt-BR")
-                          : "Data não informada"}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </button>
-                </HoverCard>
+                        </CardContent>
+                      </Card>
+                    </button>
+                  </HoverCard>
                 </StaggerItem>
               ))}
             </div>

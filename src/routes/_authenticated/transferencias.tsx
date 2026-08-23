@@ -193,7 +193,8 @@ function TransferenciasPage() {
         (t) =>
           (filtroTipo === "todos" || t.tipo === filtroTipo) &&
           (filtroModalidade === "todas" || t.modalidade === filtroModalidade) &&
-          (filtroJanela === "todas" || (t.janela ?? janelaDoDia(t.data.slice(0, 10))) === filtroJanela),
+          (filtroJanela === "todas" ||
+            (t.janela ?? janelaDoDia(t.data.slice(0, 10))) === filtroJanela),
       ),
     [lista, filtroTipo, filtroModalidade, filtroJanela],
   );
@@ -284,8 +285,7 @@ function TransferenciasPage() {
         duracao_emprestimo: modalidade === "emprestimo" ? duracao || null : null,
         janela,
         tem_opcao_compra: modalidade === "emprestimo" ? temOpcao : false,
-        valor_opcao_compra:
-          modalidade === "emprestimo" && temOpcao ? numOrNull(valorOpcao) : null,
+        valor_opcao_compra: modalidade === "emprestimo" && temOpcao ? numOrNull(valorOpcao) : null,
         obrigacao_compra: modalidade === "emprestimo" && temOpcao ? obrigacaoCompra : false,
         status_opcao: modalidade === "emprestimo" && temOpcao ? "pendente" : "nao_aplicavel",
         data: new Date(`${dataNeg || hojeISO()}T12:00:00`).toISOString(),
@@ -320,7 +320,10 @@ function TransferenciasPage() {
         .select("id")
         .single();
       if (saidaError) {
-        await supabase.from("transfers").delete().eq("id", data.id as string);
+        await supabase
+          .from("transfers")
+          .delete()
+          .eq("id", data.id as string);
         setSalvando(false);
         toast.error("A negociação não foi concluída porque o jogador não saiu do elenco.");
         return;

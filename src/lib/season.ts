@@ -169,7 +169,10 @@ export async function apurarTransicaoLiga(
       .maybeSingle();
     if (destino) {
       ligaNova = destino.nome as string;
-      await supabase.from("saves").update({ league_id: destino.id as string }).eq("id", saveId);
+      await supabase
+        .from("saves")
+        .update({ league_id: destino.id as string })
+        .eq("id", saveId);
     } else {
       // Sem divisão correspondente cadastrada: mantém a liga atual.
       movimento = "permanencia";
@@ -186,7 +189,6 @@ export async function apurarTransicaoLiga(
   };
 }
 
-
 /** Calcula o resumo da season ativa, encerra e abre a próxima. */
 export async function encerrarTemporada(saveId: string, seasonId: string) {
   const [partidasRes, statsRes, playersRes, transfersRes, standingsRes, seasonRes] =
@@ -202,7 +204,11 @@ export async function encerrarTemporada(saveId: string, seasonId: string) {
         .from("players")
         .select("id, nome, overall, valor_mercado, ativo")
         .eq("save_id", saveId),
-      supabase.from("transfers").select("tipo, valor").eq("save_id", saveId).eq("season_id", seasonId),
+      supabase
+        .from("transfers")
+        .select("tipo, valor")
+        .eq("save_id", saveId)
+        .eq("season_id", seasonId),
       supabase
         .from("standings_snapshot")
         .select("time, posicao, rodada")
@@ -330,12 +336,7 @@ export async function encerrarTemporada(saveId: string, seasonId: string) {
     });
   }
 
-
-
-  if (
-    transicao.movimento !== "permanencia" ||
-    transicao.competicoes.length > 0
-  ) {
+  if (transicao.movimento !== "permanencia" || transicao.competicoes.length > 0) {
     const titulo =
       transicao.movimento === "acesso"
         ? `Acesso conquistado! Rumo à ${transicao.ligaNova ?? "divisão superior"}`

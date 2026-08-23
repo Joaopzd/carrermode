@@ -122,9 +122,7 @@ export async function resolverEmprestimosNoFimDaTemporada(
   seasonId: string,
   janela: "verao" | "inverno",
 ): Promise<{ devolvidos: number; comprados: number }> {
-  const ativos = (await carregarEmprestimosAtivos(saveId)).filter(
-    (t) => t.season_id === seasonId,
-  );
+  const ativos = (await carregarEmprestimosAtivos(saveId)).filter((t) => t.season_id === seasonId);
   let devolvidos = 0;
   let comprados = 0;
   for (const t of ativos) {

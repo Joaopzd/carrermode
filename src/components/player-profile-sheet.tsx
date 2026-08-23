@@ -206,10 +206,7 @@ export function PlayerProfileSheet({
                   ["Nacionalidade", <Bandeira key="nac" pais={jogador.nacionalidade} comNome />],
                   ["Valor", moeda(jogador.valor_mercado)],
                   ["Salário", moeda(jogador.salario)],
-                  [
-                    "Playstyles",
-                    parsePlaystyles(jogador.playstyle).join(", ") || "—",
-                  ],
+                  ["Playstyles", parsePlaystyles(jogador.playstyle).join(", ") || "—"],
                 ].map(([k, v]) => (
                   <div key={String(k)} className="rounded-lg border border-border p-3">
                     <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
@@ -294,11 +291,10 @@ export function PlayerProfileSheet({
                           </span>
                         </div>
                         <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                          {s.matches?.competicao ?? "—"} · Nota {s.nota ?? "—"} · Gols{" "}
-                          {s.gols ?? 0} · Assist. {s.assistencias ?? 0} · Chutes {s.chutes ?? 0} ·
-                          Passes {s.passes ?? 0} · Acerto {s.passes_pct ?? 0}% · Desarmes{" "}
-                          {s.desarmes ?? 0} · Defesas {s.defesas ?? 0} · Clean sheet{" "}
-                          {s.clean_sheet ? "Sim" : "Não"}
+                          {s.matches?.competicao ?? "—"} · Nota {s.nota ?? "—"} · Gols {s.gols ?? 0}{" "}
+                          · Assist. {s.assistencias ?? 0} · Chutes {s.chutes ?? 0} · Passes{" "}
+                          {s.passes ?? 0} · Acerto {s.passes_pct ?? 0}% · Desarmes {s.desarmes ?? 0}{" "}
+                          · Defesas {s.defesas ?? 0} · Clean sheet {s.clean_sheet ? "Sim" : "Não"}
                           {s.cartao_amarelo ? " · 🟨" : ""}
                           {s.cartao_vermelho ? " · 🟥" : ""}
                         </p>
