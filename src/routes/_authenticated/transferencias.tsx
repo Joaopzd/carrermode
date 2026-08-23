@@ -114,6 +114,7 @@ const moeda = (v: number | null) =>
 function TransferenciasPage() {
   const { save, carregando: carregandoSave } = useSaveAtual();
   const [lista, setLista] = useState<Transferencia[]>([]);
+  const [emprestimos, setEmprestimos] = useState<Transferencia[]>([]);
   const [elenco, setElenco] = useState<JogadorSimples[]>([]);
   const [todosJogadores, setTodosJogadores] = useState<JogadorSimples[]>([]);
   const [editando, setEditando] = useState<Transferencia | null>(null);
