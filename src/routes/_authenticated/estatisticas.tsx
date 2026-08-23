@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { PlayerProfileSheet } from "@/components/player-profile-sheet";
 import {
   Select,
   SelectContent,
@@ -508,137 +508,21 @@ function EstatisticasPage() {
         </div>
       </div>
 
-      <Sheet open={!!selecionado} onOpenChange={(o) => !o && setSelecionado(null)}>
-        <SheetContent className="w-full overflow-y-auto sm:max-w-lg">
-          {selecionado ? (
-            <>
-              <SheetHeader>
-                <SheetTitle className="font-display text-3xl tracking-wide">
-                  {selecionado.nome}
-                </SheetTitle>
-              </SheetHeader>
-              <div className="mt-4 space-y-6">
-                <div className="flex flex-wrap gap-2">
-                  <Badge className="bg-accent text-accent-foreground">
-                    🌟 {selecionado.mvps} vez(es) MVP
-                    {save?.seasonId ? ` · ${selecionado.mvpsTemporada} na temporada` : ""}
-                  </Badge>
-                  <Badge>{posEn(selecionado.posicao_principal) ?? "—"}</Badge>
-                  {Array.isArray(selecionado.posicoes_secundarias)
-                    ? (selecionado.posicoes_secundarias as string[]).map((p) => (
-                        <Badge key={p} variant="secondary">
-                          {posEn(p)}
-                        </Badge>
-                      ))
-                    : null}
-                  {selecionado.status ? (
-                    <Badge variant="outline">{selecionado.status}</Badge>
-                  ) : null}
-                </div>
-
-                <OverallCard playerId={selecionado.id} overall={selecionado.overall} />
-
-                <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
-                  {[
-                    ["Idade", selecionado.idade ?? "—"],
-                    ["Altura", selecionado.altura ? `${selecionado.altura} cm` : "—"],
-                    [
-                      "Nacionalidade",
-                      <Bandeira key="nac" pais={selecionado.nacionalidade} comNome />,
-                    ],
-                    [
-                      "Valor",
-                      selecionado.valor_mercado != null
-                        ? Number(selecionado.valor_mercado).toLocaleString("pt-BR")
-                        : "—",
-                    ],
-                    [
-                      "Salário",
-                      selecionado.salario != null
-                        ? Number(selecionado.salario).toLocaleString("pt-BR")
-                        : "—",
-                    ],
-                    ["Playstyle", selecionado.playstyle ?? "—"],
-                  ].map(([k, v]) => (
-                    <div key={String(k)} className="rounded-lg border border-border p-3">
-                      <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                        {k}
-                      </p>
-                      <p className="mt-1 font-semibold">{v}</p>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="grid grid-cols-3 gap-3 text-center">
-                  {[
-                    ["Jogos", selecionado.jogos],
-                    ["Gols", selecionado.gols],
-                    ["Assist.", selecionado.assist],
-                    [
-                      "Nota",
-                      selecionado.notaMedia != null ? selecionado.notaMedia.toFixed(2) : "—",
-                    ],
-                    ["Amarelos", selecionado.amarelos],
-                    ["Vermelhos", selecionado.vermelhos],
-                  ].map(([k, v]) => (
-                    <div key={String(k)} className="rounded-lg bg-muted/40 p-3">
-                      <p className="text-xl font-bold text-primary">{v}</p>
-                      <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                        {k}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-
-                <PlayerEvolution
-                  playerId={selecionado.id}
-                  currentOverall={selecionado.overall}
-                />
-
-                <div>
-                  <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                    Histórico partida a partida
-                  </h3>
-                  {historico.length === 0 ? (
-                    <p className="mt-3 rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-                      Nenhuma partida registrada para este jogador ainda.
-                    </p>
-                  ) : (
-                    <ul className="mt-3 space-y-2">
-                      {historico.map(({ s, m }) => (
-                        <li key={s.id} className="rounded-lg border border-border p-3">
-                          <div className="flex items-center justify-between gap-2">
-                            <p className="text-sm font-semibold">
-                              vs {m?.adversario ?? "—"}{" "}
-                              <span className="text-muted-foreground">
-                                {m?.placar_time ?? 0}-{m?.placar_adversario ?? 0}
-                              </span>
-                            </p>
-                            <span className="text-xs text-muted-foreground">
-                              {m?.data_hora
-                                ? new Date(m.data_hora).toLocaleDateString("pt-BR")
-                                : ""}
-                            </span>
-                          </div>
-                          <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                            {m?.competicao ?? "—"} · Nota {s.nota ?? "—"} · Gols {s.gols ?? 0} ·
-                            Assist. {s.assistencias ?? 0} · Chutes {s.chutes ?? 0} · Passes{" "}
-                            {s.passes ?? 0} · Acerto {s.passes_pct ?? 0}%
-                            · Desarmes {s.desarmes ?? 0} · Defesas {s.defesas ?? 0} · Clean sheet{" "}
-                            {s.clean_sheet ? "Sim" : "Não"}
-                            {s.cartao_amarelo ? " · 🟨" : ""}
-                            {s.cartao_vermelho ? " · 🟥" : ""}
-                          </p>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </div>
-            </>
-          ) : null}
-        </SheetContent>
-      </Sheet>
+      <PlayerProfileSheet
+        playerId={selecionado?.id ?? null}
+        saveId={save?.id ?? null}
+        seasonId={save?.seasonId ?? null}
+        escopoInicial="temporada"
+        onOpenChange={(o) => !o && setSelecionado(null)}
+        extra={
+          selecionado ? (
+            <Badge className="bg-accent text-accent-foreground">
+              🌟 {selecionado.mvps} vez(es) MVP
+              {save?.seasonId ? ` · ${selecionado.mvpsTemporada} na temporada` : ""}
+            </Badge>
+          ) : null
+        }
+      />
     </AppShell>
   );
 }

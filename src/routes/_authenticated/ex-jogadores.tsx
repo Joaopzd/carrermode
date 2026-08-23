@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { PlayerProfileSheet } from "@/components/player-profile-sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { MOTIVOS_SAIDA, rotuloMotivo } from "@/lib/season";
@@ -252,45 +252,45 @@ function ExJogadoresPage() {
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {filtrados.map((j, i) => (
                 <StaggerItem key={j.id} index={i}>
-                <HoverCard className="h-full">
-                <button
-                  type="button"
-                  onClick={() => void abrir(j)}
-                  className="h-full w-full text-left"
-                >
-                  <Card className="hq-card h-full transition-colors hover:border-primary/60">
-                    <CardContent className="space-y-2 py-4">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <p className="font-display text-xl leading-tight tracking-wide">
-                            {j.nome}
+                  <HoverCard className="h-full">
+                    <button
+                      type="button"
+                      onClick={() => void abrir(j)}
+                      className="h-full w-full text-left"
+                    >
+                      <Card className="hq-card h-full transition-colors hover:border-primary/60">
+                        <CardContent className="space-y-2 py-4">
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <p className="font-display text-xl leading-tight tracking-wide">
+                                {j.nome}
+                              </p>
+                              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                <Bandeira pais={j.nacionalidade} />
+                                {posEn(j.posicao_principal) ?? "—"} · {j.idade ?? "—"} anos
+                              </p>
+                            </div>
+                            <span className="rounded-lg bg-muted px-2 py-1 font-display text-lg">
+                              {j.overall ?? "—"}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2 text-xs">
+                            <Badge variant="secondary">{rotuloMotivo(j.motivo_saida)}</Badge>
+                            {j.clube_destino ? (
+                              <span className="inline-flex items-center gap-1 text-muted-foreground">
+                                → <ClubBadge nome={j.clube_destino} />
+                              </span>
+                            ) : null}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {j.data_saida
+                              ? new Date(j.data_saida).toLocaleDateString("pt-BR")
+                              : "Data não informada"}
                           </p>
-                          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <Bandeira pais={j.nacionalidade} />
-                            {posEn(j.posicao_principal) ?? "—"} · {j.idade ?? "—"} anos
-                          </p>
-                        </div>
-                        <span className="rounded-lg bg-muted px-2 py-1 font-display text-lg">
-                          {j.overall ?? "—"}
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2 text-xs">
-                        <Badge variant="secondary">{rotuloMotivo(j.motivo_saida)}</Badge>
-                        {j.clube_destino ? (
-                          <span className="inline-flex items-center gap-1 text-muted-foreground">
-                            → <ClubBadge nome={j.clube_destino} />
-                          </span>
-                        ) : null}
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        {j.data_saida
-                          ? new Date(j.data_saida).toLocaleDateString("pt-BR")
-                          : "Data não informada"}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </button>
-                </HoverCard>
+                        </CardContent>
+                      </Card>
+                    </button>
+                  </HoverCard>
                 </StaggerItem>
               ))}
             </div>
@@ -298,91 +298,64 @@ function ExJogadoresPage() {
         </div>
       </div>
 
-      <Sheet open={!!selecionado} onOpenChange={(v) => !v && setSelecionado(null)}>
-        <SheetContent className="w-full overflow-y-auto sm:max-w-lg">
-          {selecionado ? (
-            <>
-              <SheetHeader>
-                <SheetTitle className="font-display text-2xl tracking-wide">
-                  {selecionado.nome}
-                </SheetTitle>
-              </SheetHeader>
-              <div className="mt-4 space-y-5">
-                <Badge className="bg-accent text-accent-foreground">
-                  🌟 {mvpsJogador?.total ?? 0} vez(es) MVP
-                  {save?.seasonId ? ` · ${mvpsJogador?.temporada ?? 0} na temporada` : ""}
-                </Badge>
-                <div className="rounded-xl border border-border p-4">
-                  <p className="flex items-center gap-2 text-sm font-semibold">
-                    <Archive className="h-4 w-4 text-primary" /> Resumo da saída
-                  </p>
-                  <dl className="mt-2 grid grid-cols-2 gap-2 text-sm">
-                    <div>
-                      <dt className="text-xs text-muted-foreground">Motivo</dt>
-                      <dd>{rotuloMotivo(selecionado.motivo_saida)}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-xs text-muted-foreground">Destino</dt>
-                      <dd><ClubBadge nome={selecionado.clube_destino} /></dd>
-                    </div>
-                    <div>
-                      <dt className="text-xs text-muted-foreground">Data</dt>
-                      <dd>
-                        {selecionado.data_saida
-                          ? new Date(selecionado.data_saida).toLocaleDateString("pt-BR")
-                          : "—"}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="text-xs text-muted-foreground">Temporada</dt>
-                      <dd>
-                        {transferSaida?.season_id
-                          ? (seasonPorId[transferSaida.season_id] ?? "—")
-                          : "—"}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="text-xs text-muted-foreground">Valor</dt>
-                      <dd>
-                        {transferSaida?.valor != null
-                          ? Number(transferSaida.valor).toLocaleString("pt-BR")
-                          : "—"}
-                      </dd>
-                    </div>
-                  </dl>
-                </div>
-
-                <OverallCard playerId={selecionado.id} overall={selecionado.overall} />
-
-                <div className="grid grid-cols-3 gap-3 text-center">
-                  {[
-                    ["Jogos", agregado.jogos],
-                    ["Gols", agregado.gols],
-                    ["Assist.", agregado.assistencias],
-                    ["Nota média", agregado.nota],
-                    ["Defesas", agregado.defesas],
-                    ["Cartões", `${agregado.amarelos}A / ${agregado.vermelhos}V`],
-                  ].map(([rot, val]) => (
-                    <div key={String(rot)} className="rounded-lg border border-border py-3">
-                      <p className="font-display text-2xl">{val}</p>
-                      <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                        {rot}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-                <PlayerEvolution
-                  playerId={selecionado.id}
-                  currentOverall={selecionado.overall}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Estatísticas somadas de todas as temporadas em que o jogador atuou pelo clube.
+      <PlayerProfileSheet
+        playerId={selecionado?.id ?? null}
+        saveId={save?.id ?? null}
+        seasonId={save?.seasonId ?? null}
+        escopoInicial="carreira"
+        onOpenChange={(v) => !v && setSelecionado(null)}
+        extra={
+          selecionado ? (
+            <div className="space-y-4">
+              <Badge className="bg-accent text-accent-foreground">
+                🌟 {mvpsJogador?.total ?? 0} vez(es) MVP
+                {save?.seasonId ? ` · ${mvpsJogador?.temporada ?? 0} na temporada` : ""}
+              </Badge>
+              <div className="rounded-xl border border-border p-4">
+                <p className="flex items-center gap-2 text-sm font-semibold">
+                  <Archive className="h-4 w-4 text-primary" /> Resumo da saída
                 </p>
+                <dl className="mt-2 grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <dt className="text-xs text-muted-foreground">Motivo</dt>
+                    <dd>{rotuloMotivo(selecionado.motivo_saida)}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-muted-foreground">Destino</dt>
+                    <dd>
+                      <ClubBadge nome={selecionado.clube_destino} />
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-muted-foreground">Data</dt>
+                    <dd>
+                      {selecionado.data_saida
+                        ? new Date(selecionado.data_saida).toLocaleDateString("pt-BR")
+                        : "—"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-muted-foreground">Temporada</dt>
+                    <dd>
+                      {transferSaida?.season_id
+                        ? (seasonPorId[transferSaida.season_id] ?? "—")
+                        : "—"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-muted-foreground">Valor</dt>
+                    <dd>
+                      {transferSaida?.valor != null
+                        ? Number(transferSaida.valor).toLocaleString("pt-BR")
+                        : "—"}
+                    </dd>
+                  </div>
+                </dl>
               </div>
-            </>
-          ) : null}
-        </SheetContent>
-      </Sheet>
+            </div>
+          ) : null
+        }
+      />
     </AppShell>
   );
 }

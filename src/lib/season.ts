@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { carregarRegras, zonaDaPosicao } from "@/lib/league-rules";
+import { resolverEmprestimosNoFimDaTemporada } from "@/lib/emprestimos";
 
 export type Season = {
   id: string;
@@ -168,7 +169,10 @@ export async function apurarTransicaoLiga(
       .maybeSingle();
     if (destino) {
       ligaNova = destino.nome as string;
-      await supabase.from("saves").update({ league_id: destino.id as string }).eq("id", saveId);
+      await supabase
+        .from("saves")
+        .update({ league_id: destino.id as string })
+        .eq("id", saveId);
     } else {
       // Sem divisão correspondente cadastrada: mantém a liga atual.
       movimento = "permanencia";
@@ -185,7 +189,6 @@ export async function apurarTransicaoLiga(
   };
 }
 
-
 /** Calcula o resumo da season ativa, encerra e abre a próxima. */
 export async function encerrarTemporada(saveId: string, seasonId: string) {
   const [partidasRes, statsRes, playersRes, transfersRes, standingsRes, seasonRes] =
@@ -201,7 +204,11 @@ export async function encerrarTemporada(saveId: string, seasonId: string) {
         .from("players")
         .select("id, nome, overall, valor_mercado, ativo")
         .eq("save_id", saveId),
-      supabase.from("transfers").select("tipo, valor").eq("save_id", saveId).eq("season_id", seasonId),
+      supabase
+        .from("transfers")
+        .select("tipo, valor")
+        .eq("save_id", saveId)
+        .eq("season_id", seasonId),
       supabase
         .from("standings_snapshot")
         .select("time, posicao, rodada")
@@ -317,10 +324,19 @@ export async function encerrarTemporada(saveId: string, seasonId: string) {
 
   const novaSeason = (criada as unknown as Season | null) ?? null;
 
-  if (
-    transicao.movimento !== "permanencia" ||
-    transicao.competicoes.length > 0
-  ) {
+  // Empréstimos vencidos: obrigação de compra vira definitiva, o resto devolve o jogador.
+  const emprestimos = await resolverEmprestimosNoFimDaTemporada(saveId, seasonId, "verao");
+  if (emprestimos.devolvidos > 0 || emprestimos.comprados > 0) {
+    await supabase.from("news_feed").insert({
+      save_id: saveId,
+      season_id: novaSeason?.id ?? null,
+      tipo: "transferencia",
+      titulo: "Empréstimos encerrados no fim da temporada",
+      corpo: `${emprestimos.devolvidos} jogador(es) retornaram ao clube de origem e ${emprestimos.comprados} tiveram a compra efetivada.`,
+    });
+  }
+
+  if (transicao.movimento !== "permanencia" || transicao.competicoes.length > 0) {
     const titulo =
       transicao.movimento === "acesso"
         ? `Acesso conquistado! Rumo à ${transicao.ligaNova ?? "divisão superior"}`

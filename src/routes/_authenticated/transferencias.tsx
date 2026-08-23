@@ -42,6 +42,11 @@ import {
   type JogadorForm,
 } from "@/components/jogador-form-dialog";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  carregarEmprestimosAtivos,
+  encerrarEmprestimo,
+  type EmprestimoRow,
+} from "@/lib/emprestimos";
 import { PAISES } from "@/lib/onboarding-data";
 import { checarVendaPolemica } from "@/lib/eventos";
 import { useSaveAtual } from "@/lib/use-save";
@@ -114,6 +119,7 @@ const moeda = (v: number | null) =>
 function TransferenciasPage() {
   const { save, carregando: carregandoSave } = useSaveAtual();
   const [lista, setLista] = useState<Transferencia[]>([]);
+  const [emprestimos, setEmprestimos] = useState<Transferencia[]>([]);
   const [elenco, setElenco] = useState<JogadorSimples[]>([]);
   const [todosJogadores, setTodosJogadores] = useState<JogadorSimples[]>([]);
   const [editando, setEditando] = useState<Transferencia | null>(null);
@@ -157,15 +163,17 @@ function TransferenciasPage() {
   async function carregar(saveId: string, seasonId: string | null) {
     let qt = supabase.from("transfers").select("*").eq("save_id", saveId);
     if (seasonId) qt = qt.eq("season_id", seasonId);
-    const [{ data: t }, { data: p }] = await Promise.all([
+    const [{ data: t }, { data: p }, ativos] = await Promise.all([
       qt.order("data", { ascending: false }),
       supabase
         .from("players")
         .select("id, nome, overall, status, ativo")
         .eq("save_id", saveId)
         .order("nome"),
+      carregarEmprestimosAtivos(saveId),
     ]);
     setLista((t ?? []) as Transferencia[]);
+    setEmprestimos(ativos as unknown as Transferencia[]);
     setTodosJogadores((p ?? []) as JogadorSimples[]);
     setElenco(((p ?? []) as JogadorSimples[]).filter((j) => j.ativo !== false));
     setCarregando(false);
@@ -185,7 +193,8 @@ function TransferenciasPage() {
         (t) =>
           (filtroTipo === "todos" || t.tipo === filtroTipo) &&
           (filtroModalidade === "todas" || t.modalidade === filtroModalidade) &&
-          (filtroJanela === "todas" || (t.janela ?? janelaDoDia(t.data.slice(0, 10))) === filtroJanela),
+          (filtroJanela === "todas" ||
+            (t.janela ?? janelaDoDia(t.data.slice(0, 10))) === filtroJanela),
       ),
     [lista, filtroTipo, filtroModalidade, filtroJanela],
   );
@@ -276,8 +285,7 @@ function TransferenciasPage() {
         duracao_emprestimo: modalidade === "emprestimo" ? duracao || null : null,
         janela,
         tem_opcao_compra: modalidade === "emprestimo" ? temOpcao : false,
-        valor_opcao_compra:
-          modalidade === "emprestimo" && temOpcao ? numOrNull(valorOpcao) : null,
+        valor_opcao_compra: modalidade === "emprestimo" && temOpcao ? numOrNull(valorOpcao) : null,
         obrigacao_compra: modalidade === "emprestimo" && temOpcao ? obrigacaoCompra : false,
         status_opcao: modalidade === "emprestimo" && temOpcao ? "pendente" : "nao_aplicavel",
         data: new Date(`${dataNeg || hojeISO()}T12:00:00`).toISOString(),
@@ -312,7 +320,10 @@ function TransferenciasPage() {
         .select("id")
         .single();
       if (saidaError) {
-        await supabase.from("transfers").delete().eq("id", data.id as string);
+        await supabase
+          .from("transfers")
+          .delete()
+          .eq("id", data.id as string);
         setSalvando(false);
         toast.error("A negociação não foi concluída porque o jogador não saiu do elenco.");
         return;
@@ -519,9 +530,21 @@ function TransferenciasPage() {
     return entra ?? sai ?? "Jogador";
   }
 
-  const emprestimosAtivos = lista.filter(
-    (t) => t.modalidade === "emprestimo" && t.tem_opcao_compra && t.status_opcao === "pendente",
-  );
+  const emprestimosAtivos = emprestimos;
+
+  async function retornarAgora(t: Transferencia) {
+    if (!save) return;
+    setProcessandoOpcao(t.id);
+    try {
+      await encerrarEmprestimo(t as unknown as EmprestimoRow);
+      toast.success("Jogador retornado, empréstimo encerrado.");
+      void carregar(save.id, save.seasonId);
+    } catch {
+      toast.error("Não foi possível encerrar o empréstimo.");
+    } finally {
+      setProcessandoOpcao(null);
+    }
+  }
 
   const precisaDadosExternos = tipo === "entrada" || (tipo === "saida" && modalidade === "troca");
 
@@ -668,24 +691,36 @@ function TransferenciasPage() {
                       </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant="outline">
-                        {t.obrigacao_compra ? "Obrigação" : "Opção"} de compra:{" "}
-                        {moeda(t.valor_opcao_compra ?? null)}
-                      </Badge>
+                      {t.tem_opcao_compra ? (
+                        <>
+                          <Badge variant="outline">
+                            {t.obrigacao_compra ? "Obrigação" : "Opção"} de compra:{" "}
+                            {moeda(t.valor_opcao_compra ?? null)}
+                          </Badge>
+                          <Button
+                            size="sm"
+                            disabled={processandoOpcao === t.id}
+                            onClick={() => void exercerOpcao(t)}
+                          >
+                            Exercer opção de compra
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={processandoOpcao === t.id}
+                            onClick={() => void naoExercerOpcao(t)}
+                          >
+                            Não exercer opção
+                          </Button>
+                        </>
+                      ) : null}
                       <Button
                         size="sm"
+                        variant="secondary"
                         disabled={processandoOpcao === t.id}
-                        onClick={() => void exercerOpcao(t)}
+                        onClick={() => void retornarAgora(t)}
                       >
-                        Exercer opção de compra
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={processandoOpcao === t.id}
-                        onClick={() => void naoExercerOpcao(t)}
-                      >
-                        Não exercer opção
+                        Retornar agora
                       </Button>
                     </div>
                   </CardContent>
