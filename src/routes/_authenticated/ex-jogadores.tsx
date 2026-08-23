@@ -298,91 +298,64 @@ function ExJogadoresPage() {
         </div>
       </div>
 
-      <Sheet open={!!selecionado} onOpenChange={(v) => !v && setSelecionado(null)}>
-        <SheetContent className="w-full overflow-y-auto sm:max-w-lg">
-          {selecionado ? (
-            <>
-              <SheetHeader>
-                <SheetTitle className="font-display text-2xl tracking-wide">
-                  {selecionado.nome}
-                </SheetTitle>
-              </SheetHeader>
-              <div className="mt-4 space-y-5">
-                <Badge className="bg-accent text-accent-foreground">
-                  🌟 {mvpsJogador?.total ?? 0} vez(es) MVP
-                  {save?.seasonId ? ` · ${mvpsJogador?.temporada ?? 0} na temporada` : ""}
-                </Badge>
-                <div className="rounded-xl border border-border p-4">
-                  <p className="flex items-center gap-2 text-sm font-semibold">
-                    <Archive className="h-4 w-4 text-primary" /> Resumo da saída
-                  </p>
-                  <dl className="mt-2 grid grid-cols-2 gap-2 text-sm">
-                    <div>
-                      <dt className="text-xs text-muted-foreground">Motivo</dt>
-                      <dd>{rotuloMotivo(selecionado.motivo_saida)}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-xs text-muted-foreground">Destino</dt>
-                      <dd><ClubBadge nome={selecionado.clube_destino} /></dd>
-                    </div>
-                    <div>
-                      <dt className="text-xs text-muted-foreground">Data</dt>
-                      <dd>
-                        {selecionado.data_saida
-                          ? new Date(selecionado.data_saida).toLocaleDateString("pt-BR")
-                          : "—"}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="text-xs text-muted-foreground">Temporada</dt>
-                      <dd>
-                        {transferSaida?.season_id
-                          ? (seasonPorId[transferSaida.season_id] ?? "—")
-                          : "—"}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="text-xs text-muted-foreground">Valor</dt>
-                      <dd>
-                        {transferSaida?.valor != null
-                          ? Number(transferSaida.valor).toLocaleString("pt-BR")
-                          : "—"}
-                      </dd>
-                    </div>
-                  </dl>
-                </div>
-
-                <OverallCard playerId={selecionado.id} overall={selecionado.overall} />
-
-                <div className="grid grid-cols-3 gap-3 text-center">
-                  {[
-                    ["Jogos", agregado.jogos],
-                    ["Gols", agregado.gols],
-                    ["Assist.", agregado.assistencias],
-                    ["Nota média", agregado.nota],
-                    ["Defesas", agregado.defesas],
-                    ["Cartões", `${agregado.amarelos}A / ${agregado.vermelhos}V`],
-                  ].map(([rot, val]) => (
-                    <div key={String(rot)} className="rounded-lg border border-border py-3">
-                      <p className="font-display text-2xl">{val}</p>
-                      <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                        {rot}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-                <PlayerEvolution
-                  playerId={selecionado.id}
-                  currentOverall={selecionado.overall}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Estatísticas somadas de todas as temporadas em que o jogador atuou pelo clube.
+      <PlayerProfileSheet
+        playerId={selecionado?.id ?? null}
+        saveId={save?.id ?? null}
+        seasonId={save?.seasonId ?? null}
+        escopoInicial="carreira"
+        onOpenChange={(v) => !v && setSelecionado(null)}
+        extra={
+          selecionado ? (
+            <div className="space-y-4">
+              <Badge className="bg-accent text-accent-foreground">
+                🌟 {mvpsJogador?.total ?? 0} vez(es) MVP
+                {save?.seasonId ? ` · ${mvpsJogador?.temporada ?? 0} na temporada` : ""}
+              </Badge>
+              <div className="rounded-xl border border-border p-4">
+                <p className="flex items-center gap-2 text-sm font-semibold">
+                  <Archive className="h-4 w-4 text-primary" /> Resumo da saída
                 </p>
+                <dl className="mt-2 grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <dt className="text-xs text-muted-foreground">Motivo</dt>
+                    <dd>{rotuloMotivo(selecionado.motivo_saida)}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-muted-foreground">Destino</dt>
+                    <dd>
+                      <ClubBadge nome={selecionado.clube_destino} />
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-muted-foreground">Data</dt>
+                    <dd>
+                      {selecionado.data_saida
+                        ? new Date(selecionado.data_saida).toLocaleDateString("pt-BR")
+                        : "—"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-muted-foreground">Temporada</dt>
+                    <dd>
+                      {transferSaida?.season_id
+                        ? (seasonPorId[transferSaida.season_id] ?? "—")
+                        : "—"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-muted-foreground">Valor</dt>
+                    <dd>
+                      {transferSaida?.valor != null
+                        ? Number(transferSaida.valor).toLocaleString("pt-BR")
+                        : "—"}
+                    </dd>
+                  </div>
+                </dl>
               </div>
-            </>
-          ) : null}
-        </SheetContent>
-      </Sheet>
+            </div>
+          ) : null
+        }
+      />
     </AppShell>
   );
 }
