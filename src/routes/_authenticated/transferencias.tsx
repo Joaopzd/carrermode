@@ -42,6 +42,11 @@ import {
   type JogadorForm,
 } from "@/components/jogador-form-dialog";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  carregarEmprestimosAtivos,
+  encerrarEmprestimo,
+  type EmprestimoRow,
+} from "@/lib/emprestimos";
 import { PAISES } from "@/lib/onboarding-data";
 import { checarVendaPolemica } from "@/lib/eventos";
 import { useSaveAtual } from "@/lib/use-save";
