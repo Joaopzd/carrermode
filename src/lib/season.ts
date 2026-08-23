@@ -318,6 +318,20 @@ export async function encerrarTemporada(saveId: string, seasonId: string) {
 
   const novaSeason = (criada as unknown as Season | null) ?? null;
 
+  // Empréstimos vencidos: obrigação de compra vira definitiva, o resto devolve o jogador.
+  const emprestimos = await resolverEmprestimosNoFimDaTemporada(saveId, seasonId, "verao");
+  if (emprestimos.devolvidos > 0 || emprestimos.comprados > 0) {
+    await supabase.from("news_feed").insert({
+      save_id: saveId,
+      season_id: novaSeason?.id ?? null,
+      tipo: "transferencia",
+      titulo: "Empréstimos encerrados no fim da temporada",
+      corpo: `${emprestimos.devolvidos} jogador(es) retornaram ao clube de origem e ${emprestimos.comprados} tiveram a compra efetivada.`,
+    });
+  }
+
+
+
   if (
     transicao.movimento !== "permanencia" ||
     transicao.competicoes.length > 0
