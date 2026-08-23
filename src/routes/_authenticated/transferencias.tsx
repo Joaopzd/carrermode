@@ -522,9 +522,21 @@ function TransferenciasPage() {
     return entra ?? sai ?? "Jogador";
   }
 
-  const emprestimosAtivos = lista.filter(
-    (t) => t.modalidade === "emprestimo" && t.tem_opcao_compra && t.status_opcao === "pendente",
-  );
+  const emprestimosAtivos = emprestimos;
+
+  async function retornarAgora(t: Transferencia) {
+    if (!save) return;
+    setProcessandoOpcao(t.id);
+    try {
+      await encerrarEmprestimo(t as unknown as EmprestimoRow);
+      toast.success("Jogador retornado, empréstimo encerrado.");
+      void carregar(save.id, save.seasonId);
+    } catch {
+      toast.error("Não foi possível encerrar o empréstimo.");
+    } finally {
+      setProcessandoOpcao(null);
+    }
+  }
 
   const precisaDadosExternos = tipo === "entrada" || (tipo === "saida" && modalidade === "troca");
 
