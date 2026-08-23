@@ -81,7 +81,7 @@ export async function efetivarCompraEmprestimo(
   saveId: string,
   seasonId: string | null,
   t: EmprestimoRow,
-  janela: string,
+  janela: "verao" | "inverno",
 ) {
   const hoje = hojeISO();
   const { error } = await supabase.from("transfers").insert({
@@ -120,7 +120,7 @@ export async function efetivarCompraEmprestimo(
 export async function resolverEmprestimosNoFimDaTemporada(
   saveId: string,
   seasonId: string,
-  janela: string,
+  janela: "verao" | "inverno",
 ): Promise<{ devolvidos: number; comprados: number }> {
   const ativos = (await carregarEmprestimosAtivos(saveId)).filter(
     (t) => t.season_id === seasonId,
