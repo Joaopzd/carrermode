@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { AppShell } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
+import { PlayerProfileSheet } from "@/components/player-profile-sheet";
 import { StatusJogador } from "@/components/status-jogador";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -122,6 +123,7 @@ function ElencoPage() {
   const [asc, setAsc] = useState(false);
   const [visao, setVisao] = useState<"cards" | "lista">("cards");
   const [editando, setEditando] = useState<Jogador | null>(null);
+  const [perfilId, setPerfilId] = useState<string | null>(null);
   const [salvando, setSalvando] = useState(false);
   const [adicionando, setAdicionando] = useState(false);
   const [criando, setCriando] = useState(false);
@@ -439,7 +441,11 @@ function ElencoPage() {
                   {filtrados.map((j) => (
                     <tr key={j.id} className="border-b border-border/50 last:border-0">
                       <td className="px-3 py-2">
-                        <span className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setPerfilId(j.id)}
+                          className="flex items-center gap-1.5 text-left hover:underline"
+                        >
                           <Bandeira pais={j.nacionalidade} />
                           <span className="font-medium">{j.nome}</span>
                           {j.capitao && (
@@ -447,7 +453,7 @@ function ElencoPage() {
                               C
                             </span>
                           )}
-                        </span>
+                        </button>
                       </td>
                       <td className="px-3 py-2">{posEn(j.posicao_principal) ?? "—"}</td>
                       <td className="px-3 py-2">
@@ -493,7 +499,13 @@ function ElencoPage() {
                 <HoverCard className="h-full">
                 <Card className="hq-card h-full">
                   <CardContent className="space-y-3 py-4">
-                    <div className="flex items-start justify-between gap-2">
+                    <div
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setPerfilId(j.id)}
+                      onKeyDown={(e) => e.key === "Enter" && setPerfilId(j.id)}
+                      className="flex cursor-pointer items-start justify-between gap-2"
+                    >
                       <div>
                         <p className="font-display text-xl leading-tight tracking-wide">
                           {j.nome}
@@ -776,6 +788,14 @@ function ElencoPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <PlayerProfileSheet
+        playerId={perfilId}
+        saveId={save?.id ?? null}
+        seasonId={save?.seasonId ?? null}
+        escopoInicial="carreira"
+        onOpenChange={(o) => !o && setPerfilId(null)}
+      />
 
       <JogadorFormDialog
         open={adicionando}
