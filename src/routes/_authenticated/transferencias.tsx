@@ -688,24 +688,36 @@ function TransferenciasPage() {
                       </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant="outline">
-                        {t.obrigacao_compra ? "Obrigação" : "Opção"} de compra:{" "}
-                        {moeda(t.valor_opcao_compra ?? null)}
-                      </Badge>
+                      {t.tem_opcao_compra ? (
+                        <>
+                          <Badge variant="outline">
+                            {t.obrigacao_compra ? "Obrigação" : "Opção"} de compra:{" "}
+                            {moeda(t.valor_opcao_compra ?? null)}
+                          </Badge>
+                          <Button
+                            size="sm"
+                            disabled={processandoOpcao === t.id}
+                            onClick={() => void exercerOpcao(t)}
+                          >
+                            Exercer opção de compra
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={processandoOpcao === t.id}
+                            onClick={() => void naoExercerOpcao(t)}
+                          >
+                            Não exercer opção
+                          </Button>
+                        </>
+                      ) : null}
                       <Button
                         size="sm"
+                        variant="secondary"
                         disabled={processandoOpcao === t.id}
-                        onClick={() => void exercerOpcao(t)}
+                        onClick={() => void retornarAgora(t)}
                       >
-                        Exercer opção de compra
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={processandoOpcao === t.id}
-                        onClick={() => void naoExercerOpcao(t)}
-                      >
-                        Não exercer opção
+                        Retornar agora
                       </Button>
                     </div>
                   </CardContent>
