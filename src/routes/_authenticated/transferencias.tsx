@@ -1,6 +1,6 @@
 import { ClubBadge } from "@/components/club-badge";
 import { ClubAutocomplete } from "@/components/club-autocomplete";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowDownLeft,
@@ -92,6 +92,45 @@ type JogadorSimples = {
   ativo?: boolean | null;
 };
 
+type ExJogador = {
+  id: string;
+  nome: string;
+  nacionalidade: string | null;
+  posicao_principal: string | null;
+  posicoes_secundarias: string[] | null;
+  overall: number | null;
+  potencial: number | null;
+  valor_mercado: number | null;
+  salario: number | null;
+  idade: number | null;
+  altura: number | null;
+  playstyle: string | null;
+  status: string | null;
+  favorito_torcida: boolean | null;
+  capitao: boolean | null;
+};
+
+/** Pré-preenche a ficha com os últimos valores conhecidos do ex-jogador. */
+function formDoRetorno(j: ExJogador): Partial<JogadorForm> {
+  const txt = (v: number | null) => (v == null ? "" : String(v));
+  return {
+    nome: j.nome,
+    nacionalidade: j.nacionalidade ?? "",
+    posicao_principal: j.posicao_principal ?? "",
+    posicoes_secundarias: j.posicoes_secundarias ?? [],
+    overall: txt(j.overall),
+    potencial: txt(j.potencial),
+    valor_mercado: txt(j.valor_mercado),
+    salario: txt(j.salario),
+    idade: txt(j.idade),
+    altura: txt(j.altura),
+    playstyle: j.playstyle ?? "",
+    status: j.status ?? "Liberado",
+    favorito_torcida: !!j.favorito_torcida,
+    capitao: false,
+  };
+}
+
 const MODALIDADES = ["definitiva", "emprestimo", "troca"] as const;
 type Modalidade = (typeof MODALIDADES)[number];
 
@@ -118,6 +157,9 @@ const moeda = (v: number | null) =>
 
 function TransferenciasPage() {
   const { save, carregando: carregandoSave } = useSaveAtual();
+  const recontratarId = useRouterState({
+    select: (s) => (s.location.search as { recontratar?: string }).recontratar ?? null,
+  });
   const [lista, setLista] = useState<Transferencia[]>([]);
   const [emprestimos, setEmprestimos] = useState<Transferencia[]>([]);
   const [elenco, setElenco] = useState<JogadorSimples[]>([]);
@@ -160,15 +202,30 @@ function TransferenciasPage() {
   const [transferPendente, setTransferPendente] = useState<string | null>(null);
   const [salvandoCadastro, setSalvandoCadastro] = useState(false);
 
+  // retorno de ex-jogador
+  const [exJogadores, setExJogadores] = useState<ExJogador[]>([]);
+  const [buscaRetorno, setBuscaRetorno] = useState("");
+  const [retorno, setRetorno] = useState<ExJogador | null>(null);
+  const [jogadorNovo, setJogadorNovo] = useState(false);
+  const [retornoAberto, setRetornoAberto] = useState(false);
+
   async function carregar(saveId: string, seasonId: string | null) {
     let qt = supabase.from("transfers").select("*").eq("save_id", saveId);
     if (seasonId) qt = qt.eq("season_id", seasonId);
-    const [{ data: t }, { data: p }, ativos] = await Promise.all([
+    const [{ data: t }, { data: p }, { data: ex }, ativos] = await Promise.all([
       qt.order("data", { ascending: false }),
       supabase
         .from("players")
         .select("id, nome, overall, status, ativo")
         .eq("save_id", saveId)
+        .order("nome"),
+      supabase
+        .from("players")
+        .select(
+          "id, nome, nacionalidade, posicao_principal, posicoes_secundarias, overall, potencial, valor_mercado, salario, idade, altura, playstyle, status, favorito_torcida, capitao",
+        )
+        .eq("save_id", saveId)
+        .eq("ativo", false)
         .order("nome"),
       carregarEmprestimosAtivos(saveId),
     ]);
@@ -176,6 +233,7 @@ function TransferenciasPage() {
     setEmprestimos(ativos as unknown as Transferencia[]);
     setTodosJogadores((p ?? []) as JogadorSimples[]);
     setElenco(((p ?? []) as JogadorSimples[]).filter((j) => j.ativo !== false));
+    setExJogadores((ex ?? []) as unknown as ExJogador[]);
     setCarregando(false);
   }
 
@@ -186,6 +244,15 @@ function TransferenciasPage() {
     }
     void carregar(save.id, save.seasonId);
   }, [save, carregandoSave]);
+
+  // Deep link de "Recontratar" a partir da tela de Ex-Jogadores.
+  useEffect(() => {
+    if (!recontratarId || exJogadores.length === 0 || aberto) return;
+    const alvo = exJogadores.find((j) => j.id === recontratarId);
+    if (alvo) abrirRecontratacao(alvo);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recontratarId, exJogadores]);
+
 
   const filtrada = useMemo(
     () =>
@@ -246,12 +313,39 @@ function TransferenciasPage() {
     setTemOpcao(false);
     setValorOpcao("");
     setObrigacaoCompra(false);
+    setBuscaRetorno("");
+    setRetorno(null);
+    setJogadorNovo(false);
   }
 
   function abrirWizard() {
     resetar();
     setAberto(true);
   }
+
+  /** Abre o wizard de entrada com um ex-jogador já pré-selecionado. */
+  function abrirRecontratacao(j: ExJogador) {
+    resetar();
+    setTipo("entrada");
+    selecionarRetorno(j);
+    setEtapa(2);
+    setAberto(true);
+  }
+
+  function selecionarRetorno(j: ExJogador) {
+    setRetorno(j);
+    setJogadorNovo(false);
+    setBuscaRetorno(j.nome);
+    setNomeExterno(j.nome);
+    setNacExterno(j.nacionalidade ?? "");
+    setOverallExterno(j.overall == null ? "" : String(j.overall));
+  }
+
+  const sugestoesRetorno = useMemo(() => {
+    const termo = buscaRetorno.trim().toLowerCase();
+    if (termo === "" || retorno) return [];
+    return exJogadores.filter((j) => j.nome.toLowerCase().includes(termo)).slice(0, 6);
+  }, [buscaRetorno, exJogadores, retorno]);
 
   const numOrNull = (v: string) => (v.trim() === "" ? null : Number(v));
 
@@ -343,7 +437,18 @@ function TransferenciasPage() {
     const chegaJogador =
       tipo === "entrada" || (tipo === "saida" && modalidade === "troca" && nomeExterno.trim());
 
-    if (chegaJogador) {
+    if (retorno && tipo === "entrada") {
+      await supabase
+        .from("transfers")
+        .update({ player_id: retorno.id })
+        .eq("id", data.id as string);
+      setCadastroInicial({
+        ...formDoRetorno(retorno),
+        valor_mercado: valor || String(retorno.valor_mercado ?? ""),
+      });
+      setTransferPendente(data.id as string);
+      setRetornoAberto(true);
+    } else if (chegaJogador) {
       setCadastroInicial({
         nome: nomeExterno.trim(),
         nacionalidade: nacExterno,
@@ -354,6 +459,47 @@ function TransferenciasPage() {
       setCadastroAberto(true);
     }
 
+    void carregar(save.id, save.seasonId);
+  }
+
+  /** Reativa o registro de um ex-jogador em vez de criar um novo player. */
+  async function salvarRetornoJogador(form: JogadorForm) {
+    if (!save || !retorno) return;
+    setSalvandoCadastro(true);
+    const payload = formParaPayload(form);
+    const { error } = await supabase
+      .from("players")
+      .update({
+        ...payload,
+        ativo: true,
+        categoria: "principal",
+        data_saida: null,
+        motivo_saida: null,
+        clube_destino: null,
+        transfer_saida_id: null,
+      })
+      .eq("id", retorno.id)
+      .eq("save_id", save.id);
+
+    if (!error && payload.overall != null && save.seasonId) {
+      await supabase.from("player_overall_history").insert({
+        player_id: retorno.id,
+        season_id: save.seasonId,
+        overall: payload.overall,
+        valor_mercado: payload.valor_mercado,
+        motivo: "atualizacao_manual",
+      });
+    }
+
+    setSalvandoCadastro(false);
+    if (error) {
+      toast.error("Transferência salva, mas o retorno do jogador falhou.");
+      return;
+    }
+    toast.success(`${form.nome} está de volta ao elenco!`);
+    setRetornoAberto(false);
+    setTransferPendente(null);
+    setRetorno(null);
     void carregar(save.id, save.seasonId);
   }
 
@@ -860,6 +1006,67 @@ function TransferenciasPage() {
             </div>
           ) : (
             <div className="grid gap-3">
+              {tipo === "entrada" ? (
+                <div className="grid gap-2 rounded-xl border border-border p-3">
+                  <Label>Este jogador já jogou pelo clube antes?</Label>
+                  {retorno ? (
+                    <div className="flex items-center justify-between gap-2 rounded-lg border border-primary bg-primary/10 px-3 py-2">
+                      <div className="text-sm">
+                        <p className="font-medium">{retorno.nome}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Retorno ao clube · overall anterior {retorno.overall ?? "—"}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setRetorno(null);
+                          setBuscaRetorno("");
+                        }}
+                      >
+                        Trocar
+                      </Button>
+                    </div>
+                  ) : jogadorNovo ? (
+                    <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
+                      <span>Jogador novo — cadastro completo.</span>
+                      <Button variant="ghost" size="sm" onClick={() => setJogadorNovo(false)}>
+                        Buscar ex-jogador
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      <Input
+                        value={buscaRetorno}
+                        onChange={(e) => setBuscaRetorno(e.target.value)}
+                        placeholder="Buscar ex-jogador pelo nome"
+                      />
+                      {sugestoesRetorno.length > 0 ? (
+                        <div className="grid gap-1">
+                          {sugestoesRetorno.map((j) => (
+                            <button
+                              key={j.id}
+                              type="button"
+                              onClick={() => selecionarRetorno(j)}
+                              className="rounded-lg border border-border px-3 py-2 text-left text-sm transition-colors hover:border-primary"
+                            >
+                              {j.nome}{" "}
+                              <span className="text-xs text-muted-foreground">
+                                {j.posicao_principal ?? ""} {j.overall ? `· ${j.overall}` : ""}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
+                      <Button variant="secondary" size="sm" onClick={() => setJogadorNovo(true)}>
+                        É um jogador novo
+                      </Button>
+                    </>
+                  )}
+                </div>
+              ) : null}
+
               {precisaDadosExternos ? (
                 <>
                   <div className="grid gap-1">
@@ -1175,6 +1382,17 @@ function TransferenciasPage() {
         salvando={salvandoCadastro}
         textoConfirmar="Integrar ao elenco"
         onConfirmar={salvarJogadorChegando}
+      />
+
+      <JogadorFormDialog
+        open={retornoAberto}
+        onOpenChange={setRetornoAberto}
+        titulo="Retorno ao clube"
+        descricao="Confirme os dados atualizados do atleta que está voltando."
+        valorInicial={cadastroInicial}
+        salvando={salvandoCadastro}
+        textoConfirmar="Reativar no elenco"
+        onConfirmar={salvarRetornoJogador}
       />
     </AppShell>
   );

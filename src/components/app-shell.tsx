@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { PageTransition } from "@/components/motion";
+import { TopProgressBar } from "@/components/loading";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -19,6 +20,7 @@ export function AppShell({ titulo, children }: { titulo: string; children: React
 
   return (
     <SidebarProvider>
+      <TopProgressBar />
       <div className="flex min-h-screen w-full bg-background">
         <AppSidebar />
         <div className="flex flex-1 flex-col">
