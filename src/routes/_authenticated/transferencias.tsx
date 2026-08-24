@@ -1371,6 +1371,17 @@ function TransferenciasPage() {
         textoConfirmar="Integrar ao elenco"
         onConfirmar={salvarJogadorChegando}
       />
+
+      <JogadorFormDialog
+        open={retornoAberto}
+        onOpenChange={setRetornoAberto}
+        titulo="Retorno ao clube"
+        descricao="Confirme os dados atualizados do atleta que está voltando."
+        valorInicial={cadastroInicial}
+        salvando={salvandoCadastro}
+        textoConfirmar="Reativar no elenco"
+        onConfirmar={salvarRetornoJogador}
+      />
     </AppShell>
   );
 }
