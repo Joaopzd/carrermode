@@ -450,6 +450,47 @@ function TransferenciasPage() {
     void carregar(save.id, save.seasonId);
   }
 
+  /** Reativa o registro de um ex-jogador em vez de criar um novo player. */
+  async function salvarRetornoJogador(form: JogadorForm) {
+    if (!save || !retorno) return;
+    setSalvandoCadastro(true);
+    const payload = formParaPayload(form);
+    const { error } = await supabase
+      .from("players")
+      .update({
+        ...payload,
+        ativo: true,
+        categoria: "principal",
+        data_saida: null,
+        motivo_saida: null,
+        clube_destino: null,
+        transfer_saida_id: null,
+      })
+      .eq("id", retorno.id)
+      .eq("save_id", save.id);
+
+    if (!error && payload.overall != null && save.seasonId) {
+      await supabase.from("player_overall_history").insert({
+        player_id: retorno.id,
+        season_id: save.seasonId,
+        overall: payload.overall,
+        valor_mercado: payload.valor_mercado,
+        motivo: "atualizacao_manual",
+      });
+    }
+
+    setSalvandoCadastro(false);
+    if (error) {
+      toast.error("Transferência salva, mas o retorno do jogador falhou.");
+      return;
+    }
+    toast.success(`${form.nome} está de volta ao elenco!`);
+    setRetornoAberto(false);
+    setTransferPendente(null);
+    setRetorno(null);
+    void carregar(save.id, save.seasonId);
+  }
+
   async function salvarJogadorChegando(form: JogadorForm) {
     if (!save) return;
     setSalvandoCadastro(true);
