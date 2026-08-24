@@ -1,6 +1,6 @@
 import { ClubBadge } from "@/components/club-badge";
 import { ClubAutocomplete } from "@/components/club-autocomplete";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowDownLeft,
