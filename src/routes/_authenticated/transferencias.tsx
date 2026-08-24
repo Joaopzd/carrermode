@@ -301,12 +301,39 @@ function TransferenciasPage() {
     setTemOpcao(false);
     setValorOpcao("");
     setObrigacaoCompra(false);
+    setBuscaRetorno("");
+    setRetorno(null);
+    setJogadorNovo(false);
   }
 
   function abrirWizard() {
     resetar();
     setAberto(true);
   }
+
+  /** Abre o wizard de entrada com um ex-jogador já pré-selecionado. */
+  function abrirRecontratacao(j: ExJogador) {
+    resetar();
+    setTipo("entrada");
+    selecionarRetorno(j);
+    setEtapa(2);
+    setAberto(true);
+  }
+
+  function selecionarRetorno(j: ExJogador) {
+    setRetorno(j);
+    setJogadorNovo(false);
+    setBuscaRetorno(j.nome);
+    setNomeExterno(j.nome);
+    setNacExterno(j.nacionalidade ?? "");
+    setOverallExterno(j.overall == null ? "" : String(j.overall));
+  }
+
+  const sugestoesRetorno = useMemo(() => {
+    const termo = buscaRetorno.trim().toLowerCase();
+    if (termo === "" || retorno) return [];
+    return exJogadores.filter((j) => j.nome.toLowerCase().includes(termo)).slice(0, 6);
+  }, [buscaRetorno, exJogadores, retorno]);
 
   const numOrNull = (v: string) => (v.trim() === "" ? null : Number(v));
 
