@@ -242,6 +242,15 @@ function TransferenciasPage() {
     void carregar(save.id, save.seasonId);
   }, [save, carregandoSave]);
 
+  // Deep link de "Recontratar" a partir da tela de Ex-Jogadores.
+  useEffect(() => {
+    if (!recontratarId || exJogadores.length === 0 || aberto) return;
+    const alvo = exJogadores.find((j) => j.id === recontratarId);
+    if (alvo) abrirRecontratacao(alvo);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recontratarId, exJogadores]);
+
+
   const filtrada = useMemo(
     () =>
       lista.filter(
