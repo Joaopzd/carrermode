@@ -92,6 +92,45 @@ type JogadorSimples = {
   ativo?: boolean | null;
 };
 
+type ExJogador = {
+  id: string;
+  nome: string;
+  nacionalidade: string | null;
+  posicao_principal: string | null;
+  posicoes_secundarias: string[] | null;
+  overall: number | null;
+  potencial: number | null;
+  valor_mercado: number | null;
+  salario: number | null;
+  idade: number | null;
+  altura: number | null;
+  playstyle: string | null;
+  status: string | null;
+  favorito_torcida: boolean | null;
+  capitao: boolean | null;
+};
+
+/** Pré-preenche a ficha com os últimos valores conhecidos do ex-jogador. */
+function formDoRetorno(j: ExJogador): Partial<JogadorForm> {
+  const txt = (v: number | null) => (v == null ? "" : String(v));
+  return {
+    nome: j.nome,
+    nacionalidade: j.nacionalidade ?? "",
+    posicao_principal: j.posicao_principal ?? "",
+    posicoes_secundarias: j.posicoes_secundarias ?? [],
+    overall: txt(j.overall),
+    potencial: txt(j.potencial),
+    valor_mercado: txt(j.valor_mercado),
+    salario: txt(j.salario),
+    idade: txt(j.idade),
+    altura: txt(j.altura),
+    playstyle: j.playstyle ?? "",
+    status: j.status ?? "Liberado",
+    favorito_torcida: !!j.favorito_torcida,
+    capitao: false,
+  };
+}
+
 const MODALIDADES = ["definitiva", "emprestimo", "troca"] as const;
 type Modalidade = (typeof MODALIDADES)[number];
 
