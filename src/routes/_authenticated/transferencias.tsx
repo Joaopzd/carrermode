@@ -160,15 +160,30 @@ function TransferenciasPage() {
   const [transferPendente, setTransferPendente] = useState<string | null>(null);
   const [salvandoCadastro, setSalvandoCadastro] = useState(false);
 
+  // retorno de ex-jogador
+  const [exJogadores, setExJogadores] = useState<ExJogador[]>([]);
+  const [buscaRetorno, setBuscaRetorno] = useState("");
+  const [retorno, setRetorno] = useState<ExJogador | null>(null);
+  const [jogadorNovo, setJogadorNovo] = useState(false);
+  const [retornoAberto, setRetornoAberto] = useState(false);
+
   async function carregar(saveId: string, seasonId: string | null) {
     let qt = supabase.from("transfers").select("*").eq("save_id", saveId);
     if (seasonId) qt = qt.eq("season_id", seasonId);
-    const [{ data: t }, { data: p }, ativos] = await Promise.all([
+    const [{ data: t }, { data: p }, { data: ex }, ativos] = await Promise.all([
       qt.order("data", { ascending: false }),
       supabase
         .from("players")
         .select("id, nome, overall, status, ativo")
         .eq("save_id", saveId)
+        .order("nome"),
+      supabase
+        .from("players")
+        .select(
+          "id, nome, nacionalidade, posicao_principal, posicoes_secundarias, overall, potencial, valor_mercado, salario, idade, altura, playstyle, status, favorito_torcida, capitao",
+        )
+        .eq("save_id", saveId)
+        .eq("ativo", false)
         .order("nome"),
       carregarEmprestimosAtivos(saveId),
     ]);
@@ -176,6 +191,7 @@ function TransferenciasPage() {
     setEmprestimos(ativos as unknown as Transferencia[]);
     setTodosJogadores((p ?? []) as JogadorSimples[]);
     setElenco(((p ?? []) as JogadorSimples[]).filter((j) => j.ativo !== false));
+    setExJogadores((ex ?? []) as unknown as ExJogador[]);
     setCarregando(false);
   }
 
