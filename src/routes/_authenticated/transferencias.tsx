@@ -157,6 +157,9 @@ const moeda = (v: number | null) =>
 
 function TransferenciasPage() {
   const { save, carregando: carregandoSave } = useSaveAtual();
+  const recontratarId = useRouterState({
+    select: (s) => (s.location.search as { recontratar?: string }).recontratar ?? null,
+  });
   const [lista, setLista] = useState<Transferencia[]>([]);
   const [emprestimos, setEmprestimos] = useState<Transferencia[]>([]);
   const [elenco, setElenco] = useState<JogadorSimples[]>([]);
