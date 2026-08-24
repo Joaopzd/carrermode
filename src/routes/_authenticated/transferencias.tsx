@@ -994,6 +994,67 @@ function TransferenciasPage() {
             </div>
           ) : (
             <div className="grid gap-3">
+              {tipo === "entrada" ? (
+                <div className="grid gap-2 rounded-xl border border-border p-3">
+                  <Label>Este jogador já jogou pelo clube antes?</Label>
+                  {retorno ? (
+                    <div className="flex items-center justify-between gap-2 rounded-lg border border-primary bg-primary/10 px-3 py-2">
+                      <div className="text-sm">
+                        <p className="font-medium">{retorno.nome}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Retorno ao clube · overall anterior {retorno.overall ?? "—"}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setRetorno(null);
+                          setBuscaRetorno("");
+                        }}
+                      >
+                        Trocar
+                      </Button>
+                    </div>
+                  ) : jogadorNovo ? (
+                    <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
+                      <span>Jogador novo — cadastro completo.</span>
+                      <Button variant="ghost" size="sm" onClick={() => setJogadorNovo(false)}>
+                        Buscar ex-jogador
+                      </Button>
+                    </div>
+                  ) : (
+                    <>
+                      <Input
+                        value={buscaRetorno}
+                        onChange={(e) => setBuscaRetorno(e.target.value)}
+                        placeholder="Buscar ex-jogador pelo nome"
+                      />
+                      {sugestoesRetorno.length > 0 ? (
+                        <div className="grid gap-1">
+                          {sugestoesRetorno.map((j) => (
+                            <button
+                              key={j.id}
+                              type="button"
+                              onClick={() => selecionarRetorno(j)}
+                              className="rounded-lg border border-border px-3 py-2 text-left text-sm transition-colors hover:border-primary"
+                            >
+                              {j.nome}{" "}
+                              <span className="text-xs text-muted-foreground">
+                                {j.posicao_principal ?? ""} {j.overall ? `· ${j.overall}` : ""}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
+                      <Button variant="secondary" size="sm" onClick={() => setJogadorNovo(true)}>
+                        É um jogador novo
+                      </Button>
+                    </>
+                  )}
+                </div>
+              ) : null}
+
               {precisaDadosExternos ? (
                 <>
                   <div className="grid gap-1">
