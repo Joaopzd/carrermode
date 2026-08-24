@@ -425,7 +425,18 @@ function TransferenciasPage() {
     const chegaJogador =
       tipo === "entrada" || (tipo === "saida" && modalidade === "troca" && nomeExterno.trim());
 
-    if (chegaJogador) {
+    if (retorno && tipo === "entrada") {
+      await supabase
+        .from("transfers")
+        .update({ player_id: retorno.id })
+        .eq("id", data.id as string);
+      setCadastroInicial({
+        ...formDoRetorno(retorno),
+        valor_mercado: valor || String(retorno.valor_mercado ?? ""),
+      });
+      setTransferPendente(data.id as string);
+      setRetornoAberto(true);
+    } else if (chegaJogador) {
       setCadastroInicial({
         nome: nomeExterno.trim(),
         nacionalidade: nacExterno,
