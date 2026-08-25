@@ -151,15 +151,10 @@ function ExJogadoresPage() {
     [lista, fMotivo, fTemporada, transferPorId],
   );
 
-  async function abrir(j: ExJogador) {
+  function abrir(j: ExJogador) {
     setSelecionado(j);
-    setStats([]);
-    const { data } = await supabase
-      .from("match_player_stats")
-      .select("match_id, gols, assistencias, nota, defesas, cartao_amarelo, cartao_vermelho")
-      .eq("player_id", j.id);
-    setStats((data ?? []) as Stat[]);
   }
+
 
 
 
