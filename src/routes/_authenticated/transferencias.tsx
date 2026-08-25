@@ -63,8 +63,12 @@ export const Route = createFileRoute("/_authenticated/transferencias")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    recontratar: typeof s['recontratar'] === "string" ? (s['recontratar'] as string) : undefined,
+  }),
   component: TransferenciasPage,
 });
+
 
 type Transferencia = {
   id: string;
