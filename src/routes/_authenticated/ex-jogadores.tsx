@@ -59,15 +59,8 @@ type ExJogador = {
   transfer_saida_id: string | null;
 };
 
-type Stat = {
-  match_id: string;
-  gols: number | null;
-  assistencias: number | null;
-  nota: number | null;
-  defesas: number | null;
-  cartao_amarelo: boolean;
-  cartao_vermelho: boolean;
-};
+type Stat = { match_id: string };
+
 
 type Season = { id: string; nome: string };
 type Transfer = {
