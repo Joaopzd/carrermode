@@ -168,18 +168,8 @@ function ExJogadoresPage() {
     setStats((data ?? []) as Stat[]);
   }
 
-  const agregado = useMemo(() => {
-    const notas = stats.map((s) => s.nota).filter((n): n is number => n != null);
-    return {
-      jogos: stats.length,
-      gols: stats.reduce((a, s) => a + (s.gols ?? 0), 0),
-      assistencias: stats.reduce((a, s) => a + (s.assistencias ?? 0), 0),
-      defesas: stats.reduce((a, s) => a + (s.defesas ?? 0), 0),
-      amarelos: stats.filter((s) => s.cartao_amarelo).length,
-      vermelhos: stats.filter((s) => s.cartao_vermelho).length,
-      nota: notas.length ? (notas.reduce((a, b) => a + b, 0) / notas.length).toFixed(2) : "—",
-    };
-  }, [stats]);
+
+
 
   const transferSaida = selecionado?.transfer_saida_id
     ? transferPorId[selecionado.transfer_saida_id]
