@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ArrowDownLeft,
   ArrowUpRight,
+  ChevronDown,
   Loader2,
   Pencil,
   Plus,
@@ -13,7 +14,9 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { toast } from "sonner";
+import { Collapse } from "@/components/motion";
 import { AppShell } from "@/components/app-shell";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
