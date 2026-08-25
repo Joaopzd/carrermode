@@ -59,7 +59,6 @@ type ExJogador = {
   transfer_saida_id: string | null;
 };
 
-type Stat = { match_id: string };
 
 
 type Season = { id: string; nome: string };
@@ -232,7 +231,7 @@ function ExJogadoresPage() {
                   <HoverCard className="h-full">
                     <button
                       type="button"
-                      onClick={() => void abrir(j)}
+                      onClick={() => abrir(j)}
                       className="h-full w-full text-left"
                     >
                       <Card className="hq-card h-full transition-colors hover:border-primary/60">
