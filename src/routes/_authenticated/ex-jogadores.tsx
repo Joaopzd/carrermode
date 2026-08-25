@@ -1,17 +1,16 @@
 import { ClubBadge } from "@/components/club-badge";
 import { posEn } from "@/lib/posicoes";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Archive, UserMinus } from "lucide-react";
+import { Archive, UserMinus, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { HoverCard, StaggerItem } from "@/components/motion";
 import { AppShell } from "@/components/app-shell";
-import { PlayerEvolution } from "@/components/player-evolution";
-import { OverallCard } from "@/components/overall-card";
 import { SkeletonListaItens } from "@/components/loading";
 import { useIndicadorCarregamento, useSkeletonDelay } from "@/lib/loading-bus";
 import { Bandeira } from "@/components/bandeira";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { contarMvpsJogador } from "@/lib/mvp";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -22,10 +21,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PlayerProfileSheet } from "@/components/player-profile-sheet";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { MOTIVOS_SAIDA, rotuloMotivo } from "@/lib/season";
 import { useSaveAtual } from "@/lib/use-save";
+
 
 export const Route = createFileRoute("/_authenticated/ex-jogadores")({
   head: () => ({
@@ -60,15 +59,7 @@ type ExJogador = {
   transfer_saida_id: string | null;
 };
 
-type Stat = {
-  match_id: string;
-  gols: number | null;
-  assistencias: number | null;
-  nota: number | null;
-  defesas: number | null;
-  cartao_amarelo: boolean;
-  cartao_vermelho: boolean;
-};
+
 
 type Season = { id: string; nome: string };
 type Transfer = {
@@ -91,7 +82,7 @@ function ExJogadoresPage() {
   const [fTemporada, setFTemporada] = useState(TODOS);
   const [fMotivo, setFMotivo] = useState(TODOS);
   const [selecionado, setSelecionado] = useState<ExJogador | null>(null);
-  const [stats, setStats] = useState<Stat[]>([]);
+  const navigate = useNavigate();
   const [mvpsJogador, setMvpsJogador] = useState<{ temporada: number; total: number } | null>(null);
 
   useEffect(() => {
@@ -159,28 +150,13 @@ function ExJogadoresPage() {
     [lista, fMotivo, fTemporada, transferPorId],
   );
 
-  async function abrir(j: ExJogador) {
+  function abrir(j: ExJogador) {
     setSelecionado(j);
-    setStats([]);
-    const { data } = await supabase
-      .from("match_player_stats")
-      .select("match_id, gols, assistencias, nota, defesas, cartao_amarelo, cartao_vermelho")
-      .eq("player_id", j.id);
-    setStats((data ?? []) as Stat[]);
   }
 
-  const agregado = useMemo(() => {
-    const notas = stats.map((s) => s.nota).filter((n): n is number => n != null);
-    return {
-      jogos: stats.length,
-      gols: stats.reduce((a, s) => a + (s.gols ?? 0), 0),
-      assistencias: stats.reduce((a, s) => a + (s.assistencias ?? 0), 0),
-      defesas: stats.reduce((a, s) => a + (s.defesas ?? 0), 0),
-      amarelos: stats.filter((s) => s.cartao_amarelo).length,
-      vermelhos: stats.filter((s) => s.cartao_vermelho).length,
-      nota: notas.length ? (notas.reduce((a, b) => a + b, 0) / notas.length).toFixed(2) : "—",
-    };
-  }, [stats]);
+
+
+
 
   const transferSaida = selecionado?.transfer_saida_id
     ? transferPorId[selecionado.transfer_saida_id]
@@ -255,7 +231,7 @@ function ExJogadoresPage() {
                   <HoverCard className="h-full">
                     <button
                       type="button"
-                      onClick={() => void abrir(j)}
+                      onClick={() => abrir(j)}
                       className="h-full w-full text-left"
                     >
                       <Card className="hq-card h-full transition-colors hover:border-primary/60">
@@ -307,10 +283,24 @@ function ExJogadoresPage() {
         extra={
           selecionado ? (
             <div className="space-y-4">
-              <Badge className="bg-accent text-accent-foreground">
-                🌟 {mvpsJogador?.total ?? 0} vez(es) MVP
-                {save?.seasonId ? ` · ${mvpsJogador?.temporada ?? 0} na temporada` : ""}
-              </Badge>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className="bg-accent text-accent-foreground">
+                  🌟 {mvpsJogador?.total ?? 0} vez(es) MVP
+                  {save?.seasonId ? ` · ${mvpsJogador?.temporada ?? 0} na temporada` : ""}
+                </Badge>
+                <Button
+                  size="sm"
+                  onClick={() =>
+                    void navigate({
+                      to: "/transferencias",
+                      search: { recontratar: selecionado.id },
+                    })
+                  }
+                >
+                  <UserPlus className="mr-1.5 h-4 w-4" /> Recontratar
+                </Button>
+              </div>
+
               <div className="rounded-xl border border-border p-4">
                 <p className="flex items-center gap-2 text-sm font-semibold">
                   <Archive className="h-4 w-4 text-primary" /> Resumo da saída
