@@ -1,17 +1,16 @@
 import { ClubBadge } from "@/components/club-badge";
 import { posEn } from "@/lib/posicoes";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Archive, UserMinus } from "lucide-react";
+import { Archive, UserMinus, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { HoverCard, StaggerItem } from "@/components/motion";
 import { AppShell } from "@/components/app-shell";
-import { PlayerEvolution } from "@/components/player-evolution";
-import { OverallCard } from "@/components/overall-card";
 import { SkeletonListaItens } from "@/components/loading";
 import { useIndicadorCarregamento, useSkeletonDelay } from "@/lib/loading-bus";
 import { Bandeira } from "@/components/bandeira";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { contarMvpsJogador } from "@/lib/mvp";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -22,10 +21,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PlayerProfileSheet } from "@/components/player-profile-sheet";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { MOTIVOS_SAIDA, rotuloMotivo } from "@/lib/season";
 import { useSaveAtual } from "@/lib/use-save";
+
 
 export const Route = createFileRoute("/_authenticated/ex-jogadores")({
   head: () => ({
