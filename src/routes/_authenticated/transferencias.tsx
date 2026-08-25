@@ -851,7 +851,7 @@ function TransferenciasPage() {
                   )}
                 />
               </button>
-              <Collapse open={emprestimosAberto}>
+              <Collapse aberto={emprestimosAberto}>
                 <div className="space-y-3">
                   {emprestimosAtivos.map((t) => (
                     <Card key={t.id} className="hq-card">
