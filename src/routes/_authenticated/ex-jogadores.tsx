@@ -83,7 +83,7 @@ function ExJogadoresPage() {
   const [fTemporada, setFTemporada] = useState(TODOS);
   const [fMotivo, setFMotivo] = useState(TODOS);
   const [selecionado, setSelecionado] = useState<ExJogador | null>(null);
-  const [stats, setStats] = useState<Stat[]>([]);
+  const navigate = useNavigate();
   const [mvpsJogador, setMvpsJogador] = useState<{ temporada: number; total: number } | null>(null);
 
   useEffect(() => {
