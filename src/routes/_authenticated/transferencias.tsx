@@ -47,7 +47,9 @@ import {
   encerrarEmprestimo,
   type EmprestimoRow,
 } from "@/lib/emprestimos";
+import { lerDataCarreira } from "@/lib/carreira-data";
 import { PAISES } from "@/lib/onboarding-data";
+
 import { checarVendaPolemica } from "@/lib/eventos";
 import { useSaveAtual } from "@/lib/use-save";
 import { cn } from "@/lib/utils";
