@@ -310,9 +310,11 @@ function TransferenciasPage() {
     setValor("");
     setDuracao("");
     setJogadorElencoId("");
-    const hoje = hojeISO();
+    // Por padrão usa o dia atual do calendário da carreira (editável).
+    const hoje = lerDataCarreira(save?.id) ?? hojeISO();
     setDataNeg(hoje);
     setJanela(janelaDoDia(hoje));
+
     setJanelaManual(false);
     setTemOpcao(false);
     setValorOpcao("");
