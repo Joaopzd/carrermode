@@ -832,56 +832,122 @@ function TransferenciasPage() {
 
           {emprestimosAtivos.length > 0 ? (
             <section className="space-y-3">
-              <h2 className="font-display text-2xl tracking-wide">Empréstimos ativos</h2>
-              {emprestimosAtivos.map((t) => (
-                <Card key={t.id} className="hq-card">
-                  <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4">
-                    <div>
-                      <p className="font-display text-lg tracking-wide">{rotuloJogador(t)}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {t.tipo === "entrada" ? "De" : "Para"}{" "}
-                        <ClubBadge nome={t.clube_contraparte} className="align-middle" />
-                        {t.duracao_emprestimo ? ` · até ${t.duracao_emprestimo}` : ""}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      {t.tem_opcao_compra ? (
-                        <>
-                          <Badge variant="outline">
-                            {t.obrigacao_compra ? "Obrigação" : "Opção"} de compra:{" "}
-                            {moeda(t.valor_opcao_compra ?? null)}
-                          </Badge>
+              <button
+                type="button"
+                onClick={() => setEmprestimosAberto((v) => !v)}
+                className="flex w-full items-center justify-between gap-2 text-left"
+                aria-expanded={emprestimosAberto}
+              >
+                <h2 className="font-display text-2xl tracking-wide">
+                  Empréstimos ativos{" "}
+                  <span className="text-base text-muted-foreground">
+                    ({emprestimosAtivos.length})
+                  </span>
+                </h2>
+                <ChevronDown
+                  className={cn(
+                    "h-5 w-5 text-muted-foreground transition-transform",
+                    emprestimosAberto ? "rotate-180" : "",
+                  )}
+                />
+              </button>
+              <Collapse open={emprestimosAberto}>
+                <div className="space-y-3">
+                  {emprestimosAtivos.map((t) => (
+                    <Card key={t.id} className="hq-card">
+                      <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4">
+                        <div>
+                          <p className="font-display text-lg tracking-wide">{rotuloJogador(t)}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {t.tipo === "entrada" ? "De" : "Para"}{" "}
+                            <ClubBadge nome={t.clube_contraparte} className="align-middle" />
+                            {t.duracao_emprestimo ? ` · até ${t.duracao_emprestimo}` : ""}
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          {t.tem_opcao_compra ? (
+                            <>
+                              <Badge variant="outline">
+                                {t.obrigacao_compra ? "Obrigação" : "Opção"} de compra:{" "}
+                                {moeda(t.valor_opcao_compra ?? null)}
+                              </Badge>
+                              <Button
+                                size="sm"
+                                disabled={processandoOpcao === t.id}
+                                onClick={() => void exercerOpcao(t)}
+                              >
+                                Exercer opção de compra
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={processandoOpcao === t.id}
+                                onClick={() => void naoExercerOpcao(t)}
+                              >
+                                Não exercer opção
+                              </Button>
+                            </>
+                          ) : (
+                            <Button
+                              size="sm"
+                              disabled={processandoOpcao === t.id}
+                              onClick={() => {
+                                setContratando(t);
+                                setValorContratacao("");
+                              }}
+                            >
+                              Contratar jogador
+                            </Button>
+                          )}
                           <Button
                             size="sm"
+                            variant="secondary"
                             disabled={processandoOpcao === t.id}
-                            onClick={() => void exercerOpcao(t)}
+                            onClick={() => void retornarAgora(t)}
                           >
-                            Exercer opção de compra
+                            Encerrar Empréstimo
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={processandoOpcao === t.id}
-                            onClick={() => void naoExercerOpcao(t)}
-                          >
-                            Não exercer opção
-                          </Button>
-                        </>
-                      ) : null}
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        disabled={processandoOpcao === t.id}
-                        onClick={() => void retornarAgora(t)}
-                      >
-                        Retornar agora
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </Collapse>
             </section>
           ) : null}
+
+          <Dialog open={!!contratando} onOpenChange={(v) => !v && setContratando(null)}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Contratar jogador emprestado</DialogTitle>
+                <DialogDescription>
+                  Transforma o empréstimo em transferência definitiva.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-1">
+                <Label>Valor da negociação</Label>
+                <Input
+                  type="number"
+                  value={valorContratacao}
+                  onChange={(e) => setValorContratacao(e.target.value)}
+                  placeholder="0"
+                />
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setContratando(null)}>
+                  Cancelar
+                </Button>
+                <Button
+                  disabled={!!processandoOpcao}
+                  onClick={() => void confirmarContratacaoEmprestado()}
+                >
+                  Confirmar contratação
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+
 
           {carregando ? (
             <Skeleton className="h-64 w-full rounded-xl" />
