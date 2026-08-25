@@ -283,10 +283,24 @@ function ExJogadoresPage() {
         extra={
           selecionado ? (
             <div className="space-y-4">
-              <Badge className="bg-accent text-accent-foreground">
-                🌟 {mvpsJogador?.total ?? 0} vez(es) MVP
-                {save?.seasonId ? ` · ${mvpsJogador?.temporada ?? 0} na temporada` : ""}
-              </Badge>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge className="bg-accent text-accent-foreground">
+                  🌟 {mvpsJogador?.total ?? 0} vez(es) MVP
+                  {save?.seasonId ? ` · ${mvpsJogador?.temporada ?? 0} na temporada` : ""}
+                </Badge>
+                <Button
+                  size="sm"
+                  onClick={() =>
+                    void navigate({
+                      to: "/transferencias",
+                      search: { recontratar: selecionado.id },
+                    })
+                  }
+                >
+                  <UserPlus className="mr-1.5 h-4 w-4" /> Recontratar
+                </Button>
+              </div>
+
               <div className="rounded-xl border border-border p-4">
                 <p className="flex items-center gap-2 text-sm font-semibold">
                   <Archive className="h-4 w-4 text-primary" /> Resumo da saída
