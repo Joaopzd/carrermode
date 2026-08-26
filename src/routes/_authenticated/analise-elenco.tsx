@@ -5,6 +5,7 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  LabelList,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -14,7 +15,6 @@ import { AppShell } from "@/components/app-shell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Skeleton } from "@/components/ui/skeleton";
 import { SkeletonGraficos } from "@/components/loading";
 import { useIndicadorCarregamento, useSkeletonDelay } from "@/lib/loading-bus";
 import { supabase } from "@/integrations/supabase/client";
@@ -58,10 +58,16 @@ const AREAS = [
 ] as const;
 
 const COR_AREA: Record<string, string> = {
-  GK: "hsl(var(--chart-4, 45 93% 55%))",
-  DEF: "hsl(var(--primary))",
-  MEI: "hsl(var(--accent))",
-  ATA: "hsl(var(--destructive))",
+  GK: "oklch(0.74 0.16 80)",     // âmbar
+  DEF: "oklch(0.58 0.19 250)",    // azul
+  MEI: "hsl(var(--primary))",      // verde do tema
+  ATA: "oklch(0.66 0.21 35)",     // laranja/vermelho
+};
+
+const BARRA_ZERO = {
+  fill: "transparent",
+  strokeWidth: 2,
+  strokeDasharray: "4 3",
 };
 
 function areaDaPosicao(pos: string | null): string {
@@ -74,8 +80,18 @@ function secundarias(valor: unknown): string[] {
   return [];
 }
 
-const libra = (v: number) =>
-  `£${v.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}`;
+function formatoCompactoMoeda(v: number): string {
+  const abs = Math.abs(v);
+  if (abs >= 1_000_000) {
+    const milhoes = v / 1_000_000;
+    return `£${milhoes.toFixed(milhoes % 1 === 0 ? 0 : 1)}M`;
+  }
+  if (abs >= 1_000) {
+    const mil = v / 1_000;
+    return `£${mil.toFixed(mil % 1 === 0 ? 0 : 1)}k`;
+  }
+  return `£${v}`;
+}
 
 function AnaliseElencoPage() {
   const { save, carregando: carregandoSave } = useSaveAtual();
@@ -186,11 +202,16 @@ function AnaliseElencoPage() {
                 </CardHeader>
                 <CardContent className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={porPosicao} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <BarChart
+                      data={porPosicao}
+                      margin={{ top: 24, right: 8, left: -20, bottom: 0 }}
+                      barCategoryGap="28%"
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
                       <XAxis dataKey="posicao" stroke="hsl(var(--muted-foreground))" fontSize={12} />
                       <YAxis allowDecimals={false} stroke="hsl(var(--muted-foreground))" fontSize={12} />
                       <Tooltip
+                        cursor={{ fill: "hsl(var(--muted) / 0.25)" }}
                         contentStyle={{
                           background: "hsl(var(--card))",
                           border: "1px solid hsl(var(--border))",
@@ -198,10 +219,21 @@ function AnaliseElencoPage() {
                           color: "hsl(var(--foreground))",
                         }}
                       />
-                      <Bar dataKey="jogadores" name="Jogadores" radius={[6, 6, 0, 0]}>
-                        {porPosicao.map((d) => (
-                          <Cell key={d.posicao} fill={COR_AREA[d.area] ?? "hsl(var(--primary))"} />
-                        ))}
+                      <Bar dataKey="jogadores" name="Jogadores" radius={[6, 6, 0, 0]} minPointSize={4}>
+                        <LabelList dataKey="jogadores" position="top" formatter={(v: number) => String(v)} fontSize={11} fill="hsl(var(--foreground))" />
+                        {porPosicao.map((d) => {
+                          const cor = COR_AREA[d.area] ?? "hsl(var(--primary))";
+                          const isZero = d.jogadores === 0;
+                          return (
+                            <Cell
+                              key={d.posicao}
+                              fill={isZero ? BARRA_ZERO.fill : cor}
+                              stroke={cor}
+                              strokeWidth={isZero ? BARRA_ZERO.strokeWidth : 0}
+                              strokeDasharray={isZero ? BARRA_ZERO.strokeDasharray : undefined}
+                            />
+                          );
+                        })}
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
@@ -225,7 +257,8 @@ function AnaliseElencoPage() {
                   titulo="Valor de mercado por área"
                   dados={porArea}
                   chave="valorTotal"
-                  formato={libra}
+                  formato={formatoCompactoMoeda}
+                  moeda
                 />
               </div>
             </>
@@ -250,11 +283,13 @@ function GraficoArea({
   dados,
   chave,
   formato,
+  moeda = false,
 }: {
   titulo: string;
   dados: DadoArea[];
   chave: "idadeMedia" | "overallMedio" | "valorTotal";
   formato: (v: number) => string;
+  moeda?: boolean;
 }) {
   return (
     <Card className="hq-card">
@@ -263,15 +298,22 @@ function GraficoArea({
       </CardHeader>
       <CardContent className="h-72">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={dados} margin={{ top: 8, right: 8, left: -10, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+          <BarChart
+            data={dados}
+            margin={{ top: 28, right: 8, left: -10, bottom: 0 }}
+            barCategoryGap="28%"
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
             <XAxis dataKey="area" stroke="hsl(var(--muted-foreground))" fontSize={11} />
             <YAxis
               stroke="hsl(var(--muted-foreground))"
               fontSize={11}
-              tickFormatter={(v: number) => (chave === "valorTotal" ? `${Math.round(v / 1000)}k` : String(v))}
+              tickFormatter={(v: number) =>
+                moeda ? formatoCompactoMoeda(Number(v)) : String(v)
+              }
             />
             <Tooltip
+              cursor={{ fill: "hsl(var(--muted) / 0.25)" }}
               formatter={(v: number) => formato(Number(v))}
               contentStyle={{
                 background: "hsl(var(--card))",
@@ -281,6 +323,13 @@ function GraficoArea({
               }}
             />
             <Bar dataKey={chave} name={titulo} radius={[6, 6, 0, 0]}>
+              <LabelList
+                dataKey={chave}
+                position="top"
+                formatter={(v: number) => formato(Number(v))}
+                fontSize={11}
+                fill="hsl(var(--foreground))"
+              />
               {dados.map((d) => (
                 <Cell key={d.chave} fill={COR_AREA[d.chave] ?? "hsl(var(--primary))"} />
               ))}
