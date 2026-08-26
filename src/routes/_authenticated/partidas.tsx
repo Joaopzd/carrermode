@@ -28,7 +28,6 @@ import { HoverCard, StaggerItem } from "@/components/motion";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { SkeletonListaItens } from "@/components/loading";
 import { useIndicadorCarregamento, useSkeletonDelay } from "@/lib/loading-bus";
 import { FecharPartidaDialog, type PartidaBase } from "@/components/fechar-partida-dialog";
