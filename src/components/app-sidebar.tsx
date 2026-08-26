@@ -6,6 +6,7 @@ import {
   ChevronDown,
   ClipboardList,
   GaugeCircle,
+  Handshake,
   History,
   LineChart,
   ListOrdered,
