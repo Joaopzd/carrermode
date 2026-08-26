@@ -6,6 +6,7 @@ import {
   ChevronDown,
   ClipboardList,
   GaugeCircle,
+  Handshake,
   History,
   LineChart,
   ListOrdered,
@@ -63,6 +64,7 @@ export const GRUPOS_NAV = [
     rotulo: "Clube",
     itens: [
       { title: "Transferências", url: "/transferencias", icon: Repeat },
+      { title: "Relações com Clubes", url: "/relacoes-clubes", icon: Handshake },
       { title: "Metas da Diretoria", url: "/metas", icon: Target },
       { title: "Histórico", url: "/historico", icon: History },
       { title: "Arquivo de Temporadas", url: "/arquivo", icon: Archive },
