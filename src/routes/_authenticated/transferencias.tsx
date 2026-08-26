@@ -204,6 +204,9 @@ function TransferenciasPage() {
   const [valorOpcao, setValorOpcao] = useState("");
   const [obrigacaoCompra, setObrigacaoCompra] = useState(false);
   const [processandoOpcao, setProcessandoOpcao] = useState<string | null>(null);
+  const [emprestimosAberto, setEmprestimosAberto] = useState(true);
+  const [contratando, setContratando] = useState<Transferencia | null>(null);
+  const [valorContratacao, setValorContratacao] = useState("");
 
   // cadastro do jogador que chega
   const [cadastroAberto, setCadastroAberto] = useState(false);
