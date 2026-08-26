@@ -680,6 +680,59 @@ function TransferenciasPage() {
     void carregar(save.id, save.seasonId);
   }
 
+  /** Compra um jogador emprestado sem cláusula prévia, pelo valor informado. */
+  async function confirmarContratacaoEmprestado() {
+    if (!save || !contratando) return;
+    const t = contratando;
+    setProcessandoOpcao(t.id);
+    const hoje = hojeISO();
+    const bruto = Number(valorContratacao);
+    const { error } = await supabase.from("transfers").insert({
+      save_id: save.id,
+      season_id: save.seasonId,
+      tipo: t.tipo,
+      modalidade: "definitiva",
+      player_id: t.player_id,
+      clube_contraparte: t.clube_contraparte,
+      valor: Number.isFinite(bruto) && valorContratacao.trim() !== "" ? bruto : null,
+      janela: janelaDoDia(hoje),
+      data: new Date(`${hoje}T12:00:00`).toISOString(),
+      transfer_origem_emprestimo_id: t.id,
+    });
+    if (!error) {
+      await supabase.from("transfers").update({ status_opcao: "exercida" }).eq("id", t.id);
+      if (t.player_id) {
+        if (t.tipo === "saida") {
+          await supabase
+            .from("players")
+            .update({ motivo_saida: "transferencia_definitiva" })
+            .eq("id", t.player_id);
+        } else {
+          await supabase
+            .from("players")
+            .update({
+              ativo: true,
+              status: "Liberado",
+              data_saida: null,
+              motivo_saida: null,
+              clube_destino: null,
+              transfer_saida_id: null,
+            })
+            .eq("id", t.player_id);
+        }
+      }
+    }
+    setProcessandoOpcao(null);
+    if (error) {
+      toast.error("Não foi possível concluir a contratação.");
+      return;
+    }
+    toast.success("Contratação concluída!");
+    setContratando(null);
+    setValorContratacao("");
+    void carregar(save.id, save.seasonId);
+  }
+
   function rotuloJogador(t: Transferencia) {
     const entra = t.player_id ? nomePorId[t.player_id] : null;
     const sai = t.jogador_troca_id ? nomePorId[t.jogador_troca_id] : null;
