@@ -337,6 +337,7 @@ function GraficoArea({
   formato: (v: number) => string;
   moeda?: boolean;
 }) {
+  const compacto = useIsMobile();
   return (
     <Card className="hq-card">
       <CardHeader className="pb-2">
@@ -347,35 +348,53 @@ function GraficoArea({
           <BarChart
             data={dados}
             margin={{ top: 28, right: 8, left: -10, bottom: 0 }}
-            barCategoryGap="28%"
+            barCategoryGap={compacto ? "18%" : "28%"}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
-            <XAxis dataKey="area" stroke="hsl(var(--muted-foreground))" fontSize={11} />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.35} />
+            <XAxis
+              dataKey="area"
+              stroke="hsl(var(--muted-foreground))"
+              fontSize={compacto ? 10 : 11}
+              interval={0}
+              tickMargin={6}
+            />
             <YAxis
               stroke="hsl(var(--muted-foreground))"
-              fontSize={11}
+              fontSize={compacto ? 10 : 11}
               tickFormatter={(v: number) =>
                 moeda ? formatoCompactoMoeda(Number(v)) : String(v)
               }
             />
             <Tooltip
               cursor={{ fill: "hsl(var(--muted) / 0.25)" }}
-              formatter={(v: number) => formato(Number(v))}
-              contentStyle={{
-                background: "hsl(var(--card))",
-                border: "1px solid hsl(var(--border))",
-                borderRadius: 8,
-                color: "hsl(var(--foreground))",
+              wrapperStyle={{ zIndex: 50, outline: "none" }}
+              offset={16}
+              allowEscapeViewBox={{ x: false, y: true }}
+              content={({ active, payload }) => {
+                if (!active || !payload?.length) return null;
+                const d = payload[0]?.payload as DadoArea | undefined;
+                if (!d) return null;
+                return (
+                  <CaixaTooltip
+                    titulo={d.area}
+                    linhas={[
+                      `${titulo}: ${formato(Number(d[chave]))}`,
+                      `Jogadores: ${d.jogadores}`,
+                    ]}
+                  />
+                );
               }}
             />
             <Bar dataKey={chave} name={titulo} radius={[6, 6, 0, 0]}>
-              <LabelList
-                dataKey={chave}
-                position="top"
-                formatter={(v: number) => formato(Number(v))}
-                fontSize={11}
-                fill="hsl(var(--foreground))"
-              />
+              {!compacto && (
+                <LabelList
+                  dataKey={chave}
+                  position="top"
+                  formatter={(v: number) => formato(Number(v))}
+                  fontSize={11}
+                  fill="hsl(var(--foreground))"
+                />
+              )}
               {dados.map((d) => (
                 <Cell key={d.chave} fill={COR_AREA[d.chave] ?? "hsl(var(--primary))"} />
               ))}
