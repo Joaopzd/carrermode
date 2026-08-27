@@ -195,7 +195,10 @@ function EstatisticasPage() {
     for (const m of Object.values(partidas)) {
       const pid = m.mvp_player_id;
       if (!pid) continue;
-      if (fComp !== GERAL && m.competicao !== fComp) continue;
+      if (fComp !== GERAL) {
+        if (m.competicao !== fComp) continue;
+        if (save?.seasonId && m.season_id !== save.seasonId) continue;
+      }
       total[pid] = (total[pid] ?? 0) + 1;
       if (save?.seasonId && m.season_id === save.seasonId) {
         temporada[pid] = (temporada[pid] ?? 0) + 1;
