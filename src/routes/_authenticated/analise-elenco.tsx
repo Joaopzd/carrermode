@@ -20,6 +20,7 @@ import { useIndicadorCarregamento, useSkeletonDelay } from "@/lib/loading-bus";
 import { supabase } from "@/integrations/supabase/client";
 import { POSICOES, posEn } from "@/lib/posicoes";
 import { useSaveAtual } from "@/lib/use-save";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Route = createFileRoute("/_authenticated/analise-elenco")({
   head: () => ({
@@ -121,6 +122,7 @@ function AnaliseElencoPage() {
   useIndicadorCarregamento(carregando);
   const mostrarSkeleton = useSkeletonDelay(carregando);
   const [incluirSecundarias, setIncluirSecundarias] = useState(false);
+  const compacto = useIsMobile();
 
   useEffect(() => {
     if (carregandoSave) return;
