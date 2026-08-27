@@ -221,7 +221,11 @@ function EstatisticasPage() {
     const porJogador = new Map<string, Stat[]>();
     for (const s of stats) {
       if (!s.player_id) continue;
-      if (fComp !== GERAL && partidas[s.match_id]?.competicao !== fComp) continue;
+      if (fComp !== GERAL) {
+        const m = partidas[s.match_id];
+        if (m?.competicao !== fComp) continue;
+        if (save?.seasonId && m?.season_id !== save.seasonId) continue;
+      }
       const arr = porJogador.get(s.player_id) ?? [];
       arr.push(s);
       porJogador.set(s.player_id, arr);
