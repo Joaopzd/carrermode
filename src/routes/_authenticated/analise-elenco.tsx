@@ -225,23 +225,48 @@ function AnaliseElencoPage() {
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={porPosicao}
-                      margin={{ top: 24, right: 8, left: -20, bottom: 0 }}
-                      barCategoryGap="28%"
+                      margin={{ top: 28, right: 8, left: -20, bottom: 0 }}
+                      barCategoryGap={compacto ? "18%" : "28%"}
                     >
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
-                      <XAxis dataKey="posicao" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                      <YAxis allowDecimals={false} stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.35} />
+                      <XAxis
+                        dataKey="posicao"
+                        stroke="hsl(var(--muted-foreground))"
+                        fontSize={compacto ? 10 : 12}
+                        interval={0}
+                        tickMargin={6}
+                      />
+                      <YAxis allowDecimals={false} stroke="hsl(var(--muted-foreground))" fontSize={compacto ? 10 : 12} />
                       <Tooltip
                         cursor={{ fill: "hsl(var(--muted) / 0.25)" }}
-                        contentStyle={{
-                          background: "hsl(var(--card))",
-                          border: "1px solid hsl(var(--border))",
-                          borderRadius: 8,
-                          color: "hsl(var(--foreground))",
+                        wrapperStyle={{ zIndex: 50, outline: "none" }}
+                        offset={16}
+                        allowEscapeViewBox={{ x: false, y: true }}
+                        content={({ active, payload }) => {
+                          if (!active || !payload?.length) return null;
+                          const d = payload[0]?.payload as (typeof porPosicao)[number] | undefined;
+                          if (!d) return null;
+                          return (
+                            <CaixaTooltip
+                              titulo={d.posicao}
+                              linhas={[
+                                `Área: ${ROTULO_AREA[d.area] ?? d.area}`,
+                                `Jogadores: ${d.jogadores}`,
+                              ]}
+                            />
+                          );
                         }}
                       />
                       <Bar dataKey="jogadores" name="Jogadores" radius={[6, 6, 0, 0]} minPointSize={4}>
-                        <LabelList dataKey="jogadores" position="top" formatter={(v: number) => String(v)} fontSize={11} fill="hsl(var(--foreground))" />
+                        {!compacto && (
+                          <LabelList
+                            dataKey="jogadores"
+                            position="top"
+                            formatter={(v: number) => String(v)}
+                            fontSize={11}
+                            fill="hsl(var(--foreground))"
+                          />
+                        )}
                         {porPosicao.map((d) => {
                           const cor = COR_AREA[d.area] ?? "hsl(var(--primary))";
                           const isZero = d.jogadores === 0;
