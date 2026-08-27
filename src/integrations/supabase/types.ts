@@ -69,6 +69,7 @@ export type Database = {
           id: string
           league_id: string | null
           nome: string
+          pais: string | null
           temporada_ref: string | null
         }
         Insert: {
@@ -77,6 +78,7 @@ export type Database = {
           id?: string
           league_id?: string | null
           nome: string
+          pais?: string | null
           temporada_ref?: string | null
         }
         Update: {
@@ -85,6 +87,7 @@ export type Database = {
           id?: string
           league_id?: string | null
           nome?: string
+          pais?: string | null
           temporada_ref?: string | null
         }
         Relationships: [
