@@ -1,0 +1,2 @@
+ALTER TABLE public.clubs ALTER COLUMN league_id DROP NOT NULL;
+ALTER TABLE public.clubs ADD COLUMN IF NOT EXISTS pais text;

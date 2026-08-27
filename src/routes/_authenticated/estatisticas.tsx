@@ -195,7 +195,10 @@ function EstatisticasPage() {
     for (const m of Object.values(partidas)) {
       const pid = m.mvp_player_id;
       if (!pid) continue;
-      if (fComp !== GERAL && m.competicao !== fComp) continue;
+      if (fComp !== GERAL) {
+        if (m.competicao !== fComp) continue;
+        if (save?.seasonId && m.season_id !== save.seasonId) continue;
+      }
       total[pid] = (total[pid] ?? 0) + 1;
       if (save?.seasonId && m.season_id === save.seasonId) {
         temporada[pid] = (temporada[pid] ?? 0) + 1;
@@ -218,7 +221,11 @@ function EstatisticasPage() {
     const porJogador = new Map<string, Stat[]>();
     for (const s of stats) {
       if (!s.player_id) continue;
-      if (fComp !== GERAL && partidas[s.match_id]?.competicao !== fComp) continue;
+      if (fComp !== GERAL) {
+        const m = partidas[s.match_id];
+        if (m?.competicao !== fComp) continue;
+        if (save?.seasonId && m?.season_id !== save.seasonId) continue;
+      }
       const arr = porJogador.get(s.player_id) ?? [];
       arr.push(s);
       porJogador.set(s.player_id, arr);
@@ -240,7 +247,7 @@ function EstatisticasPage() {
         mvpsTemporada: contagemMvp.temporada[j.id] ?? 0,
       };
     });
-  }, [jogadores, stats, contagemMvp, fComp, partidas]);
+  }, [jogadores, stats, contagemMvp, fComp, partidas, save?.seasonId]);
 
   const filtradas = useMemo(() => {
     const num = (v: string) => (v.trim() === "" ? null : Number(v));
@@ -301,7 +308,7 @@ function EstatisticasPage() {
           <header>
             <h1 className="text-gradient-pitch text-4xl">Estatísticas do elenco</h1>
             <p className="text-sm text-muted-foreground">
-              Números acumulados de cada jogador do elenco principal.
+              Geral acumula toda a carreira no clube; ao filtrar por competição, apenas a temporada atual é considerada.
             </p>
           </header>
 

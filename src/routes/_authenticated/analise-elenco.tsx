@@ -20,6 +20,7 @@ import { useIndicadorCarregamento, useSkeletonDelay } from "@/lib/loading-bus";
 import { supabase } from "@/integrations/supabase/client";
 import { POSICOES, posEn } from "@/lib/posicoes";
 import { useSaveAtual } from "@/lib/use-save";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Route = createFileRoute("/_authenticated/analise-elenco")({
   head: () => ({
@@ -70,6 +71,27 @@ const BARRA_ZERO = {
   strokeDasharray: "4 3",
 };
 
+const ROTULO_AREA: Record<string, string> = {
+  GK: "Goleiros",
+  DEF: "Defesa",
+  MEI: "Meio-campo",
+  ATA: "Ataque",
+};
+
+/** Cartão de tooltip padrão, fora da área das barras. */
+function CaixaTooltip({ titulo, linhas }: { titulo: string; linhas: string[] }) {
+  return (
+    <div className="pointer-events-none rounded-md border border-border bg-card/95 px-3 py-2 text-xs shadow-lg backdrop-blur">
+      <p className="font-display text-sm tracking-wide text-foreground">{titulo}</p>
+      {linhas.map((l) => (
+        <p key={l} className="text-muted-foreground">
+          {l}
+        </p>
+      ))}
+    </div>
+  );
+}
+
 function areaDaPosicao(pos: string | null): string {
   const p = posEn(pos);
   return AREAS.find((a) => (a.posicoes as readonly string[]).includes(p ?? ""))?.chave ?? "MEI";
@@ -100,6 +122,7 @@ function AnaliseElencoPage() {
   useIndicadorCarregamento(carregando);
   const mostrarSkeleton = useSkeletonDelay(carregando);
   const [incluirSecundarias, setIncluirSecundarias] = useState(false);
+  const compacto = useIsMobile();
 
   useEffect(() => {
     if (carregandoSave) return;
@@ -204,23 +227,48 @@ function AnaliseElencoPage() {
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={porPosicao}
-                      margin={{ top: 24, right: 8, left: -20, bottom: 0 }}
-                      barCategoryGap="28%"
+                      margin={{ top: 28, right: 8, left: -20, bottom: 0 }}
+                      barCategoryGap={compacto ? "18%" : "28%"}
                     >
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
-                      <XAxis dataKey="posicao" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                      <YAxis allowDecimals={false} stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.35} />
+                      <XAxis
+                        dataKey="posicao"
+                        stroke="hsl(var(--muted-foreground))"
+                        fontSize={compacto ? 10 : 12}
+                        interval={0}
+                        tickMargin={6}
+                      />
+                      <YAxis allowDecimals={false} stroke="hsl(var(--muted-foreground))" fontSize={compacto ? 10 : 12} />
                       <Tooltip
                         cursor={{ fill: "hsl(var(--muted) / 0.25)" }}
-                        contentStyle={{
-                          background: "hsl(var(--card))",
-                          border: "1px solid hsl(var(--border))",
-                          borderRadius: 8,
-                          color: "hsl(var(--foreground))",
+                        wrapperStyle={{ zIndex: 50, outline: "none" }}
+                        offset={16}
+                        allowEscapeViewBox={{ x: false, y: true }}
+                        content={({ active, payload }) => {
+                          if (!active || !payload?.length) return null;
+                          const d = payload[0]?.payload as (typeof porPosicao)[number] | undefined;
+                          if (!d) return null;
+                          return (
+                            <CaixaTooltip
+                              titulo={d.posicao}
+                              linhas={[
+                                `Área: ${ROTULO_AREA[d.area] ?? d.area}`,
+                                `Jogadores: ${d.jogadores}`,
+                              ]}
+                            />
+                          );
                         }}
                       />
                       <Bar dataKey="jogadores" name="Jogadores" radius={[6, 6, 0, 0]} minPointSize={4}>
-                        <LabelList dataKey="jogadores" position="top" formatter={(v: number) => String(v)} fontSize={11} fill="hsl(var(--foreground))" />
+                        {!compacto && (
+                          <LabelList
+                            dataKey="jogadores"
+                            position="top"
+                            formatter={(v: number) => String(v)}
+                            fontSize={11}
+                            fill="hsl(var(--foreground))"
+                          />
+                        )}
                         {porPosicao.map((d) => {
                           const cor = COR_AREA[d.area] ?? "hsl(var(--primary))";
                           const isZero = d.jogadores === 0;
@@ -291,6 +339,7 @@ function GraficoArea({
   formato: (v: number) => string;
   moeda?: boolean;
 }) {
+  const compacto = useIsMobile();
   return (
     <Card className="hq-card">
       <CardHeader className="pb-2">
@@ -301,35 +350,53 @@ function GraficoArea({
           <BarChart
             data={dados}
             margin={{ top: 28, right: 8, left: -10, bottom: 0 }}
-            barCategoryGap="28%"
+            barCategoryGap={compacto ? "18%" : "28%"}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
-            <XAxis dataKey="area" stroke="hsl(var(--muted-foreground))" fontSize={11} />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.35} />
+            <XAxis
+              dataKey="area"
+              stroke="hsl(var(--muted-foreground))"
+              fontSize={compacto ? 10 : 11}
+              interval={0}
+              tickMargin={6}
+            />
             <YAxis
               stroke="hsl(var(--muted-foreground))"
-              fontSize={11}
+              fontSize={compacto ? 10 : 11}
               tickFormatter={(v: number) =>
                 moeda ? formatoCompactoMoeda(Number(v)) : String(v)
               }
             />
             <Tooltip
               cursor={{ fill: "hsl(var(--muted) / 0.25)" }}
-              formatter={(v: number) => formato(Number(v))}
-              contentStyle={{
-                background: "hsl(var(--card))",
-                border: "1px solid hsl(var(--border))",
-                borderRadius: 8,
-                color: "hsl(var(--foreground))",
+              wrapperStyle={{ zIndex: 50, outline: "none" }}
+              offset={16}
+              allowEscapeViewBox={{ x: false, y: true }}
+              content={({ active, payload }) => {
+                if (!active || !payload?.length) return null;
+                const d = payload[0]?.payload as DadoArea | undefined;
+                if (!d) return null;
+                return (
+                  <CaixaTooltip
+                    titulo={d.area}
+                    linhas={[
+                      `${titulo}: ${formato(Number(d[chave]))}`,
+                      `Jogadores: ${d.jogadores}`,
+                    ]}
+                  />
+                );
               }}
             />
             <Bar dataKey={chave} name={titulo} radius={[6, 6, 0, 0]}>
-              <LabelList
-                dataKey={chave}
-                position="top"
-                formatter={(v: number) => formato(Number(v))}
-                fontSize={11}
-                fill="hsl(var(--foreground))"
-              />
+              {!compacto && (
+                <LabelList
+                  dataKey={chave}
+                  position="top"
+                  formatter={(v: number) => formato(Number(v))}
+                  fontSize={11}
+                  fill="hsl(var(--foreground))"
+                />
+              )}
               {dados.map((d) => (
                 <Cell key={d.chave} fill={COR_AREA[d.chave] ?? "hsl(var(--primary))"} />
               ))}
