@@ -118,3 +118,56 @@ export const definirEscudoClube = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+/**
+ * Cadastra um clube avulso no catálogo (sem liga) e já tenta preencher o escudo
+ * com uma busca individual no TheSportsDB.
+ */
+export const cadastrarClubeCatalogo = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { nome: string; pais?: string | null }) => {
+    const nome = input?.nome?.trim() ?? "";
+    if (nome.length < 2) throw new Error("Informe o nome do clube.");
+    return { nome, pais: input?.pais?.trim() || null };
+  })
+  .handler(async ({ data, context }) => {
+    const { data: existente } = await context.supabase
+      .from("clubs")
+      .select("id, nome, escudo_url, league_id")
+      .ilike("nome", data.nome)
+      .maybeSingle();
+    if (existente) return existente;
+
+    let escudo: string | null = null;
+    try {
+      const res = await fetch(`${API}?t=${encodeURIComponent(data.nome)}`, {
+        headers: { accept: "application/json" },
+      });
+      if (res.ok) {
+        const json = (await res.json()) as {
+          teams?: Array<{
+            strTeamBadge?: string | null;
+            strBadge?: string | null;
+            strSport?: string | null;
+          }> | null;
+        };
+        const badgeDe = (t: { strTeamBadge?: string | null; strBadge?: string | null }) =>
+          t.strTeamBadge ?? t.strBadge ?? null;
+        const time =
+          json.teams?.find((t) => t.strSport === "Soccer" && badgeDe(t)) ??
+          json.teams?.find((t) => badgeDe(t));
+        escudo = time ? badgeDe(time) : null;
+      }
+    } catch {
+      escudo = null;
+    }
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: criado, error } = await supabaseAdmin
+      .from("clubs")
+      .insert({ nome: data.nome, pais: data.pais, escudo_url: escudo, league_id: null })
+      .select("id, nome, escudo_url, league_id")
+      .single();
+    if (error) throw new Error(error.message);
+    return criado;
+  });
