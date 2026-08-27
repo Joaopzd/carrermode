@@ -247,7 +247,7 @@ function EstatisticasPage() {
         mvpsTemporada: contagemMvp.temporada[j.id] ?? 0,
       };
     });
-  }, [jogadores, stats, contagemMvp, fComp, partidas]);
+  }, [jogadores, stats, contagemMvp, fComp, partidas, save?.seasonId]);
 
   const filtradas = useMemo(() => {
     const num = (v: string) => (v.trim() === "" ? null : Number(v));
@@ -308,7 +308,7 @@ function EstatisticasPage() {
           <header>
             <h1 className="text-gradient-pitch text-4xl">Estatísticas do elenco</h1>
             <p className="text-sm text-muted-foreground">
-              Números acumulados de cada jogador do elenco principal.
+              Geral acumula toda a carreira no clube; ao filtrar por competição, apenas a temporada atual é considerada.
             </p>
           </header>
 

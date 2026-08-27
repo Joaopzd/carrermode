@@ -204,7 +204,7 @@ function TransferenciasPage() {
   const [valorOpcao, setValorOpcao] = useState("");
   const [obrigacaoCompra, setObrigacaoCompra] = useState(false);
   const [processandoOpcao, setProcessandoOpcao] = useState<string | null>(null);
-  const [emprestimosAberto, setEmprestimosAberto] = useState(true);
+  const [emprestimosAberto, setEmprestimosAberto] = useState(false);
   const [contratando, setContratando] = useState<Transferencia | null>(null);
   const [valorContratacao, setValorContratacao] = useState("");
 
