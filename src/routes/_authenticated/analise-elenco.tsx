@@ -70,6 +70,27 @@ const BARRA_ZERO = {
   strokeDasharray: "4 3",
 };
 
+const ROTULO_AREA: Record<string, string> = {
+  GK: "Goleiros",
+  DEF: "Defesa",
+  MEI: "Meio-campo",
+  ATA: "Ataque",
+};
+
+/** Cartão de tooltip padrão, fora da área das barras. */
+function CaixaTooltip({ titulo, linhas }: { titulo: string; linhas: string[] }) {
+  return (
+    <div className="pointer-events-none rounded-md border border-border bg-card/95 px-3 py-2 text-xs shadow-lg backdrop-blur">
+      <p className="font-display text-sm tracking-wide text-foreground">{titulo}</p>
+      {linhas.map((l) => (
+        <p key={l} className="text-muted-foreground">
+          {l}
+        </p>
+      ))}
+    </div>
+  );
+}
+
 function areaDaPosicao(pos: string | null): string {
   const p = posEn(pos);
   return AREAS.find((a) => (a.posicoes as readonly string[]).includes(p ?? ""))?.chave ?? "MEI";
