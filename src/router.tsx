@@ -10,6 +10,8 @@ export const getRouter = () => {
     context: { queryClient },
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
+    defaultNotFoundComponent: () => <PaginaNaoEncontrada />,
+    defaultErrorComponent: ({ reset }) => <PaginaErro reset={reset} />,
   });
 
   return router;
