@@ -311,17 +311,7 @@ function CalendarioPage() {
                         </span>
                         <div className="mt-1 space-y-1">
                           {jogos.slice(0, 2).map((j) => (
-                            <div
-                              key={j.id}
-                              className={`truncate rounded px-1.5 py-0.5 text-[11px] font-medium ${
-                                j.status === "finalizada"
-                                  ? "bg-muted text-muted-foreground"
-                                  : "bg-primary/15 text-primary"
-                              }`}
-                            >
-                              {ICONE_COMPETICAO[j.competicao ?? ""] ?? "⚽"}{" "}
-                              <ClubBadge nome={j.adversario} className="align-middle" />
-                            </div>
+                            <ChipJogo key={j.id} jogo={j} />
                           ))}
                           {jogos.length > 2 ? (
                             <div className="text-[11px] text-muted-foreground">
