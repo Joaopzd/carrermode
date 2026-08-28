@@ -80,3 +80,18 @@ export function chaveDia(d: Date) {
     d.getDate(),
   ).padStart(2, "0")}`;
 }
+
+/** Cor da faixa lateral do chip de jogo, por competição. */
+export const COR_FAIXA_COMPETICAO: Record<string, string> = {
+  Liga: "bg-primary",
+  "Copa Nacional": "bg-blue-500",
+  "Copa da Liga": "bg-purple-500",
+  "Champions League": "bg-amber-400",
+  "Europa League": "bg-amber-400",
+  "Conference League": "bg-amber-400",
+  Amistoso: "bg-muted-foreground",
+};
+
+export function faixaCompeticao(competicao: string | null | undefined) {
+  return COR_FAIXA_COMPETICAO[competicao ?? ""] ?? "bg-muted-foreground";
+}

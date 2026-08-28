@@ -21,6 +21,7 @@ import { Route as AuthenticatedClassificacaoRouteImport } from './routes/_authen
 import { Route as AuthenticatedComissaoRouteImport } from './routes/_authenticated/comissao'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedElencoRouteImport } from './routes/_authenticated/elenco'
+import { Route as AuthenticatedEmBreveRouteImport } from './routes/_authenticated/em-breve'
 import { Route as AuthenticatedEstatisticasRouteImport } from './routes/_authenticated/estatisticas'
 import { Route as AuthenticatedExJogadoresRouteImport } from './routes/_authenticated/ex-jogadores'
 import { Route as AuthenticatedHistoricoRouteImport } from './routes/_authenticated/historico'
@@ -92,6 +93,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
 const AuthenticatedElencoRoute = AuthenticatedElencoRouteImport.update({
   id: '/elenco',
   path: '/elenco',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedEmBreveRoute = AuthenticatedEmBreveRouteImport.update({
+  id: '/em-breve',
+  path: '/em-breve',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedEstatisticasRoute =
@@ -167,6 +173,7 @@ export interface FileRoutesByFullPath {
   '/comissao': typeof AuthenticatedComissaoRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/elenco': typeof AuthenticatedElencoRoute
+  '/em-breve': typeof AuthenticatedEmBreveRoute
   '/estatisticas': typeof AuthenticatedEstatisticasRoute
   '/ex-jogadores': typeof AuthenticatedExJogadoresRoute
   '/historico': typeof AuthenticatedHistoricoRoute
@@ -191,6 +198,7 @@ export interface FileRoutesByTo {
   '/comissao': typeof AuthenticatedComissaoRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/elenco': typeof AuthenticatedElencoRoute
+  '/em-breve': typeof AuthenticatedEmBreveRoute
   '/estatisticas': typeof AuthenticatedEstatisticasRoute
   '/ex-jogadores': typeof AuthenticatedExJogadoresRoute
   '/historico': typeof AuthenticatedHistoricoRoute
@@ -217,6 +225,7 @@ export interface FileRoutesById {
   '/_authenticated/comissao': typeof AuthenticatedComissaoRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/elenco': typeof AuthenticatedElencoRoute
+  '/_authenticated/em-breve': typeof AuthenticatedEmBreveRoute
   '/_authenticated/estatisticas': typeof AuthenticatedEstatisticasRoute
   '/_authenticated/ex-jogadores': typeof AuthenticatedExJogadoresRoute
   '/_authenticated/historico': typeof AuthenticatedHistoricoRoute
@@ -243,6 +252,7 @@ export interface FileRouteTypes {
     | '/comissao'
     | '/dashboard'
     | '/elenco'
+    | '/em-breve'
     | '/estatisticas'
     | '/ex-jogadores'
     | '/historico'
@@ -267,6 +277,7 @@ export interface FileRouteTypes {
     | '/comissao'
     | '/dashboard'
     | '/elenco'
+    | '/em-breve'
     | '/estatisticas'
     | '/ex-jogadores'
     | '/historico'
@@ -292,6 +303,7 @@ export interface FileRouteTypes {
     | '/_authenticated/comissao'
     | '/_authenticated/dashboard'
     | '/_authenticated/elenco'
+    | '/_authenticated/em-breve'
     | '/_authenticated/estatisticas'
     | '/_authenticated/ex-jogadores'
     | '/_authenticated/historico'
@@ -398,6 +410,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedElencoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/em-breve': {
+      id: '/_authenticated/em-breve'
+      path: '/em-breve'
+      fullPath: '/em-breve'
+      preLoaderRoute: typeof AuthenticatedEmBreveRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/estatisticas': {
       id: '/_authenticated/estatisticas'
       path: '/estatisticas'
@@ -487,6 +506,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedComissaoRoute: typeof AuthenticatedComissaoRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedElencoRoute: typeof AuthenticatedElencoRoute
+  AuthenticatedEmBreveRoute: typeof AuthenticatedEmBreveRoute
   AuthenticatedEstatisticasRoute: typeof AuthenticatedEstatisticasRoute
   AuthenticatedExJogadoresRoute: typeof AuthenticatedExJogadoresRoute
   AuthenticatedHistoricoRoute: typeof AuthenticatedHistoricoRoute
@@ -509,6 +529,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedComissaoRoute: AuthenticatedComissaoRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedElencoRoute: AuthenticatedElencoRoute,
+  AuthenticatedEmBreveRoute: AuthenticatedEmBreveRoute,
   AuthenticatedEstatisticasRoute: AuthenticatedEstatisticasRoute,
   AuthenticatedExJogadoresRoute: AuthenticatedExJogadoresRoute,
   AuthenticatedHistoricoRoute: AuthenticatedHistoricoRoute,

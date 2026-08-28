@@ -42,7 +42,9 @@ import {
   MESES,
   chaveDia,
   ehCopa,
+  faixaCompeticao,
 } from "@/lib/match-data";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   formatarDia,
   lerDataCarreira,
@@ -311,17 +313,7 @@ function CalendarioPage() {
                         </span>
                         <div className="mt-1 space-y-1">
                           {jogos.slice(0, 2).map((j) => (
-                            <div
-                              key={j.id}
-                              className={`truncate rounded px-1.5 py-0.5 text-[11px] font-medium ${
-                                j.status === "finalizada"
-                                  ? "bg-muted text-muted-foreground"
-                                  : "bg-primary/15 text-primary"
-                              }`}
-                            >
-                              {ICONE_COMPETICAO[j.competicao ?? ""] ?? "⚽"}{" "}
-                              <ClubBadge nome={j.adversario} className="align-middle" />
-                            </div>
+                            <ChipJogo key={j.id} jogo={j} />
                           ))}
                           {jogos.length > 2 ? (
                             <div className="text-[11px] text-muted-foreground">
@@ -464,5 +456,57 @@ function CalendarioPage() {
         </DialogContent>
       </Dialog>
     </AppShell>
+  );
+}
+
+/** Chip de jogo na célula do dia, com faixa da competição e detalhe em hover/toque. */
+function ChipJogo({ jogo }: { jogo: Partida }) {
+  const [aberto, setAberto] = useState(false);
+  const hora = jogo.data_hora
+    ? new Date(jogo.data_hora).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+    : null;
+
+  return (
+    <Popover open={aberto} onOpenChange={setAberto}>
+      <PopoverTrigger asChild>
+        <span
+          role="button"
+          tabIndex={0}
+          onMouseEnter={() => setAberto(true)}
+          onMouseLeave={() => setAberto(false)}
+          onFocus={() => setAberto(true)}
+          onBlur={() => setAberto(false)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setAberto((v) => !v);
+          }}
+          className={`relative flex min-w-0 items-center gap-1 overflow-hidden rounded py-1 pl-2.5 pr-1.5 text-[11px] font-medium ${
+            jogo.status === "finalizada"
+              ? "bg-muted text-muted-foreground"
+              : "bg-primary/15 text-primary"
+          }`}
+        >
+          <span
+            aria-hidden
+            className={`absolute inset-y-0 left-0 w-1 ${faixaCompeticao(jogo.competicao)}`}
+          />
+          <ClubBadge nome={jogo.adversario} tamanho="md" className="min-w-0 max-w-full" />
+        </span>
+      </PopoverTrigger>
+      <PopoverContent
+        side="top"
+        align="start"
+        className="w-auto max-w-56 space-y-1 p-3 text-xs"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
+        <p className="flex items-center gap-1.5 font-semibold">
+          <ClubBadge nome={jogo.adversario} tamanho="md" />
+        </p>
+        <p className="text-muted-foreground">
+          {ICONE_COMPETICAO[jogo.competicao ?? ""] ?? "⚽"} {jogo.competicao ?? "—"}
+        </p>
+        <p className="text-muted-foreground">{hora ? `Às ${hora}` : "Horário não definido"}</p>
+      </PopoverContent>
+    </Popover>
   );
 }

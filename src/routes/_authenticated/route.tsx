@@ -3,6 +3,8 @@ import { AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { SplashScreen } from "@/components/loading";
 import { useSaveAtual } from "@/lib/use-save";
+import { AppShell } from "@/components/app-shell";
+import { PaginaErro, PaginaNaoEncontrada } from "@/components/system-page";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -12,6 +14,16 @@ export const Route = createFileRoute("/_authenticated")({
     return { user: data.user };
   },
   component: AreaAutenticada,
+  notFoundComponent: () => (
+    <AppShell titulo="Página não encontrada">
+      <PaginaNaoEncontrada />
+    </AppShell>
+  ),
+  errorComponent: ({ reset }) => (
+    <AppShell titulo="Erro">
+      <PaginaErro reset={reset} />
+    </AppShell>
+  ),
 });
 
 function AreaAutenticada() {
