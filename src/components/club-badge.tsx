@@ -10,6 +10,8 @@ type Props = {
   tamanho?: "sm" | "md" | "lg" | undefined;
   /** Oculta o nome, mostrando apenas o escudo. */
   semNome?: boolean | undefined;
+  /** Classes extras aplicadas apenas ao texto do nome. */
+  textoClassName?: string | undefined;
 };
 
 const TAMANHOS = {
