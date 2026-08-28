@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Archive, Trophy } from "lucide-react";
+import { Archive, Pencil, Trophy } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +19,17 @@ import {
 } from "@/components/ui/table";
 import type { ResumoSeason, Season } from "@/lib/season";
 import { useSaveAtual } from "@/lib/use-save";
+import { ClubBadge } from "@/components/club-badge";
+import { ClubAutocomplete } from "@/components/club-autocomplete";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/_authenticated/arquivo")({
   head: () => ({
@@ -80,6 +92,33 @@ function ArquivoPage() {
   const [standings, setStandings] = useState<Linha[]>([]);
   const [transfers, setTransfers] = useState<Transfer[]>([]);
   const [carregandoDetalhe, setCarregandoDetalhe] = useState(false);
+  const [editando, setEditando] = useState<Transfer | null>(null);
+  const [clubeEdit, setClubeEdit] = useState("");
+  const [salvandoClube, setSalvandoClube] = useState(false);
+
+  async function salvarClubeTransfer() {
+    if (!editando) return;
+    const nome = clubeEdit.trim();
+    if (!nome) {
+      toast.error("Informe o clube da negociação.");
+      return;
+    }
+    setSalvandoClube(true);
+    const { error } = await supabase
+      .from("transfers")
+      .update({ clube_contraparte: nome })
+      .eq("id", editando.id);
+    setSalvandoClube(false);
+    if (error) {
+      toast.error("Não foi possível atualizar o clube.");
+      return;
+    }
+    setTransfers((lista) =>
+      lista.map((t) => (t.id === editando.id ? { ...t, clube_contraparte: nome } : t)),
+    );
+    toast.success("Clube da negociação atualizado.");
+    setEditando(null);
+  }
 
   useEffect(() => {
     if (!save) {
@@ -269,12 +308,24 @@ function ArquivoPage() {
                             <Badge variant={t.tipo === "entrada" ? "default" : "secondary"}>
                               {t.tipo === "entrada" ? "Entrada" : "Saída"}
                             </Badge>
-                            <span className="text-muted-foreground">
-                              {t.modalidade ?? "—"} · {t.clube_contraparte ?? "—"}
+                            <span className="flex items-center gap-1.5 text-muted-foreground">
+                              {t.modalidade ?? "—"} ·{" "}
+                              <ClubBadge nome={t.clube_contraparte} className="align-middle" />
                             </span>
                           </span>
-                          <span className="font-medium">
+                          <span className="flex items-center gap-2 font-medium">
                             {t.valor != null ? Number(t.valor).toLocaleString("pt-BR") : "—"}
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              aria-label="Editar clube da negociação"
+                              onClick={() => {
+                                setEditando(t);
+                                setClubeEdit(t.clube_contraparte ?? "");
+                              }}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
                           </span>
                         </CardContent>
                       </Card>
@@ -285,6 +336,35 @@ function ArquivoPage() {
             )}
           </div>
         </div>
+
+        <Dialog open={editando !== null} onOpenChange={(o) => !o && setEditando(null)}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Editar clube da negociação</DialogTitle>
+              <DialogDescription>
+                Nesta temporada arquivada só é possível corrigir o clube envolvido na transferência.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-2">
+              <Label htmlFor="clube-transfer">Clube</Label>
+              <ClubAutocomplete
+                id="clube-transfer"
+                placeholder="Nome do clube"
+                value={clubeEdit}
+                leagueId={save?.leagueId ?? null}
+                onChange={setClubeEdit}
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setEditando(null)}>
+                Cancelar
+              </Button>
+              <Button onClick={() => void salvarClubeTransfer()} disabled={salvandoClube}>
+                Salvar clube
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </AppShell>
     );
   }
