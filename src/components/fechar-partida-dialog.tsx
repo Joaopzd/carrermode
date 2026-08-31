@@ -47,6 +47,8 @@ export type PartidaBase = {
   cartoes_amarelos: number | null;
   cartoes_vermelhos: number | null;
   mvp_player_id?: string | null;
+  mando?: string | null;
+  gols_adversario_detalhe?: string | null;
 };
 
 type Jogador = {

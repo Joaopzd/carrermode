@@ -490,7 +490,12 @@ function ChipJogo({ jogo }: { jogo: Partida }) {
             aria-hidden
             className={`absolute inset-y-0 left-0 w-1 ${faixaCompeticao(jogo.competicao)}`}
           />
-          <ClubBadge nome={jogo.adversario} tamanho="md" className="min-w-0 max-w-full" />
+          <ClubBadge
+            nome={jogo.adversario}
+            tamanho="md"
+            className="min-w-0 max-w-full"
+            textoClassName="font-semibold"
+          />
         </span>
       </PopoverTrigger>
       <PopoverContent

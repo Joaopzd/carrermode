@@ -21,7 +21,14 @@ const TAMANHOS = {
 } as const;
 
 /** Nome do clube acompanhado do escudo, com fallback de ícone genérico. */
-export function ClubBadge({ nome, escudoUrl, className, tamanho = "sm", semNome = false }: Props) {
+export function ClubBadge({
+  nome,
+  escudoUrl,
+  className,
+  tamanho = "sm",
+  semNome = false,
+  textoClassName,
+}: Props) {
   const clubes = useClubes();
   const url = escudoUrl ?? escudoPorNome(clubes, nome);
   const box = TAMANHOS[tamanho];
@@ -38,7 +45,7 @@ export function ClubBadge({ nome, escudoUrl, className, tamanho = "sm", semNome 
       ) : (
         <Shield className={cn(box, "shrink-0 text-muted-foreground")} aria-hidden />
       )}
-      {!semNome && <span className="truncate">{nome?.trim() || "—"}</span>}
+      {!semNome && <span className={cn("truncate", textoClassName)}>{nome?.trim() || "—"}</span>}
     </span>
   );
 }
