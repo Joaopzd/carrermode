@@ -441,7 +441,9 @@ export type Database = {
           criado_em: string
           data_hora: string | null
           desarmes: number | null
+          editado_apos_arquivamento: boolean
           fase: string | null
+          gols_adversario_detalhe: string | null
           id: string
           mando: Database["public"]["Enums"]["match_venue"]
           mvp_player_id: string | null
@@ -465,7 +467,9 @@ export type Database = {
           criado_em?: string
           data_hora?: string | null
           desarmes?: number | null
+          editado_apos_arquivamento?: boolean
           fase?: string | null
+          gols_adversario_detalhe?: string | null
           id?: string
           mando?: Database["public"]["Enums"]["match_venue"]
           mvp_player_id?: string | null
@@ -489,7 +493,9 @@ export type Database = {
           criado_em?: string
           data_hora?: string | null
           desarmes?: number | null
+          editado_apos_arquivamento?: boolean
           fase?: string | null
+          gols_adversario_detalhe?: string | null
           id?: string
           mando?: Database["public"]["Enums"]["match_venue"]
           mvp_player_id?: string | null
@@ -960,6 +966,7 @@ export type Database = {
           clube_contraparte: string | null
           data: string
           duracao_emprestimo: string | null
+          editado_apos_arquivamento: boolean
           id: string
           janela: Database["public"]["Enums"]["transfer_window"] | null
           jogador_troca_id: string | null
@@ -979,6 +986,7 @@ export type Database = {
           clube_contraparte?: string | null
           data?: string
           duracao_emprestimo?: string | null
+          editado_apos_arquivamento?: boolean
           id?: string
           janela?: Database["public"]["Enums"]["transfer_window"] | null
           jogador_troca_id?: string | null
@@ -998,6 +1006,7 @@ export type Database = {
           clube_contraparte?: string | null
           data?: string
           duracao_emprestimo?: string | null
+          editado_apos_arquivamento?: boolean
           id?: string
           janela?: Database["public"]["Enums"]["transfer_window"] | null
           jogador_troca_id?: string | null
@@ -1058,6 +1067,7 @@ export type Database = {
           data_registro: string
           e_meu_clube_campeao: boolean
           e_meu_clube_vice: boolean
+          editado_apos_arquivamento: boolean
           id: string
           save_id: string
           season_id: string | null
@@ -1069,6 +1079,7 @@ export type Database = {
           data_registro?: string
           e_meu_clube_campeao?: boolean
           e_meu_clube_vice?: boolean
+          editado_apos_arquivamento?: boolean
           id?: string
           save_id: string
           season_id?: string | null
@@ -1080,6 +1091,7 @@ export type Database = {
           data_registro?: string
           e_meu_clube_campeao?: boolean
           e_meu_clube_vice?: boolean
+          editado_apos_arquivamento?: boolean
           id?: string
           save_id?: string
           season_id?: string | null
