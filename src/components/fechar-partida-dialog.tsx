@@ -345,6 +345,7 @@ export function FecharPartidaDialog({
         cartoes_amarelos: num(jogo.cartoes_amarelos),
         cartoes_vermelhos: num(jogo.cartoes_vermelhos),
         mvp_player_id: mvp && selecionados.includes(mvp) ? mvp : null,
+        ...(marcarEditadoAposArquivamento ? { editado_apos_arquivamento: true } : {}),
       })
       .eq("id", partida.id);
 
