@@ -31,8 +31,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { SkeletonListaItens } from "@/components/loading";
 import { useIndicadorCarregamento, useSkeletonDelay } from "@/lib/loading-bus";
 import { FecharPartidaDialog, type PartidaBase } from "@/components/fechar-partida-dialog";
+import { RelatorioPartidaDialog } from "@/components/relatorio-partida-dialog";
 import { ICONE_COMPETICAO } from "@/lib/match-data";
 import { useSaveAtual } from "@/lib/use-save";
+
 
 export const Route = createFileRoute("/_authenticated/partidas")({
   head: () => ({
