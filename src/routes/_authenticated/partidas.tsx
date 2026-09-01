@@ -69,6 +69,9 @@ function PartidasPage() {
   const mostrarSkeleton = useSkeletonDelay(carregando);
   const [selecionada, setSelecionada] = useState<PartidaBase | null>(null);
   const [aberto, setAberto] = useState(false);
+  const [relatorio, setRelatorio] = useState<PartidaBase | null>(null);
+  const [relatorioAberto, setRelatorioAberto] = useState(false);
+
   const [formAberto, setFormAberto] = useState(false);
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [salvandoForm, setSalvandoForm] = useState(false);
