@@ -129,6 +129,7 @@ export function FecharPartidaDialog({
   saveId,
   clubeNome,
   aberto,
+  marcarEditadoAposArquivamento = false,
   onOpenChange,
   onSalvo,
 }: {
@@ -136,9 +137,11 @@ export function FecharPartidaDialog({
   saveId: string;
   clubeNome: string | null;
   aberto: boolean;
+  marcarEditadoAposArquivamento?: boolean;
   onOpenChange: (v: boolean) => void;
   onSalvo: () => void;
 }) {
+
   const [jogadores, setJogadores] = useState<Jogador[]>([]);
   const [selecionados, setSelecionados] = useState<string[]>([]);
   const [stats, setStats] = useState<Record<string, StatJogador>>({});
