@@ -351,7 +351,22 @@ function PartidasPage() {
                     return (
                       <StaggerItem key={p.id} index={i}>
                       <HoverCard>
-                      <Card>
+                      <Card
+                        role="button"
+                        tabIndex={0}
+                        className="cursor-pointer transition-colors hover:border-primary/60"
+                        onClick={() => {
+                          setRelatorio(p);
+                          setRelatorioAberto(true);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setRelatorio(p);
+                            setRelatorioAberto(true);
+                          }
+                        }}
+                      >
                         <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4">
                           <div className="flex items-center gap-3">
                             <span
@@ -382,9 +397,9 @@ function PartidasPage() {
                               </p>
                             </div>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                             <Button variant="outline" onClick={() => abrir(p)}>
-                              <ClipboardCheck className="mr-1 h-4 w-4" /> Reabrir
+                              <ClipboardCheck className="mr-1 h-4 w-4" /> Editar dados
                             </Button>
                             <Button
                               variant="outline"
@@ -405,6 +420,7 @@ function PartidasPage() {
                           </div>
                         </CardContent>
                       </Card>
+
                       </HoverCard>
                       </StaggerItem>
                     );
