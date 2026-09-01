@@ -557,15 +557,30 @@ function PartidasPage() {
       </Dialog>
 
       {save ? (
-        <FecharPartidaDialog
-          partida={selecionada}
-          saveId={save.id}
-          clubeNome={save.clubeNome}
-          aberto={aberto}
-          onOpenChange={setAberto}
-          onSalvo={() => void carregar(save.id, save.seasonId)}
-        />
+        <>
+          <FecharPartidaDialog
+            partida={selecionada}
+            saveId={save.id}
+            clubeNome={save.clubeNome}
+            aberto={aberto}
+            onOpenChange={setAberto}
+            onSalvo={() => void carregar(save.id, save.seasonId)}
+          />
+          <RelatorioPartidaDialog
+            partida={relatorio}
+            clubeNome={save.clubeNome}
+            escudoClube={save.escudo}
+            aberto={relatorioAberto}
+            onOpenChange={setRelatorioAberto}
+            onEditar={(p) => {
+              setRelatorioAberto(false);
+              abrir(p);
+            }}
+            onAtualizado={() => void carregar(save.id, save.seasonId)}
+          />
+        </>
       ) : null}
+
     </AppShell>
   );
 }
