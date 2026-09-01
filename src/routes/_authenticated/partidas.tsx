@@ -31,8 +31,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { SkeletonListaItens } from "@/components/loading";
 import { useIndicadorCarregamento, useSkeletonDelay } from "@/lib/loading-bus";
 import { FecharPartidaDialog, type PartidaBase } from "@/components/fechar-partida-dialog";
+import { RelatorioPartidaDialog } from "@/components/relatorio-partida-dialog";
 import { ICONE_COMPETICAO } from "@/lib/match-data";
 import { useSaveAtual } from "@/lib/use-save";
+
 
 export const Route = createFileRoute("/_authenticated/partidas")({
   head: () => ({
@@ -67,6 +69,9 @@ function PartidasPage() {
   const mostrarSkeleton = useSkeletonDelay(carregando);
   const [selecionada, setSelecionada] = useState<PartidaBase | null>(null);
   const [aberto, setAberto] = useState(false);
+  const [relatorio, setRelatorio] = useState<PartidaBase | null>(null);
+  const [relatorioAberto, setRelatorioAberto] = useState(false);
+
   const [formAberto, setFormAberto] = useState(false);
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [salvandoForm, setSalvandoForm] = useState(false);
@@ -346,7 +351,22 @@ function PartidasPage() {
                     return (
                       <StaggerItem key={p.id} index={i}>
                       <HoverCard>
-                      <Card>
+                      <Card
+                        role="button"
+                        tabIndex={0}
+                        className="cursor-pointer transition-colors hover:border-primary/60"
+                        onClick={() => {
+                          setRelatorio(p);
+                          setRelatorioAberto(true);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setRelatorio(p);
+                            setRelatorioAberto(true);
+                          }
+                        }}
+                      >
                         <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4">
                           <div className="flex items-center gap-3">
                             <span
@@ -377,9 +397,9 @@ function PartidasPage() {
                               </p>
                             </div>
                           </div>
-                          <div className="flex gap-2">
+                          <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                             <Button variant="outline" onClick={() => abrir(p)}>
-                              <ClipboardCheck className="mr-1 h-4 w-4" /> Reabrir
+                              <ClipboardCheck className="mr-1 h-4 w-4" /> Editar dados
                             </Button>
                             <Button
                               variant="outline"
@@ -400,6 +420,7 @@ function PartidasPage() {
                           </div>
                         </CardContent>
                       </Card>
+
                       </HoverCard>
                       </StaggerItem>
                     );
@@ -536,15 +557,30 @@ function PartidasPage() {
       </Dialog>
 
       {save ? (
-        <FecharPartidaDialog
-          partida={selecionada}
-          saveId={save.id}
-          clubeNome={save.clubeNome}
-          aberto={aberto}
-          onOpenChange={setAberto}
-          onSalvo={() => void carregar(save.id, save.seasonId)}
-        />
+        <>
+          <FecharPartidaDialog
+            partida={selecionada}
+            saveId={save.id}
+            clubeNome={save.clubeNome}
+            aberto={aberto}
+            onOpenChange={setAberto}
+            onSalvo={() => void carregar(save.id, save.seasonId)}
+          />
+          <RelatorioPartidaDialog
+            partida={relatorio}
+            clubeNome={save.clubeNome}
+            escudoClube={save.escudo}
+            aberto={relatorioAberto}
+            onOpenChange={setRelatorioAberto}
+            onEditar={(p) => {
+              setRelatorioAberto(false);
+              abrir(p);
+            }}
+            onAtualizado={() => void carregar(save.id, save.seasonId)}
+          />
+        </>
       ) : null}
+
     </AppShell>
   );
 }
