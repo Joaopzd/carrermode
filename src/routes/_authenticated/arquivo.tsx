@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Archive, Pencil, Trophy } from "lucide-react";
-import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
@@ -20,16 +19,10 @@ import {
 import type { ResumoSeason, Season } from "@/lib/season";
 import { useSaveAtual } from "@/lib/use-save";
 import { ClubBadge } from "@/components/club-badge";
-import { ClubAutocomplete } from "@/components/club-autocomplete";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
+import { ConfirmarEdicaoArquivada } from "@/components/confirmar-edicao-arquivada";
+import { TransferEditDialog, type TransferEditavel } from "@/components/transfer-edit-dialog";
+import { TrofeuEditDialog, type TrofeuEditavel } from "@/components/trofeu-edit-dialog";
+import { FecharPartidaDialog, type PartidaBase } from "@/components/fechar-partida-dialog";
 
 export const Route = createFileRoute("/_authenticated/arquivo")({
   head: () => ({
@@ -51,15 +44,6 @@ export const Route = createFileRoute("/_authenticated/arquivo")({
   component: ArquivoPage,
 });
 
-type Partida = {
-  id: string;
-  data_hora: string | null;
-  competicao: string | null;
-  adversario: string | null;
-  placar_time: number | null;
-  placar_adversario: number | null;
-  status: string;
-};
 type Linha = {
   id: string;
   rodada: number | null;
@@ -74,51 +58,31 @@ type Linha = {
   gols_contra: number;
   saldo: number;
 };
-type Transfer = {
-  id: string;
-  tipo: string;
-  modalidade: string | null;
-  clube_contraparte: string | null;
-  valor: number | null;
-  data: string;
-};
+type Transfer = TransferEditavel & { editado_apos_arquivamento?: boolean };
+type Trofeu = TrofeuEditavel & { editado_apos_arquivamento?: boolean };
+
+/** Ação de edição pendente da confirmação de "registro arquivado". */
+type Pendente =
+  | { tipo: "partida"; partida: PartidaBase }
+  | { tipo: "transferencia"; transferencia: Transfer }
+  | { tipo: "trofeu"; trofeu: Trofeu };
 
 function ArquivoPage() {
   const { save, carregando: carregandoSave } = useSaveAtual();
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [aberta, setAberta] = useState<Season | null>(null);
-  const [partidas, setPartidas] = useState<Partida[]>([]);
+  const [partidas, setPartidas] = useState<PartidaBase[]>([]);
   const [standings, setStandings] = useState<Linha[]>([]);
   const [transfers, setTransfers] = useState<Transfer[]>([]);
+  const [trofeus, setTrofeus] = useState<Trofeu[]>([]);
   const [carregandoDetalhe, setCarregandoDetalhe] = useState(false);
-  const [editando, setEditando] = useState<Transfer | null>(null);
-  const [clubeEdit, setClubeEdit] = useState("");
-  const [salvandoClube, setSalvandoClube] = useState(false);
 
-  async function salvarClubeTransfer() {
-    if (!editando) return;
-    const nome = clubeEdit.trim();
-    if (!nome) {
-      toast.error("Informe o clube da negociação.");
-      return;
-    }
-    setSalvandoClube(true);
-    const { error } = await supabase
-      .from("transfers")
-      .update({ clube_contraparte: nome })
-      .eq("id", editando.id);
-    setSalvandoClube(false);
-    if (error) {
-      toast.error("Não foi possível atualizar o clube.");
-      return;
-    }
-    setTransfers((lista) =>
-      lista.map((t) => (t.id === editando.id ? { ...t, clube_contraparte: nome } : t)),
-    );
-    toast.success("Clube da negociação atualizado.");
-    setEditando(null);
-  }
+  const [pendente, setPendente] = useState<Pendente | null>(null);
+  const [editandoPartida, setEditandoPartida] = useState<PartidaBase | null>(null);
+  const [partidaAberta, setPartidaAberta] = useState(false);
+  const [editandoTransfer, setEditandoTransfer] = useState<Transfer | null>(null);
+  const [editandoTrofeu, setEditandoTrofeu] = useState<Trofeu | null>(null);
 
   useEffect(() => {
     if (!save) {
@@ -137,15 +101,10 @@ function ArquivoPage() {
     })();
   }, [save, carregandoSave]);
 
-  async function abrir(s: Season) {
-    setAberta(s);
+  async function carregarDetalhe(s: Season) {
     setCarregandoDetalhe(true);
-    const [{ data: m }, { data: st }, { data: t }] = await Promise.all([
-      supabase
-        .from("matches")
-        .select("id, data_hora, competicao, adversario, placar_time, placar_adversario, status")
-        .eq("season_id", s.id)
-        .order("data_hora", { ascending: true }),
+    const [{ data: m }, { data: st }, { data: t }, { data: g }] = await Promise.all([
+      supabase.from("matches").select("*").eq("season_id", s.id).order("data_hora"),
       supabase
         .from("standings_snapshot")
         .select("*")
@@ -153,14 +112,52 @@ function ArquivoPage() {
         .order("rodada", { ascending: false }),
       supabase
         .from("transfers")
-        .select("id, tipo, modalidade, clube_contraparte, valor, data")
+        .select(
+          "id, tipo, modalidade, clube_contraparte, valor, duracao_emprestimo, janela, data, editado_apos_arquivamento",
+        )
         .eq("season_id", s.id)
         .order("data", { ascending: false }),
+      supabase
+        .from("trophy_gallery")
+        .select(
+          "id, campeao_clube, vice_clube, editado_apos_arquivamento, competitions(nome, registra_vice)",
+        )
+        .eq("season_id", s.id),
     ]);
-    setPartidas((m ?? []) as Partida[]);
+    setPartidas((m ?? []) as unknown as PartidaBase[]);
     setStandings((st ?? []) as Linha[]);
-    setTransfers((t ?? []) as Transfer[]);
+    setTransfers((t ?? []) as unknown as Transfer[]);
+    setTrofeus(
+      ((g ?? []) as unknown as Array<
+        Trofeu & { competitions: { nome: string; registra_vice: boolean } | null }
+      >).map((row) => ({
+        id: row.id,
+        campeao_clube: row.campeao_clube,
+        vice_clube: row.vice_clube,
+        editado_apos_arquivamento: row.editado_apos_arquivamento,
+        competicao_nome: row.competitions?.nome ?? "Competição",
+        registra_vice: row.competitions?.registra_vice ?? false,
+      })),
+    );
     setCarregandoDetalhe(false);
+  }
+
+  async function abrir(s: Season) {
+    setAberta(s);
+    await carregarDetalhe(s);
+  }
+
+  function confirmarPendente() {
+    if (!pendente) return;
+    if (pendente.tipo === "partida") {
+      setEditandoPartida(pendente.partida);
+      setPartidaAberta(true);
+    } else if (pendente.tipo === "transferencia") {
+      setEditandoTransfer(pendente.transferencia);
+    } else {
+      setEditandoTrofeu(pendente.trofeu);
+    }
+    setPendente(null);
   }
 
   const ultimaRodada = useMemo(() => standings[0]?.rodada ?? null, [standings]);
@@ -171,6 +168,7 @@ function ArquivoPage() {
 
   if (aberta) {
     const r = (aberta.resumo ?? {}) as ResumoSeason;
+    const recarregar = () => void carregarDetalhe(aberta);
     return (
       <AppShell titulo="Arquivo de temporadas">
         <div className="pitch-lines min-h-full px-4 py-8 sm:px-8">
@@ -179,7 +177,7 @@ function ArquivoPage() {
               <div>
                 <h1 className="text-gradient-pitch text-4xl">{aberta.nome}</h1>
                 <p className="text-sm text-muted-foreground">
-                  Temporada encerrada · somente leitura
+                  Temporada encerrada · edite apenas para corrigir erros de digitação
                 </p>
               </div>
               <Button variant="outline" onClick={() => setAberta(null)}>
@@ -233,10 +231,11 @@ function ArquivoPage() {
               <Skeleton className="h-64 w-full rounded-xl" />
             ) : (
               <Tabs defaultValue="partidas">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="partidas">Partidas</TabsTrigger>
                   <TabsTrigger value="classificacao">Classificação</TabsTrigger>
                   <TabsTrigger value="transferencias">Transferências</TabsTrigger>
+                  <TabsTrigger value="trofeus">Troféus</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="partidas" className="mt-4 space-y-2">
@@ -250,11 +249,21 @@ function ArquivoPage() {
                             {save?.clubeNome ?? "Meu clube"} {p.placar_time ?? "-"} x{" "}
                             {p.placar_adversario ?? "-"} {p.adversario}
                           </span>
-                          <span className="text-xs text-muted-foreground">
+                          <span className="flex items-center gap-2 text-xs text-muted-foreground">
                             {p.competicao ?? "—"}
                             {p.data_hora
                               ? ` · ${new Date(p.data_hora).toLocaleDateString("pt-BR")}`
                               : ""}
+                            <SeloEditado
+                              marcado={
+                                (p as { editado_apos_arquivamento?: boolean })
+                                  .editado_apos_arquivamento
+                              }
+                            />
+                            <BotaoEditar
+                              rotulo="Editar partida"
+                              onClick={() => setPendente({ tipo: "partida", partida: p })}
+                            />
                           </span>
                         </CardContent>
                       </Card>
@@ -315,17 +324,45 @@ function ArquivoPage() {
                           </span>
                           <span className="flex items-center gap-2 font-medium">
                             {t.valor != null ? Number(t.valor).toLocaleString("pt-BR") : "—"}
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              aria-label="Editar clube da negociação"
-                              onClick={() => {
-                                setEditando(t);
-                                setClubeEdit(t.clube_contraparte ?? "");
-                              }}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
+                            <SeloEditado marcado={t.editado_apos_arquivamento} />
+                            <BotaoEditar
+                              rotulo="Editar transferência"
+                              onClick={() =>
+                                setPendente({ tipo: "transferencia", transferencia: t })
+                              }
+                            />
+                          </span>
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
+                </TabsContent>
+
+                <TabsContent value="trofeus" className="mt-4 space-y-2">
+                  {trofeus.length === 0 ? (
+                    <Vazio texto="Nenhum resultado de competição registrado nesta temporada." />
+                  ) : (
+                    trofeus.map((g) => (
+                      <Card key={g.id}>
+                        <CardContent className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm">
+                          <span className="flex items-center gap-2">
+                            <Trophy className="h-4 w-4 text-primary" />
+                            <span className="font-medium">{g.competicao_nome}</span>
+                            <span className="flex items-center gap-1.5 text-muted-foreground">
+                              🏆 <ClubBadge nome={g.campeao_clube} className="align-middle" />
+                              {g.registra_vice && g.vice_clube ? (
+                                <>
+                                  · 🥈 <ClubBadge nome={g.vice_clube} className="align-middle" />
+                                </>
+                              ) : null}
+                            </span>
+                          </span>
+                          <span className="flex items-center gap-2">
+                            <SeloEditado marcado={g.editado_apos_arquivamento} />
+                            <BotaoEditar
+                              rotulo="Editar resultado"
+                              onClick={() => setPendente({ tipo: "trofeu", trofeu: g })}
+                            />
                           </span>
                         </CardContent>
                       </Card>
@@ -337,34 +374,43 @@ function ArquivoPage() {
           </div>
         </div>
 
-        <Dialog open={editando !== null} onOpenChange={(o) => !o && setEditando(null)}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Editar clube da negociação</DialogTitle>
-              <DialogDescription>
-                Nesta temporada arquivada só é possível corrigir o clube envolvido na transferência.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-2">
-              <Label htmlFor="clube-transfer">Clube</Label>
-              <ClubAutocomplete
-                id="clube-transfer"
-                placeholder="Nome do clube"
-                value={clubeEdit}
-                leagueId={save?.leagueId ?? null}
-                onChange={setClubeEdit}
-              />
-            </div>
-            <DialogFooter>
-              <Button variant="ghost" onClick={() => setEditando(null)}>
-                Cancelar
-              </Button>
-              <Button onClick={() => void salvarClubeTransfer()} disabled={salvandoClube}>
-                Salvar clube
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <ConfirmarEdicaoArquivada
+          aberto={pendente !== null}
+          seasonNome={aberta.nome}
+          onOpenChange={(v) => !v && setPendente(null)}
+          onConfirmar={confirmarPendente}
+        />
+
+        {save ? (
+          <FecharPartidaDialog
+            partida={editandoPartida}
+            saveId={save.id}
+            clubeNome={save.clubeNome}
+            aberto={partidaAberta}
+            marcarEditadoAposArquivamento
+            onOpenChange={(v) => {
+              setPartidaAberta(v);
+              if (!v) setEditandoPartida(null);
+            }}
+            onSalvo={recarregar}
+          />
+        ) : null}
+
+        <TransferEditDialog
+          transferencia={editandoTransfer}
+          marcarEditadoAposArquivamento
+          descricao="Correção pontual de uma negociação de temporada encerrada."
+          onOpenChange={(v) => !v && setEditandoTransfer(null)}
+          onSalvo={recarregar}
+        />
+
+        <TrofeuEditDialog
+          registro={editandoTrofeu}
+          clubeNome={save?.clubeNome}
+          marcarEditadoAposArquivamento
+          onOpenChange={(v) => !v && setEditandoTrofeu(null)}
+          onSalvo={recarregar}
+        />
       </AppShell>
     );
   }
@@ -397,7 +443,12 @@ function ArquivoPage() {
               {seasons.map((s) => {
                 const r = (s.resumo ?? {}) as ResumoSeason;
                 return (
-                  <button key={s.id} type="button" onClick={() => void abrir(s)} className="text-left">
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => void abrir(s)}
+                    className="text-left"
+                  >
                     <Card className="hq-card h-full transition-colors hover:border-primary/60">
                       <CardContent className="space-y-2 py-4">
                         <p className="font-display text-2xl tracking-wide">{s.nome}</p>
@@ -421,6 +472,23 @@ function ArquivoPage() {
         </div>
       </div>
     </AppShell>
+  );
+}
+
+function BotaoEditar({ rotulo, onClick }: { rotulo: string; onClick: () => void }) {
+  return (
+    <Button size="icon" variant="ghost" aria-label={rotulo} onClick={onClick}>
+      <Pencil className="h-4 w-4" />
+    </Button>
+  );
+}
+
+function SeloEditado({ marcado }: { marcado?: boolean }) {
+  if (!marcado) return null;
+  return (
+    <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
+      Corrigido
+    </Badge>
   );
 }
 
