@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { gerarNoticia, type TipoEvento } from "@/lib/noticias.functions";
+import { escopo } from "@/lib/stint";
 
 type Partida = {
   id: string;
@@ -29,11 +30,8 @@ function letra(p: Partida) {
   return a > b ? "V" : a < b ? "D" : "E";
 }
 
-async function jaExiste(saveId: string, matchId: string, tipo: string) {
-  const { data } = await supabase
-    .from("news_feed")
-    .select("id")
-    .eq("save_id", saveId)
+async function jaExiste(saveId: string, matchId: string, tipo: string, stintId?: string | null) {
+  const { data } = await escopo(supabase.from("news_feed").select("id"), saveId, stintId)
     .eq("relacionado_match_id", matchId)
     .eq("tipo", tipo)
     .limit(1);
@@ -41,11 +39,18 @@ async function jaExiste(saveId: string, matchId: string, tipo: string) {
 }
 
 /** Roda após fechar uma partida: checa jogador no banco e sequência negativa. */
-export async function checarEventosPosPartida(saveId: string, matchId: string) {
-  const { data: partidasRaw } = await supabase
-    .from("matches")
-    .select("id, data_hora, competicao, adversario, placar_time, placar_adversario")
-    .eq("save_id", saveId)
+export async function checarEventosPosPartida(
+  saveId: string,
+  matchId: string,
+  stintId?: string | null,
+) {
+  const { data: partidasRaw } = await escopo(
+    supabase
+      .from("matches")
+      .select("id, data_hora, competicao, adversario, placar_time, placar_adversario"),
+    saveId,
+    stintId,
+  )
     .eq("status", "finalizada")
     .order("data_hora", { ascending: false })
     .limit(5);
@@ -57,11 +62,11 @@ export async function checarEventosPosPartida(saveId: string, matchId: string) {
   // 1) Favoritos da torcida fora dos últimos 3 jogos
   const ultimas3 = partidas.slice(0, 3);
   if (ultimas3.length === 3) {
-    const { data: favoritos } = await supabase
-      .from("players")
-      .select("id, nome")
-      .eq("save_id", saveId)
-      .eq("favorito_torcida", true);
+    const { data: favoritos } = await escopo(
+      supabase.from("players").select("id, nome"),
+      saveId,
+      stintId,
+    ).eq("favorito_torcida", true);
 
     const ids = ultimas3.map((p) => p.id);
     const { data: escalacoes } = await supabase
@@ -72,7 +77,7 @@ export async function checarEventosPosPartida(saveId: string, matchId: string) {
     const usados = new Set((escalacoes ?? []).map((e) => e.player_id));
     for (const fav of (favoritos ?? []) as Array<{ id: string; nome: string }>) {
       if (usados.has(fav.id)) continue;
-      if (await jaExiste(saveId, matchId, "torcida")) break;
+      if (await jaExiste(saveId, matchId, "torcida", stintId)) break;
       await disparar(
         saveId,
         "jogador_banco",
@@ -88,7 +93,7 @@ export async function checarEventosPosPartida(saveId: string, matchId: string) {
   const tresSemVitoria =
     resultados.length >= 3 && resultados.slice(0, 3).every((r) => r !== "V");
 
-  if ((duasDerrotas || tresSemVitoria) && !(await jaExiste(saveId, matchId, "resultado"))) {
+  if ((duasDerrotas || tresSemVitoria) && !(await jaExiste(saveId, matchId, "resultado", stintId))) {
     await disparar(
       saveId,
       "sequencia_negativa",
@@ -112,11 +117,13 @@ export async function checarVendaPolemica(
   playerId: string,
   valor: number | null,
   clubeDestino: string | null,
+  stintId?: string | null,
 ) {
-  const { data: elenco } = await supabase
-    .from("players")
-    .select("id, nome, overall, favorito_torcida")
-    .eq("save_id", saveId);
+  const { data: elenco } = await escopo(
+    supabase.from("players").select("id, nome, overall, favorito_torcida"),
+    saveId,
+    stintId,
+  );
 
   const lista = (elenco ?? []) as Array<{
     id: string;
@@ -162,34 +169,36 @@ export type MetaAvaliada = {
 };
 
 /** Compara as metas da diretoria com os dados reais e dispara notícias. */
-export async function avaliarMetas(saveId: string): Promise<MetaAvaliada[]> {
+export async function avaliarMetas(
+  saveId: string,
+  stintId?: string | null,
+): Promise<MetaAvaliada[]> {
   const [{ data: metas }, { data: standings }, { data: matches }, { data: transfers }, { data: players }] =
     await Promise.all([
-      supabase.from("board_objectives").select("*").eq("save_id", saveId),
-      supabase
-        .from("standings_snapshot")
-        .select("time, posicao, rodada")
-        .eq("save_id", saveId)
-        .order("rodada", { ascending: false }),
-      supabase
-        .from("matches")
-        .select("placar_time, placar_adversario")
-        .eq("save_id", saveId)
+      escopo(supabase.from("board_objectives").select("*"), saveId, stintId),
+      escopo(
+        supabase.from("standings_snapshot").select("time, posicao, rodada"),
+        saveId,
+        stintId,
+      ).order("rodada", { ascending: false }),
+      escopo(
+        supabase.from("matches").select("placar_time, placar_adversario"),
+        saveId,
+        stintId,
+      )
         .eq("competicao", "Liga")
         .eq("status", "finalizada"),
-      supabase.from("transfers").select("tipo, valor").eq("save_id", saveId),
-      supabase
-        .from("players")
-        .select("salario, motivo_saida")
-        .eq("save_id", saveId)
-        .eq("ativo", true),
+      escopo(supabase.from("transfers").select("tipo, valor"), saveId, stintId),
+      escopo(supabase.from("players").select("salario, motivo_saida"), saveId, stintId).eq(
+        "ativo",
+        true,
+      ),
     ]);
 
-  const { data: saveRow } = await supabase
-    .from("saves")
-    .select("clubs(nome)")
-    .eq("id", saveId)
-    .maybeSingle();
+  const consultaClube = stintId
+    ? supabase.from("stints").select("clubs(nome)").eq("id", stintId)
+    : supabase.from("saves").select("clubs(nome)").eq("id", saveId);
+  const { data: saveRow } = await consultaClube.maybeSingle();
   const clubeNome = (saveRow as { clubs: { nome: string } | null } | null)?.clubs?.nome ?? null;
 
   const ultimaRodada = (standings ?? [])[0]?.rodada ?? null;

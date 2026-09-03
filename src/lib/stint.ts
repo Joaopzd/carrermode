@@ -98,3 +98,12 @@ export async function stintSemDados(stintId: string): Promise<boolean> {
   ]);
   return (players.count ?? 0) === 0 && (matches.count ?? 0) === 0;
 }
+
+/** Aplica o filtro de escopo: passagem atual quando houver, senão a carreira inteira. */
+export function escopo<T extends { eq: (coluna: string, valor: string) => T }>(
+  q: T,
+  saveId: string,
+  stintId?: string | null,
+): T {
+  return stintId ? q.eq("stint_id", stintId) : q.eq("save_id", saveId);
+}
