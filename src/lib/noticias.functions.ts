@@ -88,6 +88,7 @@ async function chamarIA(sistema: string, dados: unknown): Promise<string> {
 
 type Entrada = {
   saveId: string;
+  stintId?: string | null;
   tipo: TipoEvento;
   dados: Record<string, unknown>;
   relacionadoMatchId?: string;
@@ -109,10 +110,10 @@ export const gerarNoticia = createServerFn({ method: "POST" })
     const titulo = (linhaTitulo?.[1] ?? "Notícia do clube").trim().slice(0, 120);
     const corpo = (linhaCorpo?.[1] ?? texto).trim();
 
-    const { data: seasonAtiva } = await context.supabase
-      .from("seasons")
-      .select("id")
-      .eq("save_id", data.saveId)
+    const consultaSeason = context.supabase.from("seasons").select("id");
+    const { data: seasonAtiva } = await (data.stintId
+      ? consultaSeason.eq("stint_id", data.stintId)
+      : consultaSeason.eq("save_id", data.saveId))
       .eq("status", "ativa")
       .order("criado_em", { ascending: false })
       .limit(1)
@@ -122,6 +123,7 @@ export const gerarNoticia = createServerFn({ method: "POST" })
       .from("news_feed")
       .insert({
         save_id: data.saveId,
+        stint_id: data.stintId ?? null,
         season_id: seasonAtiva?.id ?? null,
         tipo: tipoNews,
         titulo,

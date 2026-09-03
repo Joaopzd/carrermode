@@ -15,7 +15,11 @@ async function disparar(
   saveId: string,
   tipo: TipoEvento,
   dados: Record<string, unknown>,
-  extras: { relacionadoMatchId?: string; relacionadoPlayerId?: string } = {},
+  extras: {
+    relacionadoMatchId?: string;
+    relacionadoPlayerId?: string;
+    stintId?: string | null;
+  } = {},
 ) {
   try {
     await gerarNoticia({ data: { saveId, tipo, dados, ...extras } });
@@ -82,7 +86,7 @@ export async function checarEventosPosPartida(
         saveId,
         "jogador_banco",
         { jogador: fav.nome, jogos_no_banco: 3, resultados_recentes: resultados.slice(0, 3) },
-        { relacionadoMatchId: matchId, relacionadoPlayerId: fav.id },
+        { relacionadoMatchId: matchId, relacionadoPlayerId: fav.id, stintId },
       );
       break;
     }
@@ -106,7 +110,7 @@ export async function checarEventosPosPartida(
           competicao: p.competicao,
         })),
       },
-      { relacionadoMatchId: matchId },
+      { relacionadoMatchId: matchId, stintId },
     );
   }
 }
@@ -154,7 +158,7 @@ export async function checarVendaPolemica(
       valor,
       clube_destino: clubeDestino,
     },
-    { relacionadoPlayerId: playerId },
+    { relacionadoPlayerId: playerId, stintId },
   );
 }
 
