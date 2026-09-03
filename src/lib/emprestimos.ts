@@ -30,11 +30,12 @@ export function emprestimoAtivo(t: {
 }
 
 /** Busca todos os empréstimos ainda ativos do save, de qualquer temporada. */
-export async function carregarEmprestimosAtivos(saveId: string): Promise<EmprestimoRow[]> {
-  const { data } = await supabase
-    .from("transfers")
-    .select("*")
-    .eq("save_id", saveId)
+export async function carregarEmprestimosAtivos(
+  saveId: string,
+  stintId?: string | null,
+): Promise<EmprestimoRow[]> {
+  const base = supabase.from("transfers").select("*");
+  const { data } = await (stintId ? base.eq("stint_id", stintId) : base.eq("save_id", saveId))
     .eq("modalidade", "emprestimo")
     .in("status_opcao", ["pendente", "nao_aplicavel"])
     .order("data", { ascending: false });
@@ -82,10 +83,12 @@ export async function efetivarCompraEmprestimo(
   seasonId: string | null,
   t: EmprestimoRow,
   janela: "verao" | "inverno",
+  stintId?: string | null,
 ) {
   const hoje = hojeISO();
   const { error } = await supabase.from("transfers").insert({
     save_id: saveId,
+    stint_id: stintId ?? null,
     season_id: seasonId,
     tipo: t.tipo,
     modalidade: "definitiva",
@@ -121,13 +124,16 @@ export async function resolverEmprestimosNoFimDaTemporada(
   saveId: string,
   seasonId: string,
   janela: "verao" | "inverno",
+  stintId?: string | null,
 ): Promise<{ devolvidos: number; comprados: number }> {
-  const ativos = (await carregarEmprestimosAtivos(saveId)).filter((t) => t.season_id === seasonId);
+  const ativos = (await carregarEmprestimosAtivos(saveId, stintId)).filter(
+    (t) => t.season_id === seasonId,
+  );
   let devolvidos = 0;
   let comprados = 0;
   for (const t of ativos) {
     if (t.obrigacao_compra) {
-      await efetivarCompraEmprestimo(saveId, seasonId, t, janela);
+      await efetivarCompraEmprestimo(saveId, seasonId, t, janela, stintId);
       comprados++;
     } else {
       await encerrarEmprestimo(t);
