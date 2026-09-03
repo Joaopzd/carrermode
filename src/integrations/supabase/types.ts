@@ -22,6 +22,7 @@ export type Database = {
           save_id: string
           season_id: string | null
           status: string
+          stint_id: string | null
           temporada: string | null
           tipo: string
         }
@@ -32,6 +33,7 @@ export type Database = {
           save_id: string
           season_id?: string | null
           status?: string
+          stint_id?: string | null
           temporada?: string | null
           tipo: string
         }
@@ -42,6 +44,7 @@ export type Database = {
           save_id?: string
           season_id?: string | null
           status?: string
+          stint_id?: string | null
           temporada?: string | null
           tipo?: string
         }
@@ -58,6 +61,13 @@ export type Database = {
             columns: ["season_id"]
             isOneToOne: false
             referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "board_objectives_stint_id_fkey"
+            columns: ["stint_id"]
+            isOneToOne: false
+            referencedRelation: "stints"
             referencedColumns: ["id"]
           },
         ]
@@ -144,6 +154,7 @@ export type Database = {
           player_id: string | null
           resolvido: boolean
           save_id: string
+          stint_id: string | null
           tipo: string
         }
         Insert: {
@@ -153,6 +164,7 @@ export type Database = {
           player_id?: string | null
           resolvido?: boolean
           save_id: string
+          stint_id?: string | null
           tipo: string
         }
         Update: {
@@ -162,6 +174,7 @@ export type Database = {
           player_id?: string | null
           resolvido?: boolean
           save_id?: string
+          stint_id?: string | null
           tipo?: string
         }
         Relationships: [
@@ -177,6 +190,13 @@ export type Database = {
             columns: ["save_id"]
             isOneToOne: false
             referencedRelation: "saves"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fan_pressure_events_stint_id_fkey"
+            columns: ["stint_id"]
+            isOneToOne: false
+            referencedRelation: "stints"
             referencedColumns: ["id"]
           },
         ]
@@ -455,6 +475,7 @@ export type Database = {
           save_id: string
           season_id: string | null
           status: string
+          stint_id: string | null
           tempo_recuperacao: number | null
           xg: number | null
         }
@@ -481,6 +502,7 @@ export type Database = {
           save_id: string
           season_id?: string | null
           status?: string
+          stint_id?: string | null
           tempo_recuperacao?: number | null
           xg?: number | null
         }
@@ -507,6 +529,7 @@ export type Database = {
           save_id?: string
           season_id?: string | null
           status?: string
+          stint_id?: string | null
           tempo_recuperacao?: number | null
           xg?: number | null
         }
@@ -532,6 +555,13 @@ export type Database = {
             referencedRelation: "seasons"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "matches_stint_id_fkey"
+            columns: ["stint_id"]
+            isOneToOne: false
+            referencedRelation: "stints"
+            referencedColumns: ["id"]
+          },
         ]
       }
       news_feed: {
@@ -544,6 +574,7 @@ export type Database = {
           relacionado_transfer_id: string | null
           save_id: string
           season_id: string | null
+          stint_id: string | null
           tipo: string
           titulo: string
         }
@@ -556,6 +587,7 @@ export type Database = {
           relacionado_transfer_id?: string | null
           save_id: string
           season_id?: string | null
+          stint_id?: string | null
           tipo: string
           titulo: string
         }
@@ -568,6 +600,7 @@ export type Database = {
           relacionado_transfer_id?: string | null
           save_id?: string
           season_id?: string | null
+          stint_id?: string | null
           tipo?: string
           titulo?: string
         }
@@ -605,6 +638,13 @@ export type Database = {
             columns: ["season_id"]
             isOneToOne: false
             referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "news_feed_stint_id_fkey"
+            columns: ["stint_id"]
+            isOneToOne: false
+            referencedRelation: "stints"
             referencedColumns: ["id"]
           },
         ]
@@ -678,6 +718,7 @@ export type Database = {
           salario: number | null
           save_id: string
           status: string | null
+          stint_id: string | null
           transfer_saida_id: string | null
           valor_mercado: number | null
         }
@@ -704,6 +745,7 @@ export type Database = {
           salario?: number | null
           save_id: string
           status?: string | null
+          stint_id?: string | null
           transfer_saida_id?: string | null
           valor_mercado?: number | null
         }
@@ -730,6 +772,7 @@ export type Database = {
           salario?: number | null
           save_id?: string
           status?: string | null
+          stint_id?: string | null
           transfer_saida_id?: string | null
           valor_mercado?: number | null
         }
@@ -739,6 +782,13 @@ export type Database = {
             columns: ["save_id"]
             isOneToOne: false
             referencedRelation: "saves"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "players_stint_id_fkey"
+            columns: ["stint_id"]
+            isOneToOne: false
+            referencedRelation: "stints"
             referencedColumns: ["id"]
           },
           {
@@ -826,6 +876,7 @@ export type Database = {
           resumo: Json | null
           save_id: string
           status: string
+          stint_id: string | null
         }
         Insert: {
           criado_em?: string
@@ -836,6 +887,7 @@ export type Database = {
           resumo?: Json | null
           save_id: string
           status?: string
+          stint_id?: string | null
         }
         Update: {
           criado_em?: string
@@ -846,6 +898,7 @@ export type Database = {
           resumo?: Json | null
           save_id?: string
           status?: string
+          stint_id?: string | null
         }
         Relationships: [
           {
@@ -853,6 +906,13 @@ export type Database = {
             columns: ["save_id"]
             isOneToOne: false
             referencedRelation: "saves"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "seasons_stint_id_fkey"
+            columns: ["stint_id"]
+            isOneToOne: false
+            referencedRelation: "stints"
             referencedColumns: ["id"]
           },
         ]
@@ -865,6 +925,7 @@ export type Database = {
           nacionalidade: string | null
           nome: string
           save_id: string
+          stint_id: string | null
         }
         Insert: {
           cargo: string
@@ -873,6 +934,7 @@ export type Database = {
           nacionalidade?: string | null
           nome: string
           save_id: string
+          stint_id?: string | null
         }
         Update: {
           cargo?: string
@@ -881,6 +943,7 @@ export type Database = {
           nacionalidade?: string | null
           nome?: string
           save_id?: string
+          stint_id?: string | null
         }
         Relationships: [
           {
@@ -888,6 +951,13 @@ export type Database = {
             columns: ["save_id"]
             isOneToOne: false
             referencedRelation: "saves"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_stint_id_fkey"
+            columns: ["stint_id"]
+            isOneToOne: false
+            referencedRelation: "stints"
             referencedColumns: ["id"]
           },
         ]
@@ -907,6 +977,7 @@ export type Database = {
           saldo: number
           save_id: string
           season_id: string | null
+          stint_id: string | null
           time: string
           vitorias: number
         }
@@ -924,6 +995,7 @@ export type Database = {
           saldo?: number
           save_id: string
           season_id?: string | null
+          stint_id?: string | null
           time: string
           vitorias?: number
         }
@@ -941,6 +1013,7 @@ export type Database = {
           saldo?: number
           save_id?: string
           season_id?: string | null
+          stint_id?: string | null
           time?: string
           vitorias?: number
         }
@@ -957,6 +1030,74 @@ export type Database = {
             columns: ["season_id"]
             isOneToOne: false
             referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "standings_snapshot_stint_id_fkey"
+            columns: ["stint_id"]
+            isOneToOne: false
+            referencedRelation: "stints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stints: {
+        Row: {
+          atualizado_em: string
+          club_id: string | null
+          criado_em: string
+          data_fim: string | null
+          data_inicio: string
+          id: string
+          league_id: string | null
+          motivo_saida: Database["public"]["Enums"]["stint_exit_reason"] | null
+          save_id: string
+          status: Database["public"]["Enums"]["stint_status"]
+        }
+        Insert: {
+          atualizado_em?: string
+          club_id?: string | null
+          criado_em?: string
+          data_fim?: string | null
+          data_inicio?: string
+          id?: string
+          league_id?: string | null
+          motivo_saida?: Database["public"]["Enums"]["stint_exit_reason"] | null
+          save_id: string
+          status?: Database["public"]["Enums"]["stint_status"]
+        }
+        Update: {
+          atualizado_em?: string
+          club_id?: string | null
+          criado_em?: string
+          data_fim?: string | null
+          data_inicio?: string
+          id?: string
+          league_id?: string | null
+          motivo_saida?: Database["public"]["Enums"]["stint_exit_reason"] | null
+          save_id?: string
+          status?: Database["public"]["Enums"]["stint_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stints_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stints_league_id_fkey"
+            columns: ["league_id"]
+            isOneToOne: false
+            referencedRelation: "leagues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stints_save_id_fkey"
+            columns: ["save_id"]
+            isOneToOne: false
+            referencedRelation: "saves"
             referencedColumns: ["id"]
           },
         ]
@@ -976,6 +1117,7 @@ export type Database = {
           save_id: string
           season_id: string | null
           status_opcao: Database["public"]["Enums"]["transfer_option_status"]
+          stint_id: string | null
           tem_opcao_compra: boolean
           tipo: string
           transfer_origem_emprestimo_id: string | null
@@ -996,6 +1138,7 @@ export type Database = {
           save_id: string
           season_id?: string | null
           status_opcao?: Database["public"]["Enums"]["transfer_option_status"]
+          stint_id?: string | null
           tem_opcao_compra?: boolean
           tipo: string
           transfer_origem_emprestimo_id?: string | null
@@ -1016,6 +1159,7 @@ export type Database = {
           save_id?: string
           season_id?: string | null
           status_opcao?: Database["public"]["Enums"]["transfer_option_status"]
+          stint_id?: string | null
           tem_opcao_compra?: boolean
           tipo?: string
           transfer_origem_emprestimo_id?: string | null
@@ -1052,6 +1196,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "transfers_stint_id_fkey"
+            columns: ["stint_id"]
+            isOneToOne: false
+            referencedRelation: "stints"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "transfers_transfer_origem_emprestimo_id_fkey"
             columns: ["transfer_origem_emprestimo_id"]
             isOneToOne: false
@@ -1071,6 +1222,7 @@ export type Database = {
           id: string
           save_id: string
           season_id: string | null
+          stint_id: string | null
           vice_clube: string | null
         }
         Insert: {
@@ -1083,6 +1235,7 @@ export type Database = {
           id?: string
           save_id: string
           season_id?: string | null
+          stint_id?: string | null
           vice_clube?: string | null
         }
         Update: {
@@ -1095,6 +1248,7 @@ export type Database = {
           id?: string
           save_id?: string
           season_id?: string | null
+          stint_id?: string | null
           vice_clube?: string | null
         }
         Relationships: [
@@ -1119,6 +1273,13 @@ export type Database = {
             referencedRelation: "seasons"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "trophy_gallery_stint_id_fkey"
+            columns: ["stint_id"]
+            isOneToOne: false
+            referencedRelation: "stints"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
@@ -1129,6 +1290,7 @@ export type Database = {
       owns_league: { Args: { _league_id: string }; Returns: boolean }
       owns_match: { Args: { _match_id: string }; Returns: boolean }
       owns_save: { Args: { _save_id: string }; Returns: boolean }
+      owns_stint: { Args: { _stint_id: string }; Returns: boolean }
     }
     Enums: {
       competition_scope: "continental" | "liga" | "copa_nacional" | "supercopa"
@@ -1145,6 +1307,12 @@ export type Database = {
         | "cadastro_inicial"
         | "atualizacao_manual"
         | "fim_temporada"
+      stint_exit_reason:
+        | "demitido"
+        | "pediu_para_sair"
+        | "fim_de_contrato"
+        | "aposentou"
+      stint_status: "ativa" | "encerrada"
       transfer_option_status:
         | "nao_aplicavel"
         | "pendente"
@@ -1166,12 +1334,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1195,11 +1363,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1220,11 +1388,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1245,11 +1413,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1262,11 +1430,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -1294,6 +1462,13 @@ export const Constants = {
         "atualizacao_manual",
         "fim_temporada",
       ],
+      stint_exit_reason: [
+        "demitido",
+        "pediu_para_sair",
+        "fim_de_contrato",
+        "aposentou",
+      ],
+      stint_status: ["ativa", "encerrada"],
       transfer_option_status: [
         "nao_aplicavel",
         "pendente",

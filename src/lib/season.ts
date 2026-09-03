@@ -58,11 +58,10 @@ export function rotuloMotivo(m: string | null | undefined) {
 export async function garantirSeasonAtiva(
   saveId: string,
   nomePadrao = "Temporada 1",
+  stintId?: string,
 ): Promise<Season | null> {
-  const { data } = await supabase
-    .from("seasons")
-    .select("*")
-    .eq("save_id", saveId)
+  const q = supabase.from("seasons").select("*");
+  const { data } = await (stintId ? q.eq("stint_id", stintId) : q.eq("save_id", saveId))
     .eq("status", "ativa")
     .order("criado_em", { ascending: false })
     .limit(1)
@@ -72,7 +71,7 @@ export async function garantirSeasonAtiva(
 
   const { data: criada } = await supabase
     .from("seasons")
-    .insert({ save_id: saveId, nome: nomePadrao, status: "ativa" })
+    .insert({ save_id: saveId, stint_id: stintId ?? null, nome: nomePadrao, status: "ativa" })
     .select("*")
     .single();
 
@@ -108,7 +107,7 @@ const normalizar = (v: string | null | undefined) =>
  * Quando há mudança de divisão, atualiza a liga do save.
  */
 export async function apurarTransicaoLiga(
-  saveId: string,
+  stintId: string,
   tabelaFinal: { time: string; posicao: number | null }[],
 ): Promise<TransicaoLiga> {
   const vazio: TransicaoLiga = {
@@ -121,9 +120,9 @@ export async function apurarTransicaoLiga(
   };
 
   const { data: saveRow } = await supabase
-    .from("saves")
+    .from("stints")
     .select("id, league_id, clubs(nome), leagues(id, nome, pais, nivel)")
-    .eq("id", saveId)
+    .eq("id", stintId)
     .maybeSingle();
   if (!saveRow) return vazio;
 
@@ -170,9 +169,9 @@ export async function apurarTransicaoLiga(
     if (destino) {
       ligaNova = destino.nome as string;
       await supabase
-        .from("saves")
+        .from("stints")
         .update({ league_id: destino.id as string })
-        .eq("id", saveId);
+        .eq("id", stintId);
     } else {
       // Sem divisão correspondente cadastrada: mantém a liga atual.
       movimento = "permanencia";
@@ -190,29 +189,29 @@ export async function apurarTransicaoLiga(
 }
 
 /** Calcula o resumo da season ativa, encerra e abre a próxima. */
-export async function encerrarTemporada(saveId: string, seasonId: string) {
+export async function encerrarTemporada(saveId: string, seasonId: string, stintId: string) {
   const [partidasRes, statsRes, playersRes, transfersRes, standingsRes, seasonRes] =
     await Promise.all([
       supabase
         .from("matches")
         .select("id, placar_time, placar_adversario, competicao")
-        .eq("save_id", saveId)
+        .eq("stint_id", stintId)
         .eq("season_id", seasonId)
         .eq("status", "finalizada"),
       supabase.from("match_player_stats").select("player_id, gols, match_id"),
       supabase
         .from("players")
         .select("id, nome, overall, valor_mercado, ativo")
-        .eq("save_id", saveId),
+        .eq("stint_id", stintId),
       supabase
         .from("transfers")
         .select("tipo, valor")
-        .eq("save_id", saveId)
+        .eq("stint_id", stintId)
         .eq("season_id", seasonId),
       supabase
         .from("standings_snapshot")
         .select("time, posicao, rodada")
-        .eq("save_id", saveId)
+        .eq("stint_id", stintId)
         .eq("season_id", seasonId)
         .order("rodada", { ascending: false }),
       supabase.from("seasons").select("*").eq("id", seasonId).maybeSingle(),
@@ -263,7 +262,7 @@ export async function encerrarTemporada(saveId: string, seasonId: string) {
   const seasonAtual = seasonRes.data as unknown as Season | null;
 
   const transicao = await apurarTransicaoLiga(
-    saveId,
+    stintId,
     linhasUltima.map((l) => ({ time: l.time, posicao: l.posicao })),
   );
 
@@ -315,6 +314,7 @@ export async function encerrarTemporada(saveId: string, seasonId: string) {
     .from("seasons")
     .insert({
       save_id: saveId,
+      stint_id: stintId,
       nome: nova,
       status: "ativa",
       data_inicio: new Date().toISOString().slice(0, 10),
@@ -325,10 +325,11 @@ export async function encerrarTemporada(saveId: string, seasonId: string) {
   const novaSeason = (criada as unknown as Season | null) ?? null;
 
   // Empréstimos vencidos: obrigação de compra vira definitiva, o resto devolve o jogador.
-  const emprestimos = await resolverEmprestimosNoFimDaTemporada(saveId, seasonId, "verao");
+  const emprestimos = await resolverEmprestimosNoFimDaTemporada(saveId, seasonId, "verao", stintId);
   if (emprestimos.devolvidos > 0 || emprestimos.comprados > 0) {
     await supabase.from("news_feed").insert({
       save_id: saveId,
+      stint_id: stintId,
       season_id: novaSeason?.id ?? null,
       tipo: "transferencia",
       titulo: "Empréstimos encerrados no fim da temporada",
@@ -355,6 +356,7 @@ export async function encerrarTemporada(saveId: string, seasonId: string) {
       .join(" ");
     await supabase.from("news_feed").insert({
       save_id: saveId,
+      stint_id: stintId,
       season_id: novaSeason?.id ?? null,
       tipo: "temporada",
       titulo,
