@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.owns_stint(uuid) FROM anon, authenticated, public;
