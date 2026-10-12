@@ -79,7 +79,7 @@ export function useSaveAtual() {
         setSave({
           id: data.id as string,
           stintId: stint?.id ?? null,
-          temporada: data.temporada as string,
+          temporada: season?.nome ?? (data.temporada as string),
           clubId: stint?.club_id ?? null,
           clubeNome: clube?.nome ?? null,
           escudo: (stint?.escudo_url ?? clube?.escudo_url) ?? null,

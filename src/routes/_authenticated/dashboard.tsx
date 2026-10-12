@@ -334,7 +334,7 @@ function Dashboard() {
         escudo: (stint.escudo_url ?? clube?.escudo_url) ?? null,
 
         ligaNome: liga?.nome ?? null,
-        temporada: save.temporada as string,
+        temporada: season?.nome ?? (save.temporada as string),
         manager: managerRes.data ?? null,
         overallMedio:
           overalls.length > 0
