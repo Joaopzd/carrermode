@@ -87,8 +87,8 @@ function PartidasPage() {
 
   const [nomesMvp, setNomesMvp] = useState<Record<string, string>>({});
 
-  const carregar = useCallback(async (saveId: string, seasonId: string | null) => {
-    let q = supabase.from("matches").select("*").eq("save_id", saveId);
+  const carregar = useCallback(async (saveId: string, seasonId: string | null, stintId: string) => {
+    let q = supabase.from("matches").select("*").eq("stint_id", stintId);
     if (seasonId) q = q.eq("season_id", seasonId);
     const { data } = await q.order("data_hora", { ascending: false });
     const lista = (data ?? []) as PartidaBase[];
@@ -113,7 +113,7 @@ function PartidasPage() {
       if (!carregandoSave) setCarregando(false);
       return;
     }
-    void carregar(save.id, save.seasonId);
+    void carregar(save.id, save.seasonId, save.stintId ?? "");
   }, [save, carregandoSave, carregar]);
 
   const dataCarreira = save ? lerDataCarreira(save.id) : null;
@@ -166,7 +166,8 @@ function PartidasPage() {
       ? await supabase.from("matches").update(payload).eq("id", editandoId)
       : await supabase
           .from("matches")
-          .insert({ ...payload, save_id: save.id, season_id: save.seasonId, status: "agendada" });
+          .insert({ ...payload, save_id: save.id,
+        stint_id: save.stintId, season_id: save.seasonId, status: "agendada" });
     setSalvandoForm(false);
     if (error) {
       toast.error("Não foi possível salvar a partida.");
@@ -174,7 +175,7 @@ function PartidasPage() {
     }
     toast.success(editandoId ? "Partida atualizada!" : "Partida agendada!");
     setFormAberto(false);
-    void carregar(save.id, save.seasonId);
+    void carregar(save.id, save.seasonId, save.stintId ?? "");
   }
 
   async function excluirPartida() {
@@ -191,7 +192,7 @@ function PartidasPage() {
     }
     toast.success("Partida excluída.");
     setExcluindo(null);
-    void carregar(save.id, save.seasonId);
+    void carregar(save.id, save.seasonId, save.stintId ?? "");
   }
 
   const agendadas = partidas.filter((p) => p.status !== "finalizada");
@@ -561,10 +562,11 @@ function PartidasPage() {
           <FecharPartidaDialog
             partida={selecionada}
             saveId={save.id}
+            stintId={save.stintId}
             clubeNome={save.clubeNome}
             aberto={aberto}
             onOpenChange={setAberto}
-            onSalvo={() => void carregar(save.id, save.seasonId)}
+            onSalvo={() => void carregar(save.id, save.seasonId, save.stintId ?? "")}
           />
           <RelatorioPartidaDialog
             partida={relatorio}
@@ -576,7 +578,7 @@ function PartidasPage() {
               setRelatorioAberto(false);
               abrir(p);
             }}
-            onAtualizado={() => void carregar(save.id, save.seasonId)}
+            onAtualizado={() => void carregar(save.id, save.seasonId, save.stintId ?? "")}
           />
         </>
       ) : null}

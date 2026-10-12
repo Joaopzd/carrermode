@@ -133,11 +133,11 @@ function ElencoPage() {
     motivo: "aposentadoria" | "rescisao_contrato";
   } | null>(null);
 
-  async function definirCapitaoUnico(saveId: string, jogadorId: string) {
+  async function definirCapitaoUnico(stintId: string, jogadorId: string) {
     await supabase
       .from("players")
       .update({ capitao: false })
-      .eq("save_id", saveId)
+      .eq("stint_id", stintId)
       .neq("id", jogadorId);
   }
 
@@ -148,13 +148,14 @@ function ElencoPage() {
       .from("players")
       .insert({
         save_id: save.id,
+        stint_id: save.stintId,
         categoria: "principal",
         criado_via: "manual",
         ...formParaPayload(form),
       })
       .select("id")
       .single();
-    if (!error && form.capitao && novo) await definirCapitaoUnico(save.id, novo.id);
+    if (!error && form.capitao && novo) await definirCapitaoUnico(save.stintId ?? "", novo.id);
     setCriando(false);
     if (error) {
       toast.error("Não foi possível adicionar o jogador.");
@@ -162,14 +163,14 @@ function ElencoPage() {
     }
     toast.success("Jogador adicionado ao elenco!");
     setAdicionando(false);
-    void carregar(save.id);
+    void carregar(save.id, save.stintId ?? "");
   }
 
-  async function carregar(saveId: string) {
+  async function carregar(saveId: string, stintId: string) {
     const { data } = await supabase
       .from("players")
       .select("*")
-      .eq("save_id", saveId)
+      .eq("stint_id", stintId)
       .eq("ativo", true)
       .order("nome");
     setJogadores(
@@ -185,7 +186,7 @@ function ElencoPage() {
       if (!carregandoSave) setCarregando(false);
       return;
     }
-    void carregar(save.id);
+    void carregar(save.id, save.stintId ?? "");
   }, [save, carregandoSave]);
 
   const filtrados = useMemo(() => {
@@ -225,7 +226,7 @@ function ElencoPage() {
         capitao: editando.capitao,
       })
       .eq("id", editando.id);
-    if (!error && editando.capitao && save) await definirCapitaoUnico(save.id, editando.id);
+    if (!error && editando.capitao && save) await definirCapitaoUnico(save.stintId ?? "", editando.id);
     if (
       !error &&
       save?.seasonId &&
@@ -250,7 +251,7 @@ function ElencoPage() {
     }
     toast.success("Jogador atualizado!");
     setEditando(null);
-    if (save) void carregar(save.id);
+    if (save) void carregar(save.id, save.stintId ?? "");
   }
 
   async function excluirJogador() {
@@ -277,7 +278,7 @@ function ElencoPage() {
     toast.success("Jogador excluído do elenco.");
     setExcluindo(null);
     setEditando(null);
-    void carregar(save.id);
+    void carregar(save.id, save.stintId ?? "");
   }
 
   async function encerrarVinculo() {
@@ -296,7 +297,7 @@ function ElencoPage() {
         transfer_saida_id: null,
       })
       .eq("id", encerrando.jogador.id)
-      .eq("save_id", save.id);
+      .eq("stint_id", save.stintId ?? "");
     setRemovendo(false);
     if (error) {
       toast.error("Não foi possível concluir a saída do jogador.");
@@ -305,7 +306,7 @@ function ElencoPage() {
     toast.success(aposentadoria ? "Aposentadoria registrada." : "Contrato rescindido.");
     setEncerrando(null);
     setEditando(null);
-    void carregar(save.id);
+    void carregar(save.id, save.stintId ?? "");
   }
 
   function campo(patch: Partial<Jogador>) {
@@ -801,6 +802,7 @@ function ElencoPage() {
       <PlayerProfileSheet
         playerId={perfilId}
         saveId={save?.id ?? null}
+        stintId={save?.stintId ?? null}
         seasonId={save?.seasonId ?? null}
         escopoInicial="carreira"
         onOpenChange={(o) => !o && setPerfilId(null)}

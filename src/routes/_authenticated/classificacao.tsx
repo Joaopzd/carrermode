@@ -163,12 +163,12 @@ function ClassificacaoPage() {
   const [regras, setRegras] = useState<LeagueRules | null>(null);
 
   const carregar = useCallback(
-    async (saveId: string, seasonId: string | null, leagueId: string | null) => {
+    async (saveId: string, seasonId: string | null, leagueId: string | null, stintId: string) => {
     void carregarRegras(leagueId).then(setRegras);
     let qm = supabase
       .from("matches")
       .select("competicao, fase, status, placar_time, placar_adversario, data_hora")
-      .eq("save_id", saveId);
+      .eq("stint_id", stintId);
     if (seasonId) qm = qm.eq("season_id", seasonId);
     const { data: mts } = await qm;
     const todas = (mts ?? []) as PartidaResumo[];
@@ -187,7 +187,7 @@ function ClassificacaoPage() {
     setCampanha(acc);
     setCopas(resumirCopas(todas));
 
-    let qs = supabase.from("standings_snapshot").select("*").eq("save_id", saveId);
+    let qs = supabase.from("standings_snapshot").select("*").eq("stint_id", stintId);
     if (seasonId) qs = qs.eq("season_id", seasonId);
     const { data: snaps } = await qs.order("rodada", { ascending: false });
     setSnapshots((snaps ?? []) as Snapshot[]);
@@ -201,7 +201,7 @@ function ClassificacaoPage() {
       if (!carregandoSave) setCarregando(false);
       return;
     }
-    void carregar(save.id, save.seasonId, save.leagueId);
+    void carregar(save.id, save.seasonId, save.leagueId, save.stintId ?? "");
   }, [save, carregandoSave, carregar]);
 
   const ultimaRodada = useMemo(() => {
@@ -281,7 +281,7 @@ function ClassificacaoPage() {
     let del = supabase
       .from("standings_snapshot")
       .delete()
-      .eq("save_id", save.id)
+      .eq("stint_id", save.stintId ?? "")
       .eq("rodada", rod);
     if (save.seasonId) del = del.eq("season_id", save.seasonId);
     await del;
@@ -289,6 +289,7 @@ function ClassificacaoPage() {
     const { error } = await supabase.from("standings_snapshot").insert(
       ordenadas.map((l, i) => ({
         save_id: save.id,
+        stint_id: save.stintId,
         season_id: save.seasonId,
         rodada: rod,
         time: l.time.trim(),
@@ -310,7 +311,7 @@ function ClassificacaoPage() {
     }
     toast.success(`Rodada ${rod} sincronizada.`);
     setAberto(false);
-    void carregar(save.id, save.seasonId, save.leagueId);
+    void carregar(save.id, save.seasonId, save.leagueId, save.stintId ?? "");
   }
 
   return (

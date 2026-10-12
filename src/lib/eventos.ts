@@ -18,7 +18,7 @@ async function disparar(
   extras: {
     relacionadoMatchId?: string;
     relacionadoPlayerId?: string;
-    stintId?: string | null;
+    stintId?: string | null | undefined;
   } = {},
 ) {
   try {
@@ -199,9 +199,7 @@ export async function avaliarMetas(
       ),
     ]);
 
-  const consultaClube = stintId
-    ? supabase.from("stints").select("clubs(nome)").eq("id", stintId)
-    : supabase.from("saves").select("clubs(nome)").eq("id", saveId);
+  const consultaClube = supabase.from("stints").select("clubs(nome)").eq("id", stintId ?? "00000000-0000-0000-0000-000000000000");
   const { data: saveRow } = await consultaClube.maybeSingle();
   const clubeNome = (saveRow as { clubs: { nome: string } | null } | null)?.clubs?.nome ?? null;
 
@@ -266,7 +264,7 @@ export async function avaliarMetas(
         alvo,
         valor_atual: atual,
         jogos_de_liga_disputados: jogosLiga,
-      });
+      }, { stintId: stintId ?? null });
     }
   }
 

@@ -92,7 +92,7 @@ function ExJogadoresPage() {
     }
     let ativo = true;
     void (async () => {
-      const r = await contarMvpsJogador(save.id, selecionado.id, save.seasonId);
+      const r = await contarMvpsJogador(save.id, selecionado.id, save.seasonId, save.stintId);
       if (ativo) setMvpsJogador(r);
     })();
     return () => {
@@ -112,14 +112,14 @@ function ExJogadoresPage() {
           .select(
             "id, nome, nacionalidade, posicao_principal, overall, idade, data_saida, motivo_saida, clube_destino, transfer_saida_id",
           )
-          .eq("save_id", save.id)
+          .eq("stint_id", save.stintId ?? "")
           .eq("ativo", false)
           .order("data_saida", { ascending: false }),
-        supabase.from("seasons").select("id, nome").eq("save_id", save.id),
+        supabase.from("seasons").select("id, nome").eq("stint_id", save.stintId ?? ""),
         supabase
           .from("transfers")
           .select("id, valor, modalidade, season_id")
-          .eq("save_id", save.id),
+          .eq("stint_id", save.stintId ?? ""),
       ]);
       setLista((pls ?? []) as ExJogador[]);
       setSeasons((ses ?? []) as Season[]);
@@ -277,6 +277,7 @@ function ExJogadoresPage() {
       <PlayerProfileSheet
         playerId={selecionado?.id ?? null}
         saveId={save?.id ?? null}
+        stintId={save?.stintId ?? null}
         seasonId={save?.seasonId ?? null}
         escopoInicial="carreira"
         onOpenChange={(v) => !v && setSelecionado(null)}

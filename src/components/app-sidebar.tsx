@@ -68,6 +68,7 @@ export const GRUPOS_NAV = [
       { title: "Metas da Diretoria", url: "/metas", icon: Target },
       { title: "Histórico", url: "/historico", icon: History },
       { title: "Arquivo de Temporadas", url: "/arquivo", icon: Archive },
+      { title: "Histórico de Carreira", url: "/historico-carreira", icon: History },
     ],
   },
   {
@@ -76,6 +77,7 @@ export const GRUPOS_NAV = [
     itens: [
       { title: "Regras da Liga", url: "/regras-liga", icon: Settings },
       { title: "Trocar Clube", url: "/trocar-clube", icon: Replace },
+      { title: "Encerrar Passagem e Mudar de Clube", url: "/mudar-clube", icon: Repeat },
     ],
   },
 ] as const;

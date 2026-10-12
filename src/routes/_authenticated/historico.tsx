@@ -84,7 +84,7 @@ function HistoricoPage() {
       const { data } = await supabase
         .from("seasons")
         .select("*")
-        .eq("save_id", save.id)
+        .eq("stint_id", save.stintId ?? "")
         .order("criado_em", { ascending: true });
       const lista = (data ?? []) as unknown as Season[];
       setSeasons(lista);

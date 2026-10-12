@@ -95,13 +95,13 @@ function RelacoesClubesPage() {
           .select(
             "id, tipo, modalidade, clube_contraparte, valor, player_id, jogador_troca_id, season_id, data",
           )
-          .eq("save_id", save.id)
+          .eq("stint_id", save.stintId ?? "")
           .order("data", { ascending: false }),
-        supabase.from("players").select("id, nome").eq("save_id", save.id),
+        supabase.from("players").select("id, nome").eq("stint_id", save.stintId ?? ""),
         supabase
           .from("seasons")
           .select("id, nome, criado_em")
-          .eq("save_id", save.id)
+          .eq("stint_id", save.stintId ?? "")
           .order("criado_em", { ascending: false }),
       ]);
       if (!ativo) return;

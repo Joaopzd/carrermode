@@ -59,6 +59,7 @@ const moeda = (v: number | null) =>
 export function PlayerProfileSheet({
   playerId,
   saveId,
+  stintId,
   seasonId,
   escopoInicial = "temporada",
   extra,
@@ -66,6 +67,7 @@ export function PlayerProfileSheet({
 }: {
   playerId: string | null;
   saveId: string | null;
+  stintId?: string | null;
   seasonId: string | null;
   escopoInicial?: EscopoPerfil;
   extra?: ReactNode;
@@ -94,10 +96,10 @@ export function PlayerProfileSheet({
         supabase
           .from("match_player_stats")
           .select(
-            "id, gols, assistencias, nota, defesas, chutes, passes, passes_pct, desarmes, clean_sheet, cartao_amarelo, cartao_vermelho, matches!inner(id, save_id, season_id, data_hora, competicao, adversario, placar_time, placar_adversario, mvp_player_id)",
+            "id, gols, assistencias, nota, defesas, chutes, passes, passes_pct, desarmes, clean_sheet, cartao_amarelo, cartao_vermelho, matches!inner(id, stint_id, season_id, data_hora, competicao, adversario, placar_time, placar_adversario, mvp_player_id)",
           )
           .eq("player_id", playerId)
-          .eq("matches.save_id", saveId),
+          .eq("matches.stint_id", stintId ?? "00000000-0000-0000-0000-000000000000"),
       ]);
       if (!ativo) return;
       setJogador((p ?? null) as PlayerRow | null);
@@ -107,7 +109,7 @@ export function PlayerProfileSheet({
     return () => {
       ativo = false;
     };
-  }, [playerId, saveId]);
+  }, [playerId, saveId, stintId]);
 
   const ordenadas = useMemo(
     () =>

@@ -221,25 +221,25 @@ function TransferenciasPage() {
   const [jogadorNovo, setJogadorNovo] = useState(false);
   const [retornoAberto, setRetornoAberto] = useState(false);
 
-  async function carregar(saveId: string, seasonId: string | null) {
-    let qt = supabase.from("transfers").select("*").eq("save_id", saveId);
+  async function carregar(saveId: string, seasonId: string | null, stintId: string) {
+    let qt = supabase.from("transfers").select("*").eq("stint_id", stintId);
     if (seasonId) qt = qt.eq("season_id", seasonId);
     const [{ data: t }, { data: p }, { data: ex }, ativos] = await Promise.all([
       qt.order("data", { ascending: false }),
       supabase
         .from("players")
         .select("id, nome, overall, status, ativo")
-        .eq("save_id", saveId)
+        .eq("stint_id", stintId)
         .order("nome"),
       supabase
         .from("players")
         .select(
           "id, nome, nacionalidade, posicao_principal, posicoes_secundarias, overall, potencial, valor_mercado, salario, idade, altura, playstyle, status, favorito_torcida, capitao",
         )
-        .eq("save_id", saveId)
+        .eq("stint_id", stintId)
         .eq("ativo", false)
         .order("nome"),
-      carregarEmprestimosAtivos(saveId),
+      carregarEmprestimosAtivos(saveId, stintId),
     ]);
     setLista((t ?? []) as Transferencia[]);
     setEmprestimos(ativos as unknown as Transferencia[]);
@@ -254,7 +254,7 @@ function TransferenciasPage() {
       if (!carregandoSave) setCarregando(false);
       return;
     }
-    void carregar(save.id, save.seasonId);
+    void carregar(save.id, save.seasonId, save.stintId ?? "");
   }, [save, carregandoSave]);
 
   // Deep link de "Recontratar" a partir da tela de Ex-Jogadores.
@@ -383,6 +383,7 @@ function TransferenciasPage() {
       .from("transfers")
       .insert({
         save_id: save.id,
+        stint_id: save.stintId,
         season_id: save.seasonId,
         tipo,
         modalidade,
@@ -424,7 +425,7 @@ function TransferenciasPage() {
           transfer_saida_id: data.id as string,
         })
         .eq("id", jogadorQueSai)
-        .eq("save_id", save.id)
+        .eq("stint_id", save.stintId ?? "")
         .select("id")
         .single();
       if (saidaError) {
@@ -441,6 +442,7 @@ function TransferenciasPage() {
         jogadorQueSai,
         numOrNull(valor),
         clubeContraparte.trim() || null,
+        save.stintId,
       );
     }
 
@@ -473,7 +475,7 @@ function TransferenciasPage() {
       setCadastroAberto(true);
     }
 
-    void carregar(save.id, save.seasonId);
+    void carregar(save.id, save.seasonId, save.stintId ?? "");
   }
 
   /** Reativa o registro de um ex-jogador em vez de criar um novo player. */
@@ -493,7 +495,7 @@ function TransferenciasPage() {
         transfer_saida_id: null,
       })
       .eq("id", retorno.id)
-      .eq("save_id", save.id);
+      .eq("stint_id", save.stintId ?? "");
 
     if (!error && payload.overall != null && save.seasonId) {
       await supabase.from("player_overall_history").insert({
@@ -514,7 +516,7 @@ function TransferenciasPage() {
     setRetornoAberto(false);
     setTransferPendente(null);
     setRetorno(null);
-    void carregar(save.id, save.seasonId);
+    void carregar(save.id, save.seasonId, save.stintId ?? "");
   }
 
   async function salvarJogadorChegando(form: JogadorForm) {
@@ -524,6 +526,7 @@ function TransferenciasPage() {
       .from("players")
       .insert({
         save_id: save.id,
+        stint_id: save.stintId,
         categoria: "principal",
         criado_via: "transferencia",
         ...formParaPayload(form),
@@ -544,7 +547,7 @@ function TransferenciasPage() {
     toast.success("Jogador integrado ao elenco principal!");
     setCadastroAberto(false);
     setTransferPendente(null);
-    void carregar(save.id, save.seasonId);
+    void carregar(save.id, save.seasonId, save.stintId ?? "");
   }
 
   async function salvarEdicao() {
@@ -574,7 +577,7 @@ function TransferenciasPage() {
     }
     toast.success("Transferência atualizada!");
     setEditando(null);
-    void carregar(save.id, save.seasonId);
+    void carregar(save.id, save.seasonId, save.stintId ?? "");
   }
 
   async function excluirTransferencia() {
@@ -602,7 +605,7 @@ function TransferenciasPage() {
     }
     toast.success("Transferência excluída.");
     setExcluindo(null);
-    void carregar(save.id, save.seasonId);
+    void carregar(save.id, save.seasonId, save.stintId ?? "");
   }
 
   async function exercerOpcao(t: Transferencia) {
@@ -611,6 +614,7 @@ function TransferenciasPage() {
     const hoje = hojeISO();
     const { error } = await supabase.from("transfers").insert({
       save_id: save.id,
+        stint_id: save.stintId,
       season_id: save.seasonId,
       tipo: t.tipo,
       modalidade: "definitiva",
@@ -636,7 +640,7 @@ function TransferenciasPage() {
       return;
     }
     toast.success("Opção de compra exercida!");
-    void carregar(save.id, save.seasonId);
+    void carregar(save.id, save.seasonId, save.stintId ?? "");
   }
 
   async function naoExercerOpcao(t: Transferencia) {
@@ -677,7 +681,7 @@ function TransferenciasPage() {
       return;
     }
     toast.success("Opção de compra não exercida.");
-    void carregar(save.id, save.seasonId);
+    void carregar(save.id, save.seasonId, save.stintId ?? "");
   }
 
   /** Compra um jogador emprestado sem cláusula prévia, pelo valor informado. */
@@ -689,6 +693,7 @@ function TransferenciasPage() {
     const bruto = Number(valorContratacao);
     const { error } = await supabase.from("transfers").insert({
       save_id: save.id,
+        stint_id: save.stintId,
       season_id: save.seasonId,
       tipo: t.tipo,
       modalidade: "definitiva",
@@ -730,7 +735,7 @@ function TransferenciasPage() {
     toast.success("Contratação concluída!");
     setContratando(null);
     setValorContratacao("");
-    void carregar(save.id, save.seasonId);
+    void carregar(save.id, save.seasonId, save.stintId ?? "");
   }
 
   function rotuloJogador(t: Transferencia) {
@@ -751,7 +756,7 @@ function TransferenciasPage() {
     try {
       await encerrarEmprestimo(t as unknown as EmprestimoRow);
       toast.success("Jogador retornado, empréstimo encerrado.");
-      void carregar(save.id, save.seasonId);
+      void carregar(save.id, save.seasonId, save.stintId ?? "");
     } catch {
       toast.error("Não foi possível encerrar o empréstimo.");
     } finally {

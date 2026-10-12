@@ -157,7 +157,7 @@ function EstatisticasPage() {
       const { data: pls } = await supabase
         .from("players")
         .select("*")
-        .eq("save_id", save.id)
+        .eq("stint_id", save.stintId ?? "")
         .eq("ativo", true)
         .or("categoria.eq.principal,categoria.is.null");
       const { data: mts } = await supabase
@@ -165,7 +165,7 @@ function EstatisticasPage() {
         .select(
           "id, data_hora, competicao, adversario, placar_time, placar_adversario, season_id, mvp_player_id, status",
         )
-        .eq("save_id", save.id);
+        .eq("stint_id", save.stintId ?? "");
       const ids = (mts ?? []).map((m) => m.id as string);
       let sts: Stat[] = [];
       if (ids.length > 0) {
@@ -517,6 +517,7 @@ function EstatisticasPage() {
       <PlayerProfileSheet
         playerId={selecionado?.id ?? null}
         saveId={save?.id ?? null}
+        stintId={save?.stintId ?? null}
         seasonId={save?.seasonId ?? null}
         escopoInicial="temporada"
         onOpenChange={(o) => !o && setSelecionado(null)}

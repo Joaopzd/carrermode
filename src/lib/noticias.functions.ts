@@ -88,7 +88,7 @@ async function chamarIA(sistema: string, dados: unknown): Promise<string> {
 
 type Entrada = {
   saveId: string;
-  stintId?: string | null;
+  stintId?: string | null | undefined;
   tipo: TipoEvento;
   dados: Record<string, unknown>;
   relacionadoMatchId?: string;
