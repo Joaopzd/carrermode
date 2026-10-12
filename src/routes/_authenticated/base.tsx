@@ -63,13 +63,13 @@ function BasePage() {
   const [salvando, setSalvando] = useState(false);
   const [liberando, setLiberando] = useState<Cria | null>(null);
 
-  async function carregar(saveId: string) {
+  async function carregar(saveId: string, stintId: string) {
     const { data } = await supabase
       .from("players")
       .select(
         "id, nome, nacionalidade, posicao_principal, overall, potencial, idade, status, playstyle",
       )
-      .eq("save_id", saveId)
+      .eq("stint_id", stintId)
       .eq("ativo", true)
       .eq("categoria", "base")
       .order("nome");
@@ -82,7 +82,7 @@ function BasePage() {
       if (!carregandoSave) setCarregando(false);
       return;
     }
-    void carregar(save.id);
+    void carregar(save.id, save.stintId ?? "");
   }, [save, carregandoSave]);
 
   async function criar(form: JogadorForm) {
@@ -90,6 +90,7 @@ function BasePage() {
     setSalvando(true);
     const { error } = await supabase.from("players").insert({
       save_id: save.id,
+        stint_id: save.stintId,
       categoria: "base",
       criado_via: "manual",
       ...formParaPayload(form),
@@ -101,7 +102,7 @@ function BasePage() {
     }
     toast.success("Jogador adicionado à base!");
     setAdicionando(false);
-    void carregar(save.id);
+    void carregar(save.id, save.stintId ?? "");
   }
 
   async function promover(j: Cria) {
@@ -114,7 +115,7 @@ function BasePage() {
       return;
     }
     toast.success(`${j.nome} foi promovido ao elenco principal!`);
-    if (save) void carregar(save.id);
+    if (save) void carregar(save.id, save.stintId ?? "");
   }
 
   async function liberar(j: Cria) {
@@ -125,7 +126,7 @@ function BasePage() {
       return;
     }
     toast.success(`${j.nome} foi liberado da base.`);
-    if (save) void carregar(save.id);
+    if (save) void carregar(save.id, save.stintId ?? "");
   }
 
   return (

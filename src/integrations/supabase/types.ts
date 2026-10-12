@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.15"
   }
   public: {
     Tables: {
@@ -1048,6 +1048,7 @@ export type Database = {
           criado_em: string
           data_fim: string | null
           data_inicio: string
+          escudo_url: string | null
           id: string
           league_id: string | null
           motivo_saida: Database["public"]["Enums"]["stint_exit_reason"] | null
@@ -1060,6 +1061,7 @@ export type Database = {
           criado_em?: string
           data_fim?: string | null
           data_inicio?: string
+          escudo_url?: string | null
           id?: string
           league_id?: string | null
           motivo_saida?: Database["public"]["Enums"]["stint_exit_reason"] | null
@@ -1072,6 +1074,7 @@ export type Database = {
           criado_em?: string
           data_fim?: string | null
           data_inicio?: string
+          escudo_url?: string | null
           id?: string
           league_id?: string | null
           motivo_saida?: Database["public"]["Enums"]["stint_exit_reason"] | null
@@ -1287,6 +1290,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      corrigir_clube_passagem: {
+        Args: { _club_id: string; _league_id: string; _stint_id: string }
+        Returns: undefined
+      }
+      iniciar_passagem: {
+        Args: {
+          _club_id: string
+          _league_id: string
+          _manager: Json
+          _motivo?: Database["public"]["Enums"]["stint_exit_reason"]
+          _players: Json
+          _save_id: string
+          _staff: Json
+          _temporada: string
+        }
+        Returns: string
+      }
       owns_league: { Args: { _league_id: string }; Returns: boolean }
       owns_match: { Args: { _match_id: string }; Returns: boolean }
       owns_save: { Args: { _save_id: string }; Returns: boolean }

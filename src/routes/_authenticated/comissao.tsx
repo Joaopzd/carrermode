@@ -46,7 +46,7 @@ function ComissaoPage() {
       const { data } = await supabase
         .from("staff")
         .select("id, cargo, nome")
-        .eq("save_id", save.id);
+        .eq("stint_id", save.stintId ?? "");
       const existentes = (data ?? []) as Array<{ id: string; cargo: string; nome: string }>;
       setLinhas(
         CARGOS_STAFF.map((cargo) => {
@@ -73,7 +73,8 @@ function ComissaoPage() {
       } else {
         const { data } = await supabase
           .from("staff")
-          .insert({ save_id: save.id, cargo: l.cargo, nome })
+          .insert({ save_id: save.id,
+        stint_id: save.stintId, cargo: l.cargo, nome })
           .select("id")
           .single();
         if (data) l.id = data.id;

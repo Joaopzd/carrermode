@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { garantirStintAtiva } from "@/lib/stint";
 import { contarMvps } from "@/lib/mvp";
 import { encerrarTemporada, garantirSeasonAtiva, type TransicaoLiga } from "@/lib/season";
 import { AppShell } from "@/components/app-shell";
@@ -61,6 +62,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 type Resumo = {
   saveId: string;
+  stintId: string;
   seasonId: string | null;
   seasonNome: string | null;
   clubeNome: string | null;
@@ -124,7 +126,7 @@ function Dashboard() {
     if (!resumo?.seasonId) return;
     setEncerrando(true);
     try {
-      const { nova, transicao: t } = await encerrarTemporada(resumo.saveId, resumo.seasonId);
+      const { nova, transicao: t } = await encerrarTemporada(resumo.saveId, resumo.seasonId, resumo.stintId);
       setConfirmandoEncerrar(false);
       setTransicao({ ...t, novaTemporada: nova?.nome ?? null });
     } catch {
@@ -177,9 +179,9 @@ function Dashboard() {
     setSalvandoEscudo(true);
     const valor = urlEscudo.trim() || null;
     const { error } = await supabase
-      .from("saves")
+      .from("stints")
       .update({ escudo_url: valor })
-      .eq("id", resumo.saveId);
+      .eq("id", resumo.stintId);
     setSalvandoEscudo(false);
     if (error) {
       toast.error("Não foi possível salvar a logo do clube.");
@@ -198,7 +200,7 @@ function Dashboard() {
 
       const { data: save } = await supabase
         .from("saves")
-        .select("id, temporada, escudo_url, clubs(nome, escudo_url), leagues(nome)")
+        .select("id, temporada")
         .eq("user_id", userId)
         .order("criado_em", { ascending: false })
         .limit(1)
@@ -211,7 +213,12 @@ function Dashboard() {
 
       const saveId = save.id as string;
 
-      const season = await garantirSeasonAtiva(saveId, (save.temporada as string) || "Temporada 1");
+      const stint = await garantirStintAtiva(saveId);
+      if (!stint) { navigate({ to: "/mudar-clube" }); return; }
+      const stintId = stint.id;
+      const { data: identidade } = await supabase.from("stints")
+        .select("clubs(nome, escudo_url), leagues(nome)").eq("id", stintId).single();
+      const season = await garantirSeasonAtiva(saveId, (save.temporada as string) || "Temporada 1", stintId);
       const seasonId = season?.id ?? null;
       const porSeason = <T,>(q: T): T => (seasonId ? (q as never as { eq: (a: string, b: string) => T }).eq("season_id", seasonId) : q);
 
@@ -224,13 +231,13 @@ function Dashboard() {
         supabase
           .from("players")
           .select("id, nome, overall, valor_mercado")
-          .eq("save_id", saveId)
+          .eq("stint_id", stintId)
           .eq("ativo", true),
         porSeason(
           supabase
             .from("matches")
             .select("data_hora, adversario, competicao")
-            .eq("save_id", saveId)
+            .eq("stint_id", stintId)
             .eq("status", "agendada"),
         )
           .order("data_hora", { ascending: true })
@@ -240,13 +247,13 @@ function Dashboard() {
           supabase
             .from("matches")
             .select("id, adversario, placar_time, placar_adversario")
-            .eq("save_id", saveId)
+            .eq("stint_id", stintId)
             .eq("status", "finalizada"),
         )
           .order("data_hora", { ascending: false })
           .limit(5),
         porSeason(
-          supabase.from("news_feed").select("id, tipo, titulo, corpo").eq("save_id", saveId),
+          supabase.from("news_feed").select("id, tipo, titulo, corpo").eq("stint_id", stintId),
         )
           .order("gerado_em", { ascending: false })
           .limit(5),
@@ -260,10 +267,12 @@ function Dashboard() {
       let melhorNota: Resumo["melhorNota"] = null;
       if (players.length > 0) {
         const ids = players.map((p) => p.id);
+        const { data: jogosTemporada } = await porSeason(supabase.from("matches").select("id").eq("stint_id", stintId).eq("status", "finalizada"));
+        const matchIds = (jogosTemporada ?? []).map((m) => m.id);
         const { data: stats } = await supabase
           .from("match_player_stats")
           .select("player_id, gols, nota")
-          .in("player_id", ids);
+          .in("player_id", ids).in("match_id", matchIds);
 
         const porJogador = new Map<string, { gols: number; notas: number[] }>();
         for (const s of stats ?? []) {
@@ -286,7 +295,7 @@ function Dashboard() {
         }
       }
 
-      const mvpMapa = await contarMvps(saveId, seasonId);
+      const mvpMapa = await contarMvps(saveId, seasonId, stintId);
       let maisMvp: Resumo["maisMvp"] = null;
       if (Object.keys(mvpMapa).length > 0) {
         const nomePorId = new Map(players.map((p) => [p.id, p.nome]));
@@ -310,21 +319,22 @@ function Dashboard() {
       const { count: trofeusCount } = await supabase
         .from("trophy_gallery")
         .select("id", { count: "exact", head: true })
-        .eq("save_id", saveId)
+        .eq("stint_id", stintId)
         .eq("e_meu_clube_campeao", true);
 
-      const clube = (save as { clubs: { nome: string; escudo_url: string | null } | null }).clubs;
-      const liga = (save as { leagues: { nome: string } | null }).leagues;
+      const clube = (identidade as { clubs: { nome: string; escudo_url: string | null } | null }).clubs;
+      const liga = (identidade as { leagues: { nome: string } | null }).leagues;
 
       setResumo({
         saveId,
+        stintId,
         seasonId,
         seasonNome: season?.nome ?? null,
         clubeNome: clube?.nome ?? null,
-        escudo: ((save as { escudo_url: string | null }).escudo_url ?? clube?.escudo_url) ?? null,
+        escudo: (stint.escudo_url ?? clube?.escudo_url) ?? null,
 
         ligaNome: liga?.nome ?? null,
-        temporada: save.temporada as string,
+        temporada: season?.nome ?? (save.temporada as string),
         manager: managerRes.data ?? null,
         overallMedio:
           overalls.length > 0

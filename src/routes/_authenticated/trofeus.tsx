@@ -85,11 +85,11 @@ function TrofeusPage() {
   const [vice, setVice] = useState("");
   const [salvando, setSalvando] = useState(false);
 
-  const carregar = useCallback(async (saveId: string, seasonId: string | null) => {
+  const carregar = useCallback(async (saveId: string, seasonId: string | null, stintId: string) => {
     let qr = supabase
       .from("trophy_gallery")
       .select("id, competition_id, campeao_clube, vice_clube, e_meu_clube_campeao, e_meu_clube_vice")
-      .eq("save_id", saveId);
+      .eq("stint_id", stintId);
     if (seasonId) qr = qr.eq("season_id", seasonId);
     const [{ data: comps }, { data: regs }, { data: cls }] = await Promise.all([
       supabase.from("competitions").select("*").order("nome"),
@@ -107,7 +107,7 @@ function TrofeusPage() {
       if (!carregandoSave) setCarregando(false);
       return;
     }
-    void carregar(save.id, save.seasonId);
+    void carregar(save.id, save.seasonId, save.stintId ?? "");
   }, [save, carregandoSave, carregar]);
 
   const registroPorComp = useMemo(
@@ -166,6 +166,7 @@ function TrofeusPage() {
     const meuVice = norm(vice) === norm(save.clubeNome) && !!save.clubeNome && vice.trim() !== "";
     const payload = {
       save_id: save.id,
+        stint_id: save.stintId,
       season_id: save.seasonId,
       competition_id: alvo.id,
       campeao_clube: campeao.trim(),
@@ -187,6 +188,7 @@ function TrofeusPage() {
       void gerarNoticia({
         data: {
           saveId: save.id,
+            stintId: save.stintId,
           tipo: "titulo_conquistado",
           dados: {
             competicao: alvo.nome,
@@ -198,7 +200,7 @@ function TrofeusPage() {
       }).catch(() => undefined);
     }
     setAlvo(null);
-    void carregar(save.id, save.seasonId);
+    void carregar(save.id, save.seasonId, save.stintId ?? "");
   }
 
   return (

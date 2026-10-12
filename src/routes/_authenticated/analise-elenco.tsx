@@ -134,7 +134,7 @@ function AnaliseElencoPage() {
       const { data } = await supabase
         .from("players")
         .select("posicao_principal, posicoes_secundarias, idade, overall, valor_mercado")
-        .eq("save_id", save.id)
+        .eq("stint_id", save.stintId ?? "")
         .eq("ativo", true);
       setJogadores((data as Jogador[]) ?? []);
       setCarregando(false);

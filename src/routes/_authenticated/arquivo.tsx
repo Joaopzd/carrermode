@@ -67,7 +67,9 @@ type Pendente =
   | { tipo: "transferencia"; transferencia: Transfer }
   | { tipo: "trofeu"; trofeu: Trofeu };
 
-function ArquivoPage() {
+function ArquivoPage() { return <ArquivoPassagem />; }
+
+export function ArquivoPassagem({ stintId, clubeNome }: { stintId?: string; clubeNome?: string | null }) {
   const { save, carregando: carregandoSave } = useSaveAtual();
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [carregando, setCarregando] = useState(true);
@@ -93,13 +95,13 @@ function ArquivoPage() {
       const { data } = await supabase
         .from("seasons")
         .select("*")
-        .eq("save_id", save.id)
+        .eq("stint_id", stintId ?? save.stintId ?? "00000000-0000-0000-0000-000000000000")
         .eq("status", "encerrada")
         .order("criado_em", { ascending: false });
       setSeasons((data ?? []) as unknown as Season[]);
       setCarregando(false);
     })();
-  }, [save, carregandoSave]);
+  }, [save, carregandoSave, stintId]);
 
   async function carregarDetalhe(s: Season) {
     setCarregandoDetalhe(true);
@@ -134,7 +136,7 @@ function ArquivoPage() {
         id: row.id,
         campeao_clube: row.campeao_clube,
         vice_clube: row.vice_clube,
-        editado_apos_arquivamento: row.editado_apos_arquivamento,
+        editado_apos_arquivamento: row.editado_apos_arquivamento ?? false,
         competicao_nome: row.competitions?.nome ?? "Competição",
         registra_vice: row.competitions?.registra_vice ?? false,
       })),
@@ -246,7 +248,7 @@ function ArquivoPage() {
                       <Card key={p.id}>
                         <CardContent className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm">
                           <span className="font-medium">
-                            {save?.clubeNome ?? "Meu clube"} {p.placar_time ?? "-"} x{" "}
+                            {clubeNome ?? save?.clubeNome ?? "Meu clube"} {p.placar_time ?? "-"} x{" "}
                             {p.placar_adversario ?? "-"} {p.adversario}
                           </span>
                           <span className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -385,7 +387,8 @@ function ArquivoPage() {
           <FecharPartidaDialog
             partida={editandoPartida}
             saveId={save.id}
-            clubeNome={save.clubeNome}
+            clubeNome={clubeNome ?? save.clubeNome}
+            stintId={stintId ?? save.stintId}
             aberto={partidaAberta}
             marcarEditadoAposArquivamento
             onOpenChange={(v) => {
@@ -406,7 +409,7 @@ function ArquivoPage() {
 
         <TrofeuEditDialog
           registro={editandoTrofeu}
-          clubeNome={save?.clubeNome}
+          clubeNome={clubeNome ?? save?.clubeNome ?? null}
           marcarEditadoAposArquivamento
           onOpenChange={(v) => !v && setEditandoTrofeu(null)}
           onSalvo={recarregar}
@@ -483,7 +486,7 @@ function BotaoEditar({ rotulo, onClick }: { rotulo: string; onClick: () => void 
   );
 }
 
-function SeloEditado({ marcado }: { marcado?: boolean }) {
+function SeloEditado({ marcado }: { marcado?: boolean | undefined }) {
   if (!marcado) return null;
   return (
     <Badge variant="outline" className="text-[10px] uppercase tracking-wide">

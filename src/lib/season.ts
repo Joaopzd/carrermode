@@ -60,8 +60,9 @@ export async function garantirSeasonAtiva(
   nomePadrao = "Temporada 1",
   stintId?: string,
 ): Promise<Season | null> {
+  if (!stintId) return null;
   const q = supabase.from("seasons").select("*");
-  const { data } = await (stintId ? q.eq("stint_id", stintId) : q.eq("save_id", saveId))
+  const { data } = await q.eq("stint_id", stintId)
     .eq("status", "ativa")
     .order("criado_em", { ascending: false })
     .limit(1)

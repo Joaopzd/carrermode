@@ -24,11 +24,12 @@ export type Stint = {
   data_fim: string | null;
   status: StintStatus;
   motivo_saida: MotivoSaidaStint | null;
+  escudo_url: string | null;
 };
 
-/** Retorna a passagem ativa da save, criando uma a partir da própria save se não existir. */
+/** Retorna a passagem ativa, sem reconstruir passagens encerradas a partir de dados antigos. */
 export async function garantirStintAtiva(saveId: string): Promise<Stint | null> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("stints")
     .select("*")
     .eq("save_id", saveId)
@@ -36,28 +37,10 @@ export async function garantirStintAtiva(saveId: string): Promise<Stint | null> 
     .order("criado_em", { ascending: false })
     .limit(1)
     .maybeSingle();
+  if (error) throw error;
   if (data) return data as unknown as Stint;
 
-  const { data: save } = await supabase
-    .from("saves")
-    .select("id, league_id, club_id, criado_em")
-    .eq("id", saveId)
-    .maybeSingle();
-  if (!save) return null;
-
-  const { data: criada } = await supabase
-    .from("stints")
-    .insert({
-      save_id: saveId,
-      league_id: (save as { league_id: string | null }).league_id,
-      club_id: (save as { club_id: string | null }).club_id,
-      data_inicio: String((save as { criado_em: string }).criado_em).slice(0, 10),
-      status: "ativa",
-    })
-    .select("*")
-    .single();
-
-  return (criada as unknown as Stint) ?? null;
+  return null;
 }
 
 /** Encerra a passagem atual registrando o motivo da saída. */
@@ -96,14 +79,16 @@ export async function stintSemDados(stintId: string): Promise<boolean> {
     supabase.from("players").select("id", { count: "exact", head: true }).eq("stint_id", stintId),
     supabase.from("matches").select("id", { count: "exact", head: true }).eq("stint_id", stintId),
   ]);
+  if (players.error) throw players.error;
+  if (matches.error) throw matches.error;
   return (players.count ?? 0) === 0 && (matches.count ?? 0) === 0;
 }
 
-/** Aplica o filtro de escopo: passagem atual quando houver, senão a carreira inteira. */
+/** Aplica o escopo da passagem; sem passagem, retorna um conjunto vazio. */
 export function escopo<T extends { eq: (coluna: string, valor: string) => T }>(
   q: T,
   saveId: string,
   stintId?: string | null,
 ): T {
-  return stintId ? q.eq("stint_id", stintId) : q.eq("save_id", saveId);
+  return q.eq("stint_id", stintId ?? "00000000-0000-0000-0000-000000000000");
 }

@@ -3,6 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { garantirSeasonAtiva } from "@/lib/season";
 import { garantirStintAtiva } from "@/lib/stint";
 
+type ClubeAtual = { nome: string; escudo_url: string | null };
+type LigaAtual = { id: string; nome: string; pais: string; nivel: number };
+
 export type SaveAtual = {
   /** id da save (carreira) */
   id: string;
@@ -46,15 +49,15 @@ export function useSaveAtual() {
         const stint = await garantirStintAtiva(data.id as string);
         if (!ativo) return;
 
-        let clube: { nome: string; escudo_url: string | null } | null = null;
-        let liga: { id: string; nome: string; pais: string; nivel: number } | null = null;
+        let clube: ClubeAtual | null = null;
+        let liga: LigaAtual | null = null;
         if (stint?.club_id) {
           const { data: c } = await supabase
             .from("clubs")
             .select("nome, escudo_url")
             .eq("id", stint.club_id)
             .maybeSingle();
-          clube = (c as typeof clube) ?? null;
+          clube = (c as ClubeAtual | null) ?? null;
         }
         if (stint?.league_id) {
           const { data: l } = await supabase
@@ -62,7 +65,7 @@ export function useSaveAtual() {
             .select("id, nome, pais, nivel")
             .eq("id", stint.league_id)
             .maybeSingle();
-          liga = (l as typeof liga) ?? null;
+          liga = (l as LigaAtual | null) ?? null;
         }
 
         const season = stint
@@ -76,10 +79,10 @@ export function useSaveAtual() {
         setSave({
           id: data.id as string,
           stintId: stint?.id ?? null,
-          temporada: data.temporada as string,
+          temporada: season?.nome ?? (data.temporada as string),
           clubId: stint?.club_id ?? null,
           clubeNome: clube?.nome ?? null,
-          escudo: ((data as { escudo_url: string | null }).escudo_url ?? clube?.escudo_url) ?? null,
+          escudo: (stint?.escudo_url ?? clube?.escudo_url) ?? null,
           seasonId: season?.id ?? null,
           seasonNome: season?.nome ?? null,
           leagueId: liga?.id ?? stint?.league_id ?? null,

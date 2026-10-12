@@ -30,6 +30,7 @@ import { checarEventosPosPartida } from "@/lib/eventos";
 
 export type PartidaBase = {
   id: string;
+  stint_id?: string | null;
   data_hora: string | null;
   competicao: string | null;
   fase?: string | null;
@@ -127,6 +128,7 @@ function StatInput({
 export function FecharPartidaDialog({
   partida,
   saveId,
+  stintId,
   clubeNome,
   aberto,
   marcarEditadoAposArquivamento = false,
@@ -135,6 +137,7 @@ export function FecharPartidaDialog({
 }: {
   partida: PartidaBase | null;
   saveId: string;
+  stintId?: string | null;
   clubeNome: string | null;
   aberto: boolean;
   marcarEditadoAposArquivamento?: boolean;
@@ -190,15 +193,14 @@ export function FecharPartidaDialog({
         supabase
           .from("players")
           .select("id, nome, posicao_principal, status, overall")
-          .eq("save_id", saveId)
-          .eq("ativo", true)
+          .eq("stint_id", partida.stint_id ?? stintId ?? "00000000-0000-0000-0000-000000000000")
           .order("nome"),
         supabase.from("match_player_stats").select("*").eq("match_id", partida.id),
       ]);
 
       setJogadores(
         ((elenco ?? []) as Jogador[]).filter(
-          (j) => j.status === "Liberado" || j.status === "Convocado" || !j.status,
+          (j) => marcarEditadoAposArquivamento || j.status === "Liberado" || j.status === "Convocado" || !j.status,
         ),
       );
 
@@ -242,7 +244,7 @@ export function FecharPartidaDialog({
       setSelecionados(ids);
       setStats(mapa);
     })();
-  }, [aberto, partida, saveId]);
+  }, [aberto, partida, saveId, stintId, marcarEditadoAposArquivamento]);
 
   const escalados = useMemo(
     () => jogadores.filter((j) => selecionados.includes(j.id)),
@@ -387,7 +389,7 @@ export function FecharPartidaDialog({
       }
     }
 
-    void checarEventosPosPartida(saveId, partida.id);
+    if (!marcarEditadoAposArquivamento) void checarEventosPosPartida(saveId, partida.id, partida.stint_id ?? stintId);
 
     setSalvando(false);
     toast.success("Partida finalizada!");

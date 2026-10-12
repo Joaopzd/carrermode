@@ -25,7 +25,9 @@ import { Route as AuthenticatedEmBreveRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedEstatisticasRouteImport } from './routes/_authenticated/estatisticas'
 import { Route as AuthenticatedExJogadoresRouteImport } from './routes/_authenticated/ex-jogadores'
 import { Route as AuthenticatedHistoricoRouteImport } from './routes/_authenticated/historico'
+import { Route as AuthenticatedHistoricoCarreiraRouteImport } from './routes/_authenticated/historico-carreira'
 import { Route as AuthenticatedMetasRouteImport } from './routes/_authenticated/metas'
+import { Route as AuthenticatedMudarClubeRouteImport } from './routes/_authenticated/mudar-clube'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedPartidasRouteImport } from './routes/_authenticated/partidas'
 import { Route as AuthenticatedRegrasLigaRouteImport } from './routes/_authenticated/regras-liga'
@@ -117,9 +119,20 @@ const AuthenticatedHistoricoRoute = AuthenticatedHistoricoRouteImport.update({
   path: '/historico',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedHistoricoCarreiraRoute =
+  AuthenticatedHistoricoCarreiraRouteImport.update({
+    id: '/historico-carreira',
+    path: '/historico-carreira',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedMetasRoute = AuthenticatedMetasRouteImport.update({
   id: '/metas',
   path: '/metas',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMudarClubeRoute = AuthenticatedMudarClubeRouteImport.update({
+  id: '/mudar-clube',
+  path: '/mudar-clube',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
@@ -177,7 +190,9 @@ export interface FileRoutesByFullPath {
   '/estatisticas': typeof AuthenticatedEstatisticasRoute
   '/ex-jogadores': typeof AuthenticatedExJogadoresRoute
   '/historico': typeof AuthenticatedHistoricoRoute
+  '/historico-carreira': typeof AuthenticatedHistoricoCarreiraRoute
   '/metas': typeof AuthenticatedMetasRoute
+  '/mudar-clube': typeof AuthenticatedMudarClubeRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/partidas': typeof AuthenticatedPartidasRoute
   '/regras-liga': typeof AuthenticatedRegrasLigaRoute
@@ -202,7 +217,9 @@ export interface FileRoutesByTo {
   '/estatisticas': typeof AuthenticatedEstatisticasRoute
   '/ex-jogadores': typeof AuthenticatedExJogadoresRoute
   '/historico': typeof AuthenticatedHistoricoRoute
+  '/historico-carreira': typeof AuthenticatedHistoricoCarreiraRoute
   '/metas': typeof AuthenticatedMetasRoute
+  '/mudar-clube': typeof AuthenticatedMudarClubeRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/partidas': typeof AuthenticatedPartidasRoute
   '/regras-liga': typeof AuthenticatedRegrasLigaRoute
@@ -229,7 +246,9 @@ export interface FileRoutesById {
   '/_authenticated/estatisticas': typeof AuthenticatedEstatisticasRoute
   '/_authenticated/ex-jogadores': typeof AuthenticatedExJogadoresRoute
   '/_authenticated/historico': typeof AuthenticatedHistoricoRoute
+  '/_authenticated/historico-carreira': typeof AuthenticatedHistoricoCarreiraRoute
   '/_authenticated/metas': typeof AuthenticatedMetasRoute
+  '/_authenticated/mudar-clube': typeof AuthenticatedMudarClubeRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/partidas': typeof AuthenticatedPartidasRoute
   '/_authenticated/regras-liga': typeof AuthenticatedRegrasLigaRoute
@@ -256,7 +275,9 @@ export interface FileRouteTypes {
     | '/estatisticas'
     | '/ex-jogadores'
     | '/historico'
+    | '/historico-carreira'
     | '/metas'
+    | '/mudar-clube'
     | '/onboarding'
     | '/partidas'
     | '/regras-liga'
@@ -281,7 +302,9 @@ export interface FileRouteTypes {
     | '/estatisticas'
     | '/ex-jogadores'
     | '/historico'
+    | '/historico-carreira'
     | '/metas'
+    | '/mudar-clube'
     | '/onboarding'
     | '/partidas'
     | '/regras-liga'
@@ -307,7 +330,9 @@ export interface FileRouteTypes {
     | '/_authenticated/estatisticas'
     | '/_authenticated/ex-jogadores'
     | '/_authenticated/historico'
+    | '/_authenticated/historico-carreira'
     | '/_authenticated/metas'
+    | '/_authenticated/mudar-clube'
     | '/_authenticated/onboarding'
     | '/_authenticated/partidas'
     | '/_authenticated/regras-liga'
@@ -438,11 +463,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHistoricoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/historico-carreira': {
+      id: '/_authenticated/historico-carreira'
+      path: '/historico-carreira'
+      fullPath: '/historico-carreira'
+      preLoaderRoute: typeof AuthenticatedHistoricoCarreiraRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/metas': {
       id: '/_authenticated/metas'
       path: '/metas'
       fullPath: '/metas'
       preLoaderRoute: typeof AuthenticatedMetasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/mudar-clube': {
+      id: '/_authenticated/mudar-clube'
+      path: '/mudar-clube'
+      fullPath: '/mudar-clube'
+      preLoaderRoute: typeof AuthenticatedMudarClubeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/onboarding': {
@@ -510,7 +549,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedEstatisticasRoute: typeof AuthenticatedEstatisticasRoute
   AuthenticatedExJogadoresRoute: typeof AuthenticatedExJogadoresRoute
   AuthenticatedHistoricoRoute: typeof AuthenticatedHistoricoRoute
+  AuthenticatedHistoricoCarreiraRoute: typeof AuthenticatedHistoricoCarreiraRoute
   AuthenticatedMetasRoute: typeof AuthenticatedMetasRoute
+  AuthenticatedMudarClubeRoute: typeof AuthenticatedMudarClubeRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedPartidasRoute: typeof AuthenticatedPartidasRoute
   AuthenticatedRegrasLigaRoute: typeof AuthenticatedRegrasLigaRoute
@@ -533,7 +574,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedEstatisticasRoute: AuthenticatedEstatisticasRoute,
   AuthenticatedExJogadoresRoute: AuthenticatedExJogadoresRoute,
   AuthenticatedHistoricoRoute: AuthenticatedHistoricoRoute,
+  AuthenticatedHistoricoCarreiraRoute: AuthenticatedHistoricoCarreiraRoute,
   AuthenticatedMetasRoute: AuthenticatedMetasRoute,
+  AuthenticatedMudarClubeRoute: AuthenticatedMudarClubeRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedPartidasRoute: AuthenticatedPartidasRoute,
   AuthenticatedRegrasLigaRoute: AuthenticatedRegrasLigaRoute,

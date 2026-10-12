@@ -116,11 +116,11 @@ function CalendarioPage() {
     setMes(new Date(d.getFullYear(), d.getMonth(), 1));
   }
 
-  const carregar = useCallback(async (saveId: string, seasonId: string | null) => {
+  const carregar = useCallback(async (saveId: string, seasonId: string | null, stintId: string) => {
     let q = supabase
       .from("matches")
       .select("id, data_hora, competicao, adversario, status, placar_time, placar_adversario")
-      .eq("save_id", saveId);
+      .eq("stint_id", stintId);
     if (seasonId) q = q.eq("season_id", seasonId);
     const { data } = await q.order("data_hora", { ascending: true });
     setPartidas((data ?? []) as Partida[]);
@@ -132,7 +132,7 @@ function CalendarioPage() {
       if (!carregandoSave) setCarregando(false);
       return;
     }
-    void carregar(save.id, save.seasonId);
+    void carregar(save.id, save.seasonId, save.stintId ?? "");
   }, [save, carregandoSave, carregar]);
 
   const porDia = useMemo(() => {
@@ -166,6 +166,7 @@ function CalendarioPage() {
     const dataHora = new Date(`${diaSelecionado}T${form.hora || "00:00"}:00`);
     const { error } = await supabase.from("matches").insert({
       save_id: save.id,
+        stint_id: save.stintId,
       season_id: save.seasonId,
       data_hora: dataHora.toISOString(),
       competicao: form.competicao,
@@ -182,7 +183,7 @@ function CalendarioPage() {
     toast.success("Partida agendada!");
     setForm({ hora: "16:00", competicao: "Liga", adversario: "", mando: "casa", fase: "" });
     setDiaSelecionado(null);
-    void carregar(save.id, save.seasonId);
+    void carregar(save.id, save.seasonId, save.stintId ?? "");
   }
 
   const atrasadas = useMemo(() => partidasAtrasadas(partidas, dataAtual), [partidas, dataAtual]);

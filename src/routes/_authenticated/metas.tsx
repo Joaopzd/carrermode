@@ -65,11 +65,11 @@ function MetasPage() {
   const [salvando, setSalvando] = useState(false);
   const [checando, setChecando] = useState(false);
 
-  const carregar = useCallback(async (saveId: string) => {
+  const carregar = useCallback(async (saveId: string, stintId: string) => {
     const { data } = await supabase
       .from("board_objectives")
       .select("id, tipo, meta, status")
-      .eq("save_id", saveId);
+      .eq("stint_id", stintId);
 
     const mapa: Record<string, string> = {};
     for (const m of data ?? []) mapa[m.tipo] = m.meta ?? "";
@@ -82,7 +82,7 @@ function MetasPage() {
       if (!carregandoSave) setCarregando(false);
       return;
     }
-    void carregar(save.id);
+    void carregar(save.id, save.stintId ?? "");
   }, [save, carregandoSave, carregar]);
 
   async function salvar() {
@@ -91,7 +91,7 @@ function MetasPage() {
     const { data: existentes } = await supabase
       .from("board_objectives")
       .select("id, tipo")
-      .eq("save_id", save.id);
+      .eq("stint_id", save.stintId ?? "");
 
     for (const t of TIPOS) {
       const valor = (valores[t.tipo] ?? "").trim();
@@ -102,6 +102,7 @@ function MetasPage() {
       } else {
         await supabase.from("board_objectives").insert({
           save_id: save.id,
+        stint_id: save.stintId,
           season_id: save.seasonId,
           tipo: t.tipo,
           meta: valor,
@@ -112,14 +113,14 @@ function MetasPage() {
     }
     setSalvando(false);
     toast.success("Metas da diretoria salvas!");
-    void carregar(save.id);
+    void carregar(save.id, save.stintId ?? "");
   }
 
   async function checar() {
     if (!save) return;
     setChecando(true);
     try {
-      setAvaliadas(await avaliarMetas(save.id));
+      setAvaliadas(await avaliarMetas(save.id, save.stintId));
       toast.success("Metas comparadas com os dados reais.");
     } catch {
       toast.error("Não foi possível avaliar as metas agora.");

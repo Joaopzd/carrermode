@@ -17,6 +17,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { stintSemDados } from "@/lib/stint";
 import { useSaveAtual } from "@/lib/use-save";
 
 export const Route = createFileRoute("/_authenticated/trocar-clube")({
@@ -51,6 +52,11 @@ function TrocarClubePage() {
   const [clubeId, setClubeId] = useState<string | null>(null);
   const [confirmando, setConfirmando] = useState(false);
   const [salvando, setSalvando] = useState(false);
+  const [permitido, setPermitido] = useState(false);
+  useEffect(() => {
+    if (!save?.stintId) return;
+    void stintSemDados(save.stintId).then(setPermitido).catch(() => toast.error("Não foi possível verificar a passagem."));
+  }, [save?.stintId]);
 
   useEffect(() => {
     void (async () => {
@@ -83,12 +89,9 @@ function TrocarClubePage() {
   const liga = useMemo(() => ligas.find((l) => l.id === ligaId) ?? null, [ligas, ligaId]);
 
   async function confirmar() {
-    if (!save || !ligaId || !clubeId) return;
+    if (!save?.stintId || !ligaId || !clubeId || !permitido) return;
     setSalvando(true);
-    const { error } = await supabase
-      .from("saves")
-      .update({ league_id: ligaId, club_id: clubeId })
-      .eq("id", save.id);
+    const { error } = await supabase.rpc("corrigir_clube_passagem", { _stint_id: save.stintId, _league_id: ligaId, _club_id: clubeId });
     setSalvando(false);
     setConfirmando(false);
     if (error) {
@@ -115,9 +118,7 @@ function TrocarClubePage() {
             <CardContent className="flex gap-2 py-4 text-sm text-amber-500">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
               <span>
-                Trocar de clube altera apenas a liga e o clube da save. Elenco, partidas,
-                transferências, temporadas, comissão técnica e todo o histórico permanecem
-                intactos.
+                Correção disponível apenas enquanto a passagem não tiver jogadores nem partidas. Para sair de um clube com histórico, use Encerrar Passagem e Mudar de Clube.
               </span>
             </CardContent>
           </Card>
@@ -128,6 +129,10 @@ function TrocarClubePage() {
                 Nenhuma save encontrada.
               </CardContent>
             </Card>
+          ) : !permitido ? (
+            <div className="space-y-4"><p className="text-muted-foreground">Esta passagem já tem dados. A correção de clube está bloqueada.</p>
+              <Button onClick={() => void navigate({ to: "/mudar-clube" })}>Encerrar Passagem e Mudar de Clube</Button>
+            </div>
           ) : (
             <>
               <section className="space-y-3">
@@ -191,7 +196,7 @@ function TrocarClubePage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Trocar para {clube?.nome ?? "novo clube"}?</AlertDialogTitle>
             <AlertDialogDescription>
-              A save passará a ser da {liga?.nome ?? "liga selecionada"} com o clube{" "}
+              A passagem será corrigida para a {liga?.nome ?? "liga selecionada"} com o clube{" "}
               {clube?.nome ?? "selecionado"}. Nenhum jogador, partida, transferência, temporada ou
               registro de comissão será alterado ou apagado.
             </AlertDialogDescription>
