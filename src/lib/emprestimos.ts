@@ -34,8 +34,9 @@ export async function carregarEmprestimosAtivos(
   saveId: string,
   stintId?: string | null,
 ): Promise<EmprestimoRow[]> {
+  if (!stintId) return [];
   const base = supabase.from("transfers").select("*");
-  const { data } = await (stintId ? base.eq("stint_id", stintId) : base.eq("save_id", saveId))
+  const { data } = await base.eq("stint_id", stintId)
     .eq("modalidade", "emprestimo")
     .in("status_opcao", ["pendente", "nao_aplicavel"])
     .order("data", { ascending: false });
@@ -85,6 +86,7 @@ export async function efetivarCompraEmprestimo(
   janela: "verao" | "inverno",
   stintId?: string | null,
 ) {
+  if (!stintId) throw new Error("Nenhuma passagem ativa encontrada.");
   const hoje = hojeISO();
   const { error } = await supabase.from("transfers").insert({
     save_id: saveId,

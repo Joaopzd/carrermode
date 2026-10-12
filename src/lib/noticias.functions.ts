@@ -98,7 +98,7 @@ type Entrada = {
 export const gerarNoticia = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: Entrada) => {
-    if (!input?.saveId || !input?.tipo) throw new Error("Dados inválidos");
+    if (!input?.saveId || !input?.stintId || !input?.tipo) throw new Error("Dados inválidos");
     return input;
   })
   .handler(async ({ data, context }) => {
@@ -111,9 +111,7 @@ export const gerarNoticia = createServerFn({ method: "POST" })
     const corpo = (linhaCorpo?.[1] ?? texto).trim();
 
     const consultaSeason = context.supabase.from("seasons").select("id");
-    const { data: seasonAtiva } = await (data.stintId
-      ? consultaSeason.eq("stint_id", data.stintId)
-      : consultaSeason.eq("save_id", data.saveId))
+    const { data: seasonAtiva } = await consultaSeason.eq("stint_id", data.stintId!)
       .eq("status", "ativa")
       .order("criado_em", { ascending: false })
       .limit(1)

@@ -27,7 +27,7 @@ export type Stint = {
   escudo_url: string | null;
 };
 
-/** Retorna a passagem ativa da save, criando uma a partir da própria save se não existir. */
+/** Retorna a passagem ativa, sem reconstruir passagens encerradas a partir de dados antigos. */
 export async function garantirStintAtiva(saveId: string): Promise<Stint | null> {
   const { data, error } = await supabase
     .from("stints")
@@ -84,7 +84,7 @@ export async function stintSemDados(stintId: string): Promise<boolean> {
   return (players.count ?? 0) === 0 && (matches.count ?? 0) === 0;
 }
 
-/** Aplica o filtro de escopo: passagem atual quando houver, senão a carreira inteira. */
+/** Aplica o escopo da passagem; sem passagem, retorna um conjunto vazio. */
 export function escopo<T extends { eq: (coluna: string, valor: string) => T }>(
   q: T,
   saveId: string,

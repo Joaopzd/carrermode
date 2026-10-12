@@ -6,11 +6,12 @@ export async function contarMvps(
   seasonId?: string | null,
   stintId?: string | null,
 ): Promise<Record<string, number>> {
+  if (!stintId) return {};
   let q = supabase
     .from("matches")
     .select("mvp_player_id")
     .not("mvp_player_id", "is", null);
-  q = stintId ? q.eq("stint_id", stintId) : q.eq("save_id", saveId);
+  q = q.eq("stint_id", stintId);
   if (seasonId) q = q.eq("season_id", seasonId);
   const { data } = await q;
   const mapa: Record<string, number> = {};
