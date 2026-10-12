@@ -66,7 +66,7 @@ function num(v: string): number | null {
   return v.trim() === "" || Number.isNaN(n) ? null : n;
 }
 
-export function CareerOnboarding({ saveId = null, motivo = null, temporadaInicial = "2025/26" }: {
+export function CareerOnboarding({ saveId = null, motivo = null, temporadaInicial = "2026/27" }: {
   saveId?: string | null;
   motivo?: "demitido" | "pediu_para_sair" | "fim_de_contrato" | "aposentou" | null;
   temporadaInicial?: string;

@@ -14,3 +14,4 @@
 - Reuse CareerOnboarding for initial and subsequent clubs, omitting manager creation for subsequent stints so trainer identity persists.
 - Reuse ArquivoPassagem with an explicit historical stint and club for career history, keeping standings read-only and corrections confirmed.
 - Retire legacy save club/league fields without deleting them to preserve compatibility and data until a verified backup and authorized removal.
+- Refresh the shared club catalog by matching canonical club identities, retaining IDs and crests and detaching omitted clubs instead of deleting them; historical stints keep their own league references.
