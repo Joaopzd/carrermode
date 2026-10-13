@@ -20,6 +20,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { garantirStintAtiva } from "@/lib/stint";
+import { formatarMoedaCompacta, moedaDoPais, type CodigoMoeda } from "@/lib/moeda";
 import { contarMvps } from "@/lib/mvp";
 import { encerrarTemporada, garantirSeasonAtiva, type TransicaoLiga } from "@/lib/season";
 import { AppShell } from "@/components/app-shell";
@@ -69,6 +70,7 @@ type Resumo = {
   escudo: string | null;
   ligaNome: string | null;
   temporada: string;
+  moeda: CodigoMoeda;
   manager: { nome_usado: string | null; nome: string; estilo_tatico: string | null } | null;
   overallMedio: number | null;
   valorTotal: number;
@@ -98,14 +100,6 @@ const ICONE_NOTICIA: Record<string, typeof Newspaper> = {
   lesao: HeartPulse,
   base: Sprout,
 };
-
-function moeda(v: number) {
-  return new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "GBP",
-    maximumFractionDigits: 0,
-  }).format(v);
-}
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -217,7 +211,7 @@ function Dashboard() {
       if (!stint) { navigate({ to: "/mudar-clube" }); return; }
       const stintId = stint.id;
       const { data: identidade } = await supabase.from("stints")
-        .select("clubs(nome, escudo_url), leagues(nome)").eq("id", stintId).single();
+        .select("clubs(nome, escudo_url, pais), leagues(nome, pais)").eq("id", stintId).single();
       const season = await garantirSeasonAtiva(saveId, (save.temporada as string) || "Temporada 1", stintId);
       const seasonId = season?.id ?? null;
       const porSeason = <T,>(q: T): T => (seasonId ? (q as never as { eq: (a: string, b: string) => T }).eq("season_id", seasonId) : q);
@@ -322,8 +316,8 @@ function Dashboard() {
         .eq("stint_id", stintId)
         .eq("e_meu_clube_campeao", true);
 
-      const clube = (identidade as { clubs: { nome: string; escudo_url: string | null } | null }).clubs;
-      const liga = (identidade as { leagues: { nome: string } | null }).leagues;
+      const clube = identidade?.clubs;
+      const liga = identidade?.leagues;
 
       setResumo({
         saveId,
@@ -335,6 +329,7 @@ function Dashboard() {
 
         ligaNome: liga?.nome ?? null,
         temporada: season?.nome ?? (save.temporada as string),
+        moeda: moedaDoPais(clube?.pais ?? liga?.pais),
         manager: managerRes.data ?? null,
         overallMedio:
           overalls.length > 0
@@ -392,7 +387,7 @@ function Dashboard() {
                     {resumo.clubeNome ?? "Clube a definir"}
                   </h1>
                   <p className="text-sm font-medium text-foreground/70 break-words">
-                    {resumo.ligaNome ?? "Liga"} · Temporada {resumo.temporada}
+                    {resumo.ligaNome ?? "Liga"}
                   </p>
                 </div>
                 <div className="ml-auto flex flex-col items-start gap-2 sm:items-end sm:text-right">
@@ -404,7 +399,7 @@ function Dashboard() {
                   </p>
                   <div className="flex items-center gap-2">
                     <span className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">
-                      {resumo.seasonNome ?? "Temporada ativa"}
+                      {/^temporada\b/i.test(resumo.temporada) ? resumo.temporada : `Temporada ${resumo.temporada}`}
                     </span>
                     <Button
                       size="sm"
@@ -430,7 +425,7 @@ function Dashboard() {
                 <ResumoCard
                   icone={<Banknote className="h-4 w-4" />}
                   rotulo="Valor do elenco"
-                  valor={moeda(resumo.valorTotal)}
+                  valor={formatarMoedaCompacta(resumo.valorTotal, resumo.moeda)}
                   detalhe="Soma de valor de mercado"
                 />
                 <ResumoCard

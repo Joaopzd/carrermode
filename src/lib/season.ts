@@ -1,4 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
+import { formatarMoeda } from "@/lib/moeda";
+import { moedaDaPassagem } from "@/lib/moeda-stint";
 import { carregarRegras, zonaDaPosicao } from "@/lib/league-rules";
 import { resolverEmprestimosNoFimDaTemporada } from "@/lib/emprestimos";
 import {
@@ -350,7 +352,8 @@ export async function encerrarTemporada(saveId: string, seasonId: string, stintI
   // Primeira (ou próxima) parcela de cada transferência parcelada é debitada na nova temporada.
   const parcelas = await liquidarParcelasDaTemporada(stintId, novaSeason?.id ?? null);
   if (parcelas.qtd > 0) {
-    const moeda = (v: number) => `£ ${new Intl.NumberFormat("pt-BR").format(v)}`;
+    const codigoMoeda = await moedaDaPassagem(stintId);
+    const moeda = (v: number) => formatarMoeda(v, codigoMoeda);
     const partes = [
       parcelas.pagar > 0 ? `Parcelas pagas: ${moeda(parcelas.pagar)}.` : null,
       parcelas.receber > 0 ? `Parcelas recebidas: ${moeda(parcelas.receber)}.` : null,

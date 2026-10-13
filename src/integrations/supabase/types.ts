@@ -1105,17 +1105,80 @@ export type Database = {
           },
         ]
       }
+      transfer_parcelas: {
+        Row: {
+          criado_em: string
+          direcao: string
+          id: string
+          liquidada_em: string | null
+          numero: number
+          save_id: string
+          season_liquidacao_id: string | null
+          status: string
+          stint_id: string | null
+          transfer_id: string
+          valor: number
+        }
+        Insert: {
+          criado_em?: string
+          direcao: string
+          id?: string
+          liquidada_em?: string | null
+          numero: number
+          save_id: string
+          season_liquidacao_id?: string | null
+          status?: string
+          stint_id?: string | null
+          transfer_id: string
+          valor: number
+        }
+        Update: {
+          criado_em?: string
+          direcao?: string
+          id?: string
+          liquidada_em?: string | null
+          numero?: number
+          save_id?: string
+          season_liquidacao_id?: string | null
+          status?: string
+          stint_id?: string | null
+          transfer_id?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transfer_parcelas_season_liquidacao_id_fkey"
+            columns: ["season_liquidacao_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transfer_parcelas_transfer_id_fkey"
+            columns: ["transfer_id"]
+            isOneToOne: false
+            referencedRelation: "transfers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transfers: {
         Row: {
+          chegada_status: string
           clube_contraparte: string | null
           data: string
+          data_inicio: string | null
           duracao_emprestimo: string | null
           editado_apos_arquivamento: boolean
           id: string
+          inicio_tipo: string
           janela: Database["public"]["Enums"]["transfer_window"] | null
+          jogador_pendente: Json | null
           jogador_troca_id: string | null
           modalidade: string | null
           obrigacao_compra: boolean
+          parcelado: boolean
+          parcelas_qtd: number | null
           player_id: string | null
           save_id: string
           season_id: string | null
@@ -1125,18 +1188,25 @@ export type Database = {
           tipo: string
           transfer_origem_emprestimo_id: string | null
           valor: number | null
+          valor_a_vista: number | null
           valor_opcao_compra: number | null
         }
         Insert: {
+          chegada_status?: string
           clube_contraparte?: string | null
           data?: string
+          data_inicio?: string | null
           duracao_emprestimo?: string | null
           editado_apos_arquivamento?: boolean
           id?: string
+          inicio_tipo?: string
           janela?: Database["public"]["Enums"]["transfer_window"] | null
+          jogador_pendente?: Json | null
           jogador_troca_id?: string | null
           modalidade?: string | null
           obrigacao_compra?: boolean
+          parcelado?: boolean
+          parcelas_qtd?: number | null
           player_id?: string | null
           save_id: string
           season_id?: string | null
@@ -1146,18 +1216,25 @@ export type Database = {
           tipo: string
           transfer_origem_emprestimo_id?: string | null
           valor?: number | null
+          valor_a_vista?: number | null
           valor_opcao_compra?: number | null
         }
         Update: {
+          chegada_status?: string
           clube_contraparte?: string | null
           data?: string
+          data_inicio?: string | null
           duracao_emprestimo?: string | null
           editado_apos_arquivamento?: boolean
           id?: string
+          inicio_tipo?: string
           janela?: Database["public"]["Enums"]["transfer_window"] | null
+          jogador_pendente?: Json | null
           jogador_troca_id?: string | null
           modalidade?: string | null
           obrigacao_compra?: boolean
+          parcelado?: boolean
+          parcelas_qtd?: number | null
           player_id?: string | null
           save_id?: string
           season_id?: string | null
@@ -1167,6 +1244,7 @@ export type Database = {
           tipo?: string
           transfer_origem_emprestimo_id?: string | null
           valor?: number | null
+          valor_a_vista?: number | null
           valor_opcao_compra?: number | null
         }
         Relationships: [

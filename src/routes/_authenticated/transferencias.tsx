@@ -72,6 +72,7 @@ import { PAISES } from "@/lib/onboarding-data";
 
 import { checarVendaPolemica } from "@/lib/eventos";
 import { useSaveAtual } from "@/lib/use-save";
+import { formatarMoeda } from "@/lib/moeda";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/transferencias")({
@@ -194,11 +195,9 @@ function descricaoChegada(c: { inicio: InicioTipo; data: string | null }) {
 const valorParcela = (t: { valor?: number | null; valor_a_vista?: number | null; parcelas_qtd?: number | null }) =>
   t.parcelas_qtd ? ((t.valor ?? 0) - (t.valor_a_vista ?? 0)) / t.parcelas_qtd : 0;
 
-const moeda = (v: number | null) =>
-  v === null ? "—" : `£ ${new Intl.NumberFormat("pt-BR").format(v)}`;
-
 function TransferenciasPage() {
   const { save, carregando: carregandoSave } = useSaveAtual();
+  const moeda = (v: number | null) => formatarMoeda(v, save?.moeda ?? "EUR");
   const recontratarId = useRouterState({
     select: (s) => (s.location.search as { recontratar?: string }).recontratar ?? null,
   });
