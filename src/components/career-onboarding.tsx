@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { garantirEscudosSincronizados } from "@/lib/clubes";
+import { elencoPadraoDoClube } from "@/lib/elenco-catalogo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -99,6 +100,11 @@ export function CareerOnboarding({ saveId = null, motivo = null, temporadaInicia
 
   const [jogadores, setJogadores] = useState<Jogador[]>([jogadorVazio()]);
 
+  // Elenco pré-estabelecido (EA FC 27): carregado ao chegar no passo do elenco.
+  const [clubeDoElenco, setClubeDoElenco] = useState<string | null>(null);
+  const [carregandoElenco, setCarregandoElenco] = useState(false);
+  const [elencoPadraoInfo, setElencoPadraoInfo] = useState<"ok" | "sem-dados" | "erro" | null>(null);
+
   // Assim que as ligas/clubes semeados são carregados, dispara em segundo plano
   // a sincronização de escudos — sem depender de clique manual.
   useEffect(() => {
@@ -134,6 +140,53 @@ export function CareerOnboarding({ saveId = null, motivo = null, temporadaInicia
 
   const liga = useMemo(() => ligas.find((l) => l.id === ligaId) ?? null, [ligas, ligaId]);
   const clube = useMemo(() => clubes.find((c) => c.id === clubeId) ?? null, [clubes, clubeId]);
+
+  const passoElenco = passos.length - 1;
+
+  async function carregarElencoPadrao(nomeClube: string, idClube: string) {
+    setCarregandoElenco(true);
+    try {
+      const lista = await elencoPadraoDoClube(nomeClube);
+      if (!lista) {
+        setElencoPadraoInfo("sem-dados");
+        setJogadores([jogadorVazio()]);
+      } else {
+        setJogadores(
+          lista.map((p) => ({
+            key: crypto.randomUUID(),
+            nome: p.nome,
+            nacionalidade: p.nacionalidade,
+            posicao_principal: p.posicao_principal,
+            posicoes_secundarias: p.posicoes_secundarias,
+            overall: p.overall,
+            valor_mercado: "",
+            salario: "",
+            idade: p.idade,
+            altura: "",
+            playstyle: p.playstyle,
+            status: "Liberado",
+          })),
+        );
+        setElencoPadraoInfo("ok");
+      }
+      setClubeDoElenco(idClube);
+    } catch {
+      setElencoPadraoInfo("erro");
+      setClubeDoElenco(idClube);
+      toast.error("Não foi possível carregar o elenco padrão. Você pode cadastrar manualmente.");
+    } finally {
+      setCarregandoElenco(false);
+    }
+  }
+
+  // Ao chegar no passo do elenco com um clube novo, carrega o elenco padrão.
+  // Se o clube não mudou, preserva as edições já feitas.
+  useEffect(() => {
+    if (passo !== passoElenco || !clube) return;
+    if (clubeDoElenco === clube.id) return;
+    void carregarElencoPadrao(clube.nome, clube.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [passo, passoElenco, clube?.id]);
 
   function atualizarJogador(key: string, patch: Partial<Jogador>) {
     setJogadores((prev) => prev.map((j) => (j.key === key ? { ...j, ...patch } : j)));
@@ -433,6 +486,53 @@ export function CareerOnboarding({ saveId = null, motivo = null, temporadaInicia
                   {jogadores.length} jogador(es)
                 </span>
               </div>
+
+              {carregandoElenco && (
+                <p className="text-sm text-muted-foreground">Carregando elenco do {clube?.nome}…</p>
+              )}
+              {!carregandoElenco && elencoPadraoInfo === "ok" && (
+                <Card className="border-primary/40">
+                  <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4 text-sm">
+                    <span className="text-muted-foreground">
+                      Elenco do {clube?.nome} carregado (EA FC 27). Edite, remova ou adicione
+                      jogadores à vontade. Valor de mercado e salário ficam em branco.
+                    </span>
+                    <span className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => {
+                          if (!clube) return;
+                          if (window.confirm("Recarregar o elenco padrão? Suas edições serão perdidas.")) {
+                            void carregarElencoPadrao(clube.nome, clube.id);
+                          }
+                        }}
+                      >
+                        Recarregar padrão
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if (window.confirm("Limpar o elenco e começar do zero?")) {
+                            setJogadores([jogadorVazio()]);
+                            setElencoPadraoInfo(null);
+                          }
+                        }}
+                      >
+                        Começar do zero
+                      </Button>
+                    </span>
+                  </CardContent>
+                </Card>
+              )}
+              {!carregandoElenco && elencoPadraoInfo === "sem-dados" && (
+                <p className="text-sm text-muted-foreground">
+                  Este clube não tem elenco pré-definido. Cadastre os jogadores manualmente.
+                </p>
+              )}
 
               <div className="space-y-3">
                 {jogadores.map((j, i) => (
