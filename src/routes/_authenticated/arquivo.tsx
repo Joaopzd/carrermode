@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/table";
 import type { ResumoSeason, Season } from "@/lib/season";
 import { useSaveAtual } from "@/lib/use-save";
+import { formatarMoeda, type CodigoMoeda } from "@/lib/moeda";
+import { moedaDaPassagem } from "@/lib/moeda-stint";
 import { ClubBadge } from "@/components/club-badge";
 import { ConfirmarEdicaoArquivada } from "@/components/confirmar-edicao-arquivada";
 import { TransferEditDialog, type TransferEditavel } from "@/components/transfer-edit-dialog";
@@ -72,6 +74,7 @@ function ArquivoPage() { return <ArquivoPassagem />; }
 export function ArquivoPassagem({ stintId, clubeNome }: { stintId?: string; clubeNome?: string | null }) {
   const { save, carregando: carregandoSave } = useSaveAtual();
   const [seasons, setSeasons] = useState<Season[]>([]);
+  const [codigoMoeda, setCodigoMoeda] = useState<CodigoMoeda>("EUR");
   const [carregando, setCarregando] = useState(true);
   const [aberta, setAberta] = useState<Season | null>(null);
   const [partidas, setPartidas] = useState<PartidaBase[]>([]);
@@ -91,16 +94,23 @@ export function ArquivoPassagem({ stintId, clubeNome }: { stintId?: string; club
       if (!carregandoSave) setCarregando(false);
       return;
     }
+    let ativo = true;
     void (async () => {
-      const { data } = await supabase
+      const passagemId = stintId ?? save.stintId;
+      if (!passagemId) { setCarregando(false); return; }
+      setCarregando(true);
+      const [{ data }, codigo] = await Promise.all([supabase
         .from("seasons")
         .select("*")
-        .eq("stint_id", stintId ?? save.stintId ?? "00000000-0000-0000-0000-000000000000")
+        .eq("stint_id", passagemId)
         .eq("status", "encerrada")
-        .order("criado_em", { ascending: false });
+        .order("criado_em", { ascending: false }), moedaDaPassagem(passagemId)]);
+      if (!ativo) return;
+      setCodigoMoeda(codigo);
       setSeasons((data ?? []) as unknown as Season[]);
       setCarregando(false);
     })();
+    return () => { ativo = false; };
   }, [save, carregandoSave, stintId]);
 
   async function carregarDetalhe(s: Season) {
@@ -214,9 +224,7 @@ export function ArquivoPassagem({ stintId, clubeNome }: { stintId?: string; club
                   ],
                   [
                     "Saldo de transferências",
-                    r.saldo_transferencias != null
-                      ? Number(r.saldo_transferencias).toLocaleString("pt-BR")
-                      : "—",
+                    formatarMoeda(r.saldo_transferencias, codigoMoeda),
                   ],
                 ].map(([rot, val]) => (
                   <div key={String(rot)}>
@@ -325,7 +333,7 @@ export function ArquivoPassagem({ stintId, clubeNome }: { stintId?: string; club
                             </span>
                           </span>
                           <span className="flex items-center gap-2 font-medium">
-                            {t.valor != null ? Number(t.valor).toLocaleString("pt-BR") : "—"}
+                            {formatarMoeda(t.valor, codigoMoeda)}
                             <SeloEditado marcado={t.editado_apos_arquivamento} />
                             <BotaoEditar
                               rotulo="Editar transferência"

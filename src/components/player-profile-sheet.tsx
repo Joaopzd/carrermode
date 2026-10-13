@@ -9,6 +9,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { parsePlaystyles } from "@/lib/playstyles";
 import { posEn } from "@/lib/posicoes";
 import { cn } from "@/lib/utils";
+import { formatarMoeda, type CodigoMoeda } from "@/lib/moeda";
+import { moedaDaPassagem } from "@/lib/moeda-stint";
 
 export type EscopoPerfil = "temporada" | "carreira";
 
@@ -52,9 +54,6 @@ type StatRow = {
   } | null;
 };
 
-const moeda = (v: number | null) =>
-  v == null ? "—" : `£ ${new Intl.NumberFormat("pt-BR").format(Number(v))}`;
-
 /** Painel de perfil do jogador reutilizado em Elenco, Estatísticas e Ex-jogadores. */
 export function PlayerProfileSheet({
   playerId,
@@ -77,6 +76,8 @@ export function PlayerProfileSheet({
   const [stats, setStats] = useState<StatRow[]>([]);
   const [carregando, setCarregando] = useState(false);
   const [escopo, setEscopo] = useState<EscopoPerfil>(escopoInicial);
+  const [codigoMoeda, setCodigoMoeda] = useState<CodigoMoeda>("EUR");
+  const moeda = (v: number | null) => formatarMoeda(v, codigoMoeda);
 
   useEffect(() => {
     if (playerId) setEscopo(escopoInicial);
@@ -89,9 +90,10 @@ export function PlayerProfileSheet({
       return;
     }
     let ativo = true;
+    setJogador(null);
     setCarregando(true);
     void (async () => {
-      const [{ data: p }, { data: s }] = await Promise.all([
+      const [{ data: p }, { data: s }, codigo] = await Promise.all([
         supabase.from("players").select("*").eq("id", playerId).maybeSingle(),
         supabase
           .from("match_player_stats")
@@ -100,8 +102,10 @@ export function PlayerProfileSheet({
           )
           .eq("player_id", playerId)
           .eq("matches.stint_id", stintId ?? "00000000-0000-0000-0000-000000000000"),
+        stintId ? moedaDaPassagem(stintId) : Promise.resolve<CodigoMoeda>("EUR"),
       ]);
       if (!ativo) return;
+      setCodigoMoeda(codigo);
       setJogador((p ?? null) as PlayerRow | null);
       setStats((s ?? []) as unknown as StatRow[]);
       setCarregando(false);
