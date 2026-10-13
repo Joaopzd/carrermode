@@ -18,6 +18,7 @@ import {
   Settings,
   Target,
   Trophy,
+  Trash2,
   UserMinus,
   Users,
 } from "lucide-react";
@@ -78,6 +79,7 @@ export const GRUPOS_NAV = [
       { title: "Regras da Liga", url: "/regras-liga", icon: Settings },
       { title: "Trocar Clube", url: "/trocar-clube", icon: Replace },
       { title: "Encerrar Passagem e Mudar de Clube", url: "/mudar-clube", icon: Repeat },
+      { title: "Excluir carreira", url: "/excluir-carreira", icon: Trash2 },
     ],
   },
 ] as const;

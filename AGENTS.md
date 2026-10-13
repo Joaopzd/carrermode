@@ -15,3 +15,5 @@
 - Reuse ArquivoPassagem with an explicit historical stint and club for career history, keeping standings read-only and corrections confirmed.
 - Retire legacy save club/league fields without deleting them to preserve compatibility and data until a verified backup and authorized removal.
 - Refresh the shared club catalog by matching canonical club identities, retaining IDs and crests and detaching omitted clubs instead of deleting them; historical stints keep their own league references.
+- Own session transition handling in the root route and resume authenticated public-home/auth arrivals in the career area so full-page OAuth returns do not strand users on the landing page.
+- Delete careers with one owner-scoped saves DELETE using existing cascading foreign keys; keep accounts and the shared catalog and clear cached career data before onboarding.
