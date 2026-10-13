@@ -20,7 +20,7 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { garantirStintAtiva } from "@/lib/stint";
-import { formatarMoeda, moedaDoPais, type CodigoMoeda } from "@/lib/moeda";
+import { formatarMoedaCompacta, moedaDoPais, type CodigoMoeda } from "@/lib/moeda";
 import { contarMvps } from "@/lib/mvp";
 import { encerrarTemporada, garantirSeasonAtiva, type TransicaoLiga } from "@/lib/season";
 import { AppShell } from "@/components/app-shell";
@@ -425,7 +425,7 @@ function Dashboard() {
                 <ResumoCard
                   icone={<Banknote className="h-4 w-4" />}
                   rotulo="Valor do elenco"
-                  valor={formatarMoeda(resumo.valorTotal, resumo.moeda)}
+                  valor={formatarMoedaCompacta(resumo.valorTotal, resumo.moeda)}
                   detalhe="Soma de valor de mercado"
                 />
                 <ResumoCard
