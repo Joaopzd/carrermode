@@ -714,30 +714,6 @@ export function CareerOnboarding({ saveId = null, motivo = null, temporadaInicia
             </section>
           )}
 
-          <footer className="mt-10 flex items-center justify-between gap-3 border-t border-border pt-6">
-            <Button
-              type="button"
-              variant="ghost"
-              disabled={passo === 0 || salvando}
-              onClick={() => setPasso((p) => Math.max(0, p - 1))}
-            >
-              Voltar
-            </Button>
-
-            {passo < passos.length - 1 ? (
-              <Button
-                type="button"
-                disabled={!podeAvancar}
-                onClick={() => setPasso((p) => p + 1)}
-              >
-                Continuar
-              </Button>
-            ) : (
-              <Button type="button" disabled={salvando} onClick={finalizar}>
-                {salvando ? "Salvando…" : "Finalizar elenco e ir para o dashboard"}
-              </Button>
-            )}
-          </footer>
         </div>
       </div>
     </main>
