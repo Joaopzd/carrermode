@@ -1,6 +1,11 @@
 import { supabase } from "@/integrations/supabase/client";
 import { carregarRegras, zonaDaPosicao } from "@/lib/league-rules";
 import { resolverEmprestimosNoFimDaTemporada } from "@/lib/emprestimos";
+import {
+  ajusteFinanceiroParcelado,
+  ativarChegadasDeTemporada,
+  liquidarParcelasDaTemporada,
+} from "@/lib/transferencias-futuras";
 
 export type Season = {
   id: string;
@@ -257,6 +262,10 @@ export async function encerrarTemporada(saveId: string, seasonId: string, stintI
     if (t.tipo === "entrada") entradas += valor;
     else saidas += valor;
   }
+  // Transferências parceladas: só o à vista conta na temporada; parcelas entram quando debitadas.
+  const ajuste = await ajusteFinanceiroParcelado(stintId, seasonId);
+  entradas += ajuste.entradas;
+  saidas += ajuste.saidas;
 
   const ultimaRodada = standingsRes.data?.[0]?.rodada ?? null;
   const linhasUltima = (standingsRes.data ?? []).filter((l) => l.rodada === ultimaRodada);
@@ -324,6 +333,37 @@ export async function encerrarTemporada(saveId: string, seasonId: string, stintI
     .single();
 
   const novaSeason = (criada as unknown as Season | null) ?? null;
+
+  // Contratações marcadas para a próxima temporada entram no elenco agora.
+  const chegadas = await ativarChegadasDeTemporada(saveId, stintId);
+  if (chegadas.ativados > 0) {
+    await supabase.from("news_feed").insert({
+      save_id: saveId,
+      stint_id: stintId,
+      season_id: novaSeason?.id ?? null,
+      tipo: "transferencia",
+      titulo: "Reforços chegam para a nova temporada",
+      corpo: `Passam a integrar o elenco: ${chegadas.nomes.join(", ")}.`,
+    });
+  }
+
+  // Primeira (ou próxima) parcela de cada transferência parcelada é debitada na nova temporada.
+  const parcelas = await liquidarParcelasDaTemporada(stintId, novaSeason?.id ?? null);
+  if (parcelas.qtd > 0) {
+    const moeda = (v: number) => `£ ${new Intl.NumberFormat("pt-BR").format(v)}`;
+    const partes = [
+      parcelas.pagar > 0 ? `Parcelas pagas: ${moeda(parcelas.pagar)}.` : null,
+      parcelas.receber > 0 ? `Parcelas recebidas: ${moeda(parcelas.receber)}.` : null,
+    ].filter(Boolean);
+    await supabase.from("news_feed").insert({
+      save_id: saveId,
+      stint_id: stintId,
+      season_id: novaSeason?.id ?? null,
+      tipo: "transferencia",
+      titulo: "Parcelas de transferências debitadas",
+      corpo: partes.join(" "),
+    });
+  }
 
   // Empréstimos vencidos: obrigação de compra vira definitiva, o resto devolve o jogador.
   const emprestimos = await resolverEmprestimosNoFimDaTemporada(saveId, seasonId, "verao", stintId);
