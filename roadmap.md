@@ -1,4 +1,7 @@
 # Continuação: passagens por clube
+- [ ] Corrigir temporada duplicada no dashboard.
+- [ ] Exibir moeda conforme o país do clube, preservando a unidade de cada passagem histórica.
+- [ ] Validar libra/euro e cabeçalho da temporada.
 - [x] Corrigir retorno do Google para a carreira após autenticação.
 - [x] Adicionar exclusão confirmada da carreira e reinício, sem excluir a conta ou o catálogo compartilhado.
 - [x] Verificar retorno autenticado e exclusão com carreira temporária; confirmação, cancelamento, remoção dos dados e início do onboarding validados.
