@@ -296,6 +296,31 @@ export function CareerOnboarding({ saveId = null, motivo = null, temporadaInicia
             </ol>
           </header>
 
+          <div className="sticky top-0 z-30 mb-8 flex items-center justify-between gap-3 rounded-xl border border-border bg-card/90 px-3 py-2 backdrop-blur">
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={passo === 0 || salvando}
+              onClick={() => setPasso((p) => Math.max(0, p - 1))}
+            >
+              Voltar
+            </Button>
+
+            {passo < passos.length - 1 ? (
+              <Button
+                type="button"
+                disabled={!podeAvancar}
+                onClick={() => setPasso((p) => p + 1)}
+              >
+                Continuar
+              </Button>
+            ) : (
+              <Button type="button" disabled={salvando} onClick={finalizar}>
+                {salvando ? "Salvando…" : "Finalizar elenco e ir para o dashboard"}
+              </Button>
+            )}
+          </div>
+
           {passo === 0 && (
             <section className="space-y-4">
               <h2 className="text-2xl">Escolha a liga</h2>
