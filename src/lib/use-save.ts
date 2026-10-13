@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { garantirSeasonAtiva } from "@/lib/season";
 import { garantirStintAtiva } from "@/lib/stint";
+import { moedaDoPais, type CodigoMoeda } from "@/lib/moeda";
 
-type ClubeAtual = { nome: string; escudo_url: string | null };
+type ClubeAtual = { nome: string; escudo_url: string | null; pais: string | null };
 type LigaAtual = { id: string; nome: string; pais: string; nivel: number };
 
 export type SaveAtual = {
@@ -21,6 +22,7 @@ export type SaveAtual = {
   ligaNome: string | null;
   ligaPais: string | null;
   ligaNivel: number | null;
+  moeda: CodigoMoeda;
 };
 
 export function useSaveAtual() {
@@ -54,7 +56,7 @@ export function useSaveAtual() {
         if (stint?.club_id) {
           const { data: c } = await supabase
             .from("clubs")
-            .select("nome, escudo_url")
+            .select("nome, escudo_url, pais")
             .eq("id", stint.club_id)
             .maybeSingle();
           clube = (c as ClubeAtual | null) ?? null;
@@ -89,6 +91,7 @@ export function useSaveAtual() {
           ligaNome: liga?.nome ?? null,
           ligaPais: liga?.pais ?? null,
           ligaNivel: liga?.nivel ?? null,
+          moeda: moedaDoPais(clube?.pais ?? liga?.pais),
         });
       }
       setCarregando(false);

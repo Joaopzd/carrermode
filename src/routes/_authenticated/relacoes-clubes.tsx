@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSaveAtual } from "@/lib/use-save";
+import { formatarMoeda } from "@/lib/moeda";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/relacoes-clubes")({
@@ -54,9 +55,6 @@ type Grupo = {
   selos: string[];
 };
 
-const moeda = (v: number | null) =>
-  v == null ? "—" : `£${Math.round(v).toLocaleString("pt-BR")}`;
-
 function calcularSelos(negocios: Transfer[], seasonsRecentes: Set<string>): string[] {
   const selos: string[] = [];
   const total = negocios.length;
@@ -76,6 +74,7 @@ function calcularSelos(negocios: Transfer[], seasonsRecentes: Set<string>): stri
 
 function RelacoesClubesPage() {
   const { save } = useSaveAtual();
+  const moeda = (v: number | null) => formatarMoeda(v, save?.moeda ?? "EUR");
   const [carregando, setCarregando] = useState(true);
   const [transfers, setTransfers] = useState<Transfer[]>([]);
   const [nomePorId, setNomePorId] = useState<Record<string, string>>({});

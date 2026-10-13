@@ -53,6 +53,7 @@ import { Bandeira } from "@/components/bandeira";
 import { supabase } from "@/integrations/supabase/client";
 import { PAISES, POSICOES, STATUS_JOGADOR } from "@/lib/onboarding-data";
 import { useSaveAtual } from "@/lib/use-save";
+import { formatarMoeda } from "@/lib/moeda";
 import { lerDataCarreira } from "@/lib/carreira-data";
 import { ClubBadge } from "@/components/club-badge";
 import {
@@ -98,9 +99,6 @@ type Jogador = {
   capitao: boolean;
 };
 
-const moeda = (v: number | null) =>
-  v === null ? "—" : `£ ${new Intl.NumberFormat("pt-BR").format(v)}`;
-
 /** Vermelho ≤64 · amarelo 65-74 · verde 75-84 · azul ≥85. */
 function corOverall(overall: number | null) {
   if (overall === null) return "bg-muted text-muted-foreground";
@@ -121,6 +119,7 @@ type CampoOrdem = (typeof ORDENACOES)[number]["valor"];
 
 function ElencoPage() {
   const { save, carregando: carregandoSave } = useSaveAtual();
+  const moeda = (v: number | null) => formatarMoeda(v, save?.moeda ?? "EUR");
   const [jogadores, setJogadores] = useState<Jogador[]>([]);
   const [chegadas, setChegadas] = useState<ChegadaPendente[]>([]);
   const [carregando, setCarregando] = useState(true);

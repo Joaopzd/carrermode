@@ -20,6 +20,7 @@ import { useIndicadorCarregamento, useSkeletonDelay } from "@/lib/loading-bus";
 import { supabase } from "@/integrations/supabase/client";
 import { POSICOES, posEn } from "@/lib/posicoes";
 import { useSaveAtual } from "@/lib/use-save";
+import { formatarMoedaCompacta } from "@/lib/moeda";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Route = createFileRoute("/_authenticated/analise-elenco")({
@@ -100,19 +101,6 @@ function areaDaPosicao(pos: string | null): string {
 function secundarias(valor: unknown): string[] {
   if (Array.isArray(valor)) return valor.map((v) => posEn(String(v)) ?? "").filter(Boolean);
   return [];
-}
-
-function formatoCompactoMoeda(v: number): string {
-  const abs = Math.abs(v);
-  if (abs >= 1_000_000) {
-    const milhoes = v / 1_000_000;
-    return `£${milhoes.toFixed(milhoes % 1 === 0 ? 0 : 1)}M`;
-  }
-  if (abs >= 1_000) {
-    const mil = v / 1_000;
-    return `£${mil.toFixed(mil % 1 === 0 ? 0 : 1)}k`;
-  }
-  return `£${v}`;
 }
 
 function AnaliseElencoPage() {
@@ -305,7 +293,7 @@ function AnaliseElencoPage() {
                   titulo="Valor de mercado por área"
                   dados={porArea}
                   chave="valorTotal"
-                  formato={formatoCompactoMoeda}
+                  formato={(v) => formatarMoedaCompacta(v, save?.moeda ?? "EUR")}
                   moeda
                 />
               </div>
@@ -364,7 +352,7 @@ function GraficoArea({
               stroke="hsl(var(--muted-foreground))"
               fontSize={compacto ? 10 : 11}
               tickFormatter={(v: number) =>
-                moeda ? formatoCompactoMoeda(Number(v)) : String(v)
+                moeda ? formato(Number(v)) : String(v)
               }
             />
             <Tooltip
