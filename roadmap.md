@@ -1,4 +1,7 @@
 # Continuação: passagens por clube
+- [ ] Corrigir retorno do Google para a carreira após autenticação.
+- [ ] Adicionar exclusão confirmada da carreira e reinício, sem excluir a conta ou o catálogo compartilhado.
+- [ ] Verificar login autenticado e exclusão com uma carreira temporária.
 - [x] Atualizar catálogo conforme lista EA FC 27 enviada, incluindo 3. Liga e os nomes Arezzo/Catanzaro; 284 clubes em 14 divisões conferidos.
 - [x] Atualizar temporada inicial para 2026/27 e verificar seleção no navegador autenticado, preservando carreiras existentes.
 - [x] Isolar consultas e cadastros pela passagem atual.
