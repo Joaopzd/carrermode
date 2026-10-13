@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ClubBadge } from "@/components/club-badge";
+import { FREE_AGENT, FreeAgentCrest, ehFreeAgent } from "@/components/free-agent-crest";
 import { carregarClubes, useClubes } from "@/lib/clubes";
 import { cadastrarClubeCatalogo } from "@/lib/crests.functions";
 import { toast } from "sonner";
@@ -69,10 +70,12 @@ export function ClubAutocomplete({
   }, [clubes, termo, leagueId]);
 
   const jaExiste = useMemo(
-    () => clubes.some((c) => normalizar(c.nome) === termo),
-    [clubes, termo],
+    () => clubes.some((c) => normalizar(c.nome) === termo) || ehFreeAgent(value),
+    [clubes, termo, value],
   );
   const podeCadastrar = value.trim().length >= 2 && !jaExiste;
+  // "Free Agent" fica fixo no topo da lista quando combina com o que foi digitado.
+  const mostrarFreeAgent = !termo || normalizar(FREE_AGENT).includes(termo) || ehFreeAgent(value);
 
   async function cadastrar() {
     const nome = value.trim();
@@ -109,8 +112,26 @@ export function ClubAutocomplete({
           fechar.current = window.setTimeout(() => setAberto(false), 120);
         }}
       />
-      {aberto && (sugestoes.length > 0 || podeCadastrar) && (
+      {aberto && (sugestoes.length > 0 || podeCadastrar || mostrarFreeAgent) && (
         <ul className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border bg-popover p-1 shadow-md">
+          {mostrarFreeAgent && (
+            <li>
+              <button
+                type="button"
+                className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-sm hover:bg-accent"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  if (fechar.current) window.clearTimeout(fechar.current);
+                  onChange(FREE_AGENT);
+                  setAberto(false);
+                }}
+              >
+                <FreeAgentCrest className="h-6 w-6" />
+                <span className="truncate">{FREE_AGENT}</span>
+                <span className="ml-auto text-xs text-muted-foreground">sem contrato</span>
+              </button>
+            </li>
+          )}
           {sugestoes.map((c) => (
             <li key={c.id}>
               <button

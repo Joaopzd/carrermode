@@ -1,6 +1,7 @@
 import { Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { escudoPorNome, useClubes } from "@/lib/clubes";
+import { FREE_AGENT, FreeAgentCrest, ehFreeAgent } from "@/components/free-agent-crest";
 
 type Props = {
   nome?: string | null | undefined;
@@ -30,12 +31,15 @@ export function ClubBadge({
   textoClassName,
 }: Props) {
   const clubes = useClubes();
-  const url = escudoUrl ?? escudoPorNome(clubes, nome);
+  const freeAgent = ehFreeAgent(nome);
+  const url = freeAgent ? null : (escudoUrl ?? escudoPorNome(clubes, nome));
   const box = TAMANHOS[tamanho];
 
   return (
     <span className={cn("inline-flex min-w-0 items-center gap-1.5", className)}>
-      {url ? (
+      {freeAgent ? (
+        <FreeAgentCrest className={box} />
+      ) : url ? (
         <img
           src={url}
           alt={nome ? `Escudo do ${nome}` : "Escudo"}
@@ -45,7 +49,11 @@ export function ClubBadge({
       ) : (
         <Shield className={cn(box, "shrink-0 text-muted-foreground")} aria-hidden />
       )}
-      {!semNome && <span className={cn("truncate", textoClassName)}>{nome?.trim() || "—"}</span>}
+      {!semNome && (
+        <span className={cn("truncate", textoClassName)}>
+          {freeAgent ? FREE_AGENT : nome?.trim() || "—"}
+        </span>
+      )}
     </span>
   );
 }
