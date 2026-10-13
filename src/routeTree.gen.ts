@@ -24,6 +24,7 @@ import { Route as AuthenticatedElencoRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedEmBreveRouteImport } from './routes/_authenticated/em-breve'
 import { Route as AuthenticatedEstatisticasRouteImport } from './routes/_authenticated/estatisticas'
 import { Route as AuthenticatedExJogadoresRouteImport } from './routes/_authenticated/ex-jogadores'
+import { Route as AuthenticatedExcluirCarreiraRouteImport } from './routes/_authenticated/excluir-carreira'
 import { Route as AuthenticatedHistoricoRouteImport } from './routes/_authenticated/historico'
 import { Route as AuthenticatedHistoricoCarreiraRouteImport } from './routes/_authenticated/historico-carreira'
 import { Route as AuthenticatedMetasRouteImport } from './routes/_authenticated/metas'
@@ -114,6 +115,12 @@ const AuthenticatedExJogadoresRoute =
     path: '/ex-jogadores',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedExcluirCarreiraRoute =
+  AuthenticatedExcluirCarreiraRouteImport.update({
+    id: '/excluir-carreira',
+    path: '/excluir-carreira',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedHistoricoRoute = AuthenticatedHistoricoRouteImport.update({
   id: '/historico',
   path: '/historico',
@@ -189,6 +196,7 @@ export interface FileRoutesByFullPath {
   '/em-breve': typeof AuthenticatedEmBreveRoute
   '/estatisticas': typeof AuthenticatedEstatisticasRoute
   '/ex-jogadores': typeof AuthenticatedExJogadoresRoute
+  '/excluir-carreira': typeof AuthenticatedExcluirCarreiraRoute
   '/historico': typeof AuthenticatedHistoricoRoute
   '/historico-carreira': typeof AuthenticatedHistoricoCarreiraRoute
   '/metas': typeof AuthenticatedMetasRoute
@@ -216,6 +224,7 @@ export interface FileRoutesByTo {
   '/em-breve': typeof AuthenticatedEmBreveRoute
   '/estatisticas': typeof AuthenticatedEstatisticasRoute
   '/ex-jogadores': typeof AuthenticatedExJogadoresRoute
+  '/excluir-carreira': typeof AuthenticatedExcluirCarreiraRoute
   '/historico': typeof AuthenticatedHistoricoRoute
   '/historico-carreira': typeof AuthenticatedHistoricoCarreiraRoute
   '/metas': typeof AuthenticatedMetasRoute
@@ -245,6 +254,7 @@ export interface FileRoutesById {
   '/_authenticated/em-breve': typeof AuthenticatedEmBreveRoute
   '/_authenticated/estatisticas': typeof AuthenticatedEstatisticasRoute
   '/_authenticated/ex-jogadores': typeof AuthenticatedExJogadoresRoute
+  '/_authenticated/excluir-carreira': typeof AuthenticatedExcluirCarreiraRoute
   '/_authenticated/historico': typeof AuthenticatedHistoricoRoute
   '/_authenticated/historico-carreira': typeof AuthenticatedHistoricoCarreiraRoute
   '/_authenticated/metas': typeof AuthenticatedMetasRoute
@@ -274,6 +284,7 @@ export interface FileRouteTypes {
     | '/em-breve'
     | '/estatisticas'
     | '/ex-jogadores'
+    | '/excluir-carreira'
     | '/historico'
     | '/historico-carreira'
     | '/metas'
@@ -301,6 +312,7 @@ export interface FileRouteTypes {
     | '/em-breve'
     | '/estatisticas'
     | '/ex-jogadores'
+    | '/excluir-carreira'
     | '/historico'
     | '/historico-carreira'
     | '/metas'
@@ -329,6 +341,7 @@ export interface FileRouteTypes {
     | '/_authenticated/em-breve'
     | '/_authenticated/estatisticas'
     | '/_authenticated/ex-jogadores'
+    | '/_authenticated/excluir-carreira'
     | '/_authenticated/historico'
     | '/_authenticated/historico-carreira'
     | '/_authenticated/metas'
@@ -456,6 +469,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedExJogadoresRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/excluir-carreira': {
+      id: '/_authenticated/excluir-carreira'
+      path: '/excluir-carreira'
+      fullPath: '/excluir-carreira'
+      preLoaderRoute: typeof AuthenticatedExcluirCarreiraRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/historico': {
       id: '/_authenticated/historico'
       path: '/historico'
@@ -548,6 +568,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedEmBreveRoute: typeof AuthenticatedEmBreveRoute
   AuthenticatedEstatisticasRoute: typeof AuthenticatedEstatisticasRoute
   AuthenticatedExJogadoresRoute: typeof AuthenticatedExJogadoresRoute
+  AuthenticatedExcluirCarreiraRoute: typeof AuthenticatedExcluirCarreiraRoute
   AuthenticatedHistoricoRoute: typeof AuthenticatedHistoricoRoute
   AuthenticatedHistoricoCarreiraRoute: typeof AuthenticatedHistoricoCarreiraRoute
   AuthenticatedMetasRoute: typeof AuthenticatedMetasRoute
@@ -573,6 +594,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedEmBreveRoute: AuthenticatedEmBreveRoute,
   AuthenticatedEstatisticasRoute: AuthenticatedEstatisticasRoute,
   AuthenticatedExJogadoresRoute: AuthenticatedExJogadoresRoute,
+  AuthenticatedExcluirCarreiraRoute: AuthenticatedExcluirCarreiraRoute,
   AuthenticatedHistoricoRoute: AuthenticatedHistoricoRoute,
   AuthenticatedHistoricoCarreiraRoute: AuthenticatedHistoricoCarreiraRoute,
   AuthenticatedMetasRoute: AuthenticatedMetasRoute,
