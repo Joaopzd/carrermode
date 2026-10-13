@@ -4,6 +4,7 @@ import {
   createRootRouteWithContext,
   HeadContent,
   Scripts,
+  useRouter,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
@@ -12,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { PaginaErro, PaginaNaoEncontrada } from "@/components/system-page";
+import { supabase } from "@/integrations/supabase/client";
 
 
 function NotFoundComponent() {
@@ -90,6 +92,30 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
+
+  useEffect(() => {
+    let ativo = true;
+    function continuarCarreira() {
+      const path = router.state.location.pathname;
+      if (path === "/" || path === "/auth") {
+        void router.navigate({ to: "/dashboard", replace: true });
+      }
+    }
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+      void router.invalidate();
+      if (event !== "SIGNED_OUT") {
+        void queryClient.invalidateQueries();
+        if (event === "SIGNED_IN") continuarCarreira();
+      }
+    });
+    // OAuth returns to the public home; resume only after Auth validates the user.
+    void supabase.auth.getUser().then(({ data: auth }) => {
+      if (ativo && auth.user) continuarCarreira();
+    });
+    return () => { ativo = false; data.subscription.unsubscribe(); };
+  }, [router, queryClient]);
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
@@ -37,16 +37,6 @@ function AuthPage() {
   const [senha, setSenha] = useState("");
   const [username, setUsername] = useState("");
   const [esqueci, setEsqueci] = useState(false);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/dashboard" });
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_IN" && session) navigate({ to: "/dashboard" });
-    });
-    return () => sub.subscription.unsubscribe();
-  }, [navigate]);
 
   async function entrar(e: React.FormEvent) {
     e.preventDefault();
