@@ -1,6 +1,7 @@
 import { ClubBadge } from "@/components/club-badge";
 import { ClubAutocomplete } from "@/components/club-autocomplete";
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { ativarChegadasPorData } from "@/lib/transferencias-futuras";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
@@ -114,6 +115,12 @@ function CalendarioPage() {
     if (save) salvarDataCarreira(save.id, novo);
     const d = new Date(`${novo}T12:00:00`);
     setMes(new Date(d.getFullYear(), d.getMonth(), 1));
+    // Abertura de janela: contratações agendadas para esta data entram no elenco.
+    if (save?.stintId) {
+      void ativarChegadasPorData(save.id, save.stintId, novo).then((r) => {
+        if (r.ativados > 0) toast.success(`Janela aberta! Chegaram ao elenco: ${r.nomes.join(", ")}.`);
+      });
+    }
   }
 
   const carregar = useCallback(async (saveId: string, seasonId: string | null, stintId: string) => {

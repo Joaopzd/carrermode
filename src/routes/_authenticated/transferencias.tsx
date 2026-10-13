@@ -51,6 +51,23 @@ import {
   type EmprestimoRow,
 } from "@/lib/emprestimos";
 import { lerDataCarreira } from "@/lib/carreira-data";
+import {
+  ROTULO_INICIO,
+  ativarChegadaAgora,
+  ativarChegadasPorData,
+  calcularParcelas,
+  carregarParcelas,
+  criarParcelas,
+  db,
+  formatarDiaCurto,
+  janelaAberta,
+  listarChegadasPendentes,
+  proximaAberturaJanela,
+  type ChegadaPendente,
+  type InicioTipo,
+  type JogadorPendente,
+  type Parcela,
+} from "@/lib/transferencias-futuras";
 import { PAISES } from "@/lib/onboarding-data";
 
 import { checarVendaPolemica } from "@/lib/eventos";
@@ -91,6 +108,13 @@ type Transferencia = {
   obrigacao_compra?: boolean | null;
   status_opcao?: string | null;
   transfer_origem_emprestimo_id?: string | null;
+  inicio_tipo?: InicioTipo | null;
+  data_inicio?: string | null;
+  chegada_status?: string | null;
+  jogador_pendente?: JogadorPendente | null;
+  parcelado?: boolean | null;
+  valor_a_vista?: number | null;
+  parcelas_qtd?: number | null;
 };
 
 type JogadorSimples = {
@@ -161,6 +185,15 @@ function janelaDoDia(dia: string): Janela {
 
 const hojeISO = () => new Date().toISOString().slice(0, 10);
 
+function descricaoChegada(c: { inicio: InicioTipo; data: string | null }) {
+  return c.inicio === "proxima_janela" && c.data
+    ? `em ${formatarDiaCurto(c.data)}`
+    : "na próxima temporada";
+}
+
+const valorParcela = (t: { valor?: number | null; valor_a_vista?: number | null; parcelas_qtd?: number | null }) =>
+  t.parcelas_qtd ? ((t.valor ?? 0) - (t.valor_a_vista ?? 0)) / t.parcelas_qtd : 0;
+
 const moeda = (v: number | null) =>
   v === null ? "—" : `£ ${new Intl.NumberFormat("pt-BR").format(v)}`;
 
@@ -200,6 +233,14 @@ function TransferenciasPage() {
   const [dataNeg, setDataNeg] = useState(hojeISO);
   const [janela, setJanela] = useState<Janela>(() => janelaDoDia(hojeISO()));
   const [janelaManual, setJanelaManual] = useState(false);
+  const [inicio, setInicio] = useState<InicioTipo>("agora");
+  const [parcelado, setParcelado] = useState(false);
+  const [valorAVista, setValorAVista] = useState("");
+  const [parcelasQtd, setParcelasQtd] = useState("2");
+  const [parcelas, setParcelas] = useState<Parcela[]>([]);
+  const [chegadasPend, setChegadasPend] = useState<ChegadaPendente[]>([]);
+  // Quando a contratação só entra no elenco depois, o cadastro vira "jogador pendente".
+  const [chegadaAgendada, setChegadaAgendada] = useState<{ inicio: InicioTipo; data: string | null } | null>(null);
   const [temOpcao, setTemOpcao] = useState(false);
   const [valorOpcao, setValorOpcao] = useState("");
   const [obrigacaoCompra, setObrigacaoCompra] = useState(false);
@@ -222,9 +263,12 @@ function TransferenciasPage() {
   const [retornoAberto, setRetornoAberto] = useState(false);
 
   async function carregar(saveId: string, seasonId: string | null, stintId: string) {
+    // Contratações agendadas para a data atual da carreira (ou antes) entram no elenco.
+    const dataAtual = lerDataCarreira(saveId);
+    if (dataAtual && stintId) await ativarChegadasPorData(saveId, stintId, dataAtual);
     let qt = supabase.from("transfers").select("*").eq("stint_id", stintId);
     if (seasonId) qt = qt.eq("season_id", seasonId);
-    const [{ data: t }, { data: p }, { data: ex }, ativos] = await Promise.all([
+    const [{ data: t }, { data: p }, { data: ex }, ativos, parcelasLista, chegadasLista] = await Promise.all([
       qt.order("data", { ascending: false }),
       supabase
         .from("players")
@@ -240,7 +284,11 @@ function TransferenciasPage() {
         .eq("ativo", false)
         .order("nome"),
       carregarEmprestimosAtivos(saveId, stintId),
+      carregarParcelas(stintId),
+      listarChegadasPendentes(stintId),
     ]);
+    setParcelas(parcelasLista);
+    setChegadasPend(chegadasLista);
     setLista((t ?? []) as Transferencia[]);
     setEmprestimos(ativos as unknown as Transferencia[]);
     setTodosJogadores((p ?? []) as JogadorSimples[]);
@@ -294,13 +342,37 @@ function TransferenciasPage() {
     [todosJogadores],
   );
 
+  // Transferência parceladas: só o à vista pertence à temporada; as parcelas contam quando debitadas.
   const saldo = useMemo(() => {
-    const entradas = lista
-      .filter((t) => t.tipo === "entrada")
-      .reduce((a, t) => a + (t.valor ?? 0), 0);
-    const saidas = lista.filter((t) => t.tipo === "saida").reduce((a, t) => a + (t.valor ?? 0), 0);
+    const parte = (t: Transferencia) => (t.parcelado ? (t.valor_a_vista ?? 0) : (t.valor ?? 0));
+    const doPeriodo = parcelas.filter(
+      (p) => p.status === "liquidada" && p.season_liquidacao_id === save?.seasonId,
+    );
+    const entradas =
+      lista.filter((t) => t.tipo === "entrada").reduce((a, t) => a + parte(t), 0) +
+      doPeriodo.filter((p) => p.direcao === "pagar").reduce((a, p) => a + Number(p.valor), 0);
+    const saidas =
+      lista.filter((t) => t.tipo === "saida").reduce((a, t) => a + parte(t), 0) +
+      doPeriodo.filter((p) => p.direcao === "receber").reduce((a, p) => a + Number(p.valor), 0);
     return { entradas, saidas, total: saidas - entradas };
-  }, [lista]);
+  }, [lista, parcelas, save?.seasonId]);
+
+  const parcelasResumo = useMemo(() => {
+    const pend = parcelas.filter((p) => p.status === "pendente");
+    const proxima = new Map<string, Parcela>();
+    for (const p of [...pend].sort((x, y) => x.numero - y.numero)) {
+      if (!proxima.has(p.transfer_id)) proxima.set(p.transfer_id, p);
+    }
+    const soma = (l: Parcela[], d: string) =>
+      l.filter((p) => p.direcao === d).reduce((a, p) => a + Number(p.valor), 0);
+    return {
+      pagar: soma(pend, "pagar"),
+      receber: soma(pend, "receber"),
+      proxPagar: soma([...proxima.values()], "pagar"),
+      proxReceber: soma([...proxima.values()], "receber"),
+      qtd: pend.length,
+    };
+  }, [parcelas]);
 
   function definirData(novo: string) {
     setDataNeg(novo);
@@ -324,6 +396,11 @@ function TransferenciasPage() {
     setJanela(janelaDoDia(hoje));
 
     setJanelaManual(false);
+    setInicio(janelaAberta(hoje) ? "agora" : "proxima_janela");
+    setParcelado(false);
+    setValorAVista("");
+    setParcelasQtd("2");
+    setChegadaAgendada(null);
     setTemOpcao(false);
     setValorOpcao("");
     setObrigacaoCompra(false);
@@ -363,6 +440,16 @@ function TransferenciasPage() {
 
   const numOrNull = (v: string) => (v.trim() === "" ? null : Number(v));
 
+  const previaParcelas = useMemo(() => {
+    const total = numOrNull(valor) ?? 0;
+    const aVista = numOrNull(valorAVista) ?? 0;
+    const qtd = Number(parcelasQtd);
+    if (!parcelado || total <= 0 || !Number.isInteger(qtd) || qtd < 1 || aVista >= total) return null;
+    const lista = calcularParcelas(total, aVista, qtd);
+    return { restante: total - aVista, qtd, primeira: lista[0] ?? 0 };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [parcelado, valor, valorAVista, parcelasQtd]);
+
   async function confirmar() {
     if (!save) return;
     if (tipo === "entrada" && nomeExterno.trim() === "") {
@@ -378,8 +465,33 @@ function TransferenciasPage() {
       return;
     }
 
+    // Início da contratação e parcelamento.
+    const valorNum = numOrNull(valor);
+    const aVistaNum = numOrNull(valorAVista) ?? 0;
+    const qtdParcelas = Number(parcelasQtd);
+    const usaParcelas = parcelado && modalidade !== "emprestimo";
+    if (usaParcelas) {
+      if (!valorNum || valorNum <= 0) {
+        toast.error("Informe o valor da transferência para parcelar.");
+        return;
+      }
+      if (aVistaNum < 0 || aVistaNum >= valorNum) {
+        toast.error("O valor à vista deve ser menor que o valor total.");
+        return;
+      }
+      if (!Number.isInteger(qtdParcelas) || qtdParcelas < 1) {
+        toast.error("Informe o número de parcelas.");
+        return;
+      }
+    }
+    const inicioEfetivo: InicioTipo = tipo === "entrada" && modalidade === "definitiva" ? inicio : "agora";
+    const dataInicio =
+      inicioEfetivo === "proxima_janela" ? proximaAberturaJanela(dataNeg || hojeISO()) : null;
+    const janelaFinal: Janela = dataInicio ? janelaDoDia(dataInicio) : janela;
+    const deferida = inicioEfetivo !== "agora";
+
     setSalvando(true);
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from("transfers")
       .insert({
         save_id: save.id,
@@ -392,12 +504,29 @@ function TransferenciasPage() {
         clube_contraparte: clubeContraparte.trim() || null,
         valor: numOrNull(valor),
         duracao_emprestimo: modalidade === "emprestimo" ? duracao || null : null,
-        janela,
+        janela: janelaFinal,
         tem_opcao_compra: modalidade === "emprestimo" ? temOpcao : false,
         valor_opcao_compra: modalidade === "emprestimo" && temOpcao ? numOrNull(valorOpcao) : null,
         obrigacao_compra: modalidade === "emprestimo" && temOpcao ? obrigacaoCompra : false,
         status_opcao: modalidade === "emprestimo" && temOpcao ? "pendente" : "nao_aplicavel",
         data: new Date(`${dataNeg || hojeISO()}T12:00:00`).toISOString(),
+        inicio_tipo: inicioEfetivo,
+        data_inicio: dataInicio,
+        chegada_status: deferida ? "pendente" : "nao_aplicavel",
+        jogador_pendente: deferida
+          ? ({
+              nome: nomeExterno.trim(),
+              retorno_id: retorno?.id ?? null,
+              payload: {
+                nome: nomeExterno.trim(),
+                nacionalidade: nacExterno || null,
+                overall: numOrNull(overallExterno),
+              },
+            } satisfies JogadorPendente)
+          : null,
+        parcelado: usaParcelas,
+        valor_a_vista: usaParcelas ? aVistaNum : null,
+        parcelas_qtd: usaParcelas ? qtdParcelas : null,
       })
       .select("id")
       .maybeSingle();
@@ -406,6 +535,26 @@ function TransferenciasPage() {
       setSalvando(false);
       toast.error("Não foi possível registrar a transferência.");
       return;
+    }
+
+    if (usaParcelas && valorNum) {
+      try {
+        await criarParcelas({
+          transferId: data.id as string,
+          saveId: save.id,
+          stintId: save.stintId,
+          direcao: tipo === "entrada" ? "pagar" : "receber",
+          valores: calcularParcelas(valorNum, aVistaNum, qtdParcelas),
+        });
+      } catch {
+        await supabase
+          .from("transfers")
+          .delete()
+          .eq("id", data.id as string);
+        setSalvando(false);
+        toast.error("Não foi possível registrar as parcelas da transferência.");
+        return;
+      }
     }
 
     // Jogador que deixa o clube: numa saída é o próprio; numa entrada por troca
@@ -453,11 +602,14 @@ function TransferenciasPage() {
     const chegaJogador =
       tipo === "entrada" || (tipo === "saida" && modalidade === "troca" && nomeExterno.trim());
 
+    setChegadaAgendada(deferida ? { inicio: inicioEfetivo, data: dataInicio } : null);
     if (retorno && tipo === "entrada") {
-      await supabase
-        .from("transfers")
-        .update({ player_id: retorno.id })
-        .eq("id", data.id as string);
+      if (!deferida) {
+        await supabase
+          .from("transfers")
+          .update({ player_id: retorno.id })
+          .eq("id", data.id as string);
+      }
       setCadastroInicial({
         ...formDoRetorno(retorno),
         valor_mercado: valor || String(retorno.valor_mercado ?? ""),
@@ -483,6 +635,29 @@ function TransferenciasPage() {
     if (!save || !retorno) return;
     setSalvandoCadastro(true);
     const payload = formParaPayload(form);
+    if (chegadaAgendada && transferPendente) {
+      const jp: JogadorPendente = {
+        nome: form.nome,
+        retorno_id: retorno.id,
+        payload: payload as unknown as Record<string, unknown>,
+      };
+      const { error: erroAgenda } = await db
+        .from("transfers")
+        .update({ jogador_pendente: jp })
+        .eq("id", transferPendente);
+      setSalvandoCadastro(false);
+      if (erroAgenda) {
+        toast.error("Não foi possível agendar a chegada do jogador.");
+        return;
+      }
+      toast.success(`${form.nome} voltará ao elenco ${descricaoChegada(chegadaAgendada)}.`);
+      setRetornoAberto(false);
+      setTransferPendente(null);
+      setRetorno(null);
+      setChegadaAgendada(null);
+      void carregar(save.id, save.seasonId, save.stintId ?? "");
+      return;
+    }
     const { error } = await supabase
       .from("players")
       .update({
@@ -522,6 +697,28 @@ function TransferenciasPage() {
   async function salvarJogadorChegando(form: JogadorForm) {
     if (!save) return;
     setSalvandoCadastro(true);
+    if (chegadaAgendada && transferPendente) {
+      const jp: JogadorPendente = {
+        nome: form.nome,
+        retorno_id: null,
+        payload: formParaPayload(form) as unknown as Record<string, unknown>,
+      };
+      const { error: erroAgenda } = await db
+        .from("transfers")
+        .update({ jogador_pendente: jp })
+        .eq("id", transferPendente);
+      setSalvandoCadastro(false);
+      if (erroAgenda) {
+        toast.error("Não foi possível agendar a chegada do jogador.");
+        return;
+      }
+      toast.success(`${form.nome} chegará ao elenco ${descricaoChegada(chegadaAgendada)}.`);
+      setCadastroAberto(false);
+      setTransferPendente(null);
+      setChegadaAgendada(null);
+      void carregar(save.id, save.seasonId, save.stintId ?? "");
+      return;
+    }
     const { data, error } = await supabase
       .from("players")
       .insert({
@@ -743,9 +940,9 @@ function TransferenciasPage() {
     const sai = t.jogador_troca_id ? nomePorId[t.jogador_troca_id] : null;
     if (t.modalidade === "troca") {
       if (entra && sai) return `${sai} ⇄ ${entra}`;
-      return entra ?? sai ?? "Jogador";
+      return entra ?? sai ?? t.jogador_pendente?.nome ?? "Jogador";
     }
-    return entra ?? sai ?? "Jogador";
+    return entra ?? sai ?? t.jogador_pendente?.nome ?? "Jogador";
   }
 
   const emprestimosAtivos = emprestimos;
@@ -814,6 +1011,67 @@ function TransferenciasPage() {
               </CardContent>
             </Card>
           </div>
+
+          {(parcelasResumo.qtd > 0 || chegadasPend.length > 0) && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {parcelasResumo.qtd > 0 && (
+                <Card className="hq-card">
+                  <CardContent className="space-y-1 py-4">
+                    <p className="text-xs uppercase tracking-widest text-muted-foreground">
+                      Parcelas pendentes ({parcelasResumo.qtd})
+                    </p>
+                    <p className="text-sm">
+                      A pagar: <span className="text-red-400">{moeda(parcelasResumo.pagar)}</span>
+                      {parcelasResumo.receber > 0 ? (
+                        <>
+                          {" "}
+                          · A receber:{" "}
+                          <span className="text-emerald-400">{moeda(parcelasResumo.receber)}</span>
+                        </>
+                      ) : null}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Na próxima temporada: −{moeda(parcelasResumo.proxPagar)}
+                      {parcelasResumo.proxReceber > 0 ? ` / +${moeda(parcelasResumo.proxReceber)}` : ""}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+              {chegadasPend.length > 0 && (
+                <Card className="hq-card">
+                  <CardContent className="space-y-2 py-4">
+                    <p className="text-xs uppercase tracking-widest text-muted-foreground">
+                      Contratações a chegar ({chegadasPend.length})
+                    </p>
+                    {chegadasPend.map((c) => (
+                      <div key={c.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                        <span>
+                          {c.jogador_pendente?.nome ?? "Jogador"}{" "}
+                          <span className="text-muted-foreground">
+                            {c.inicio_tipo === "proxima_janela" && c.data_inicio
+                              ? `· chega em ${formatarDiaCurto(c.data_inicio)}`
+                              : "· chega na próxima temporada"}
+                          </span>
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={async () => {
+                            if (!save) return;
+                            const r = await ativarChegadaAgora(save.id, save.stintId ?? "", c.id);
+                            if (r.ativados > 0) toast.success(`${r.nomes[0]} entrou no elenco.`);
+                            void carregar(save.id, save.seasonId, save.stintId ?? "");
+                          }}
+                        >
+                          Chegar agora
+                        </Button>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
 
           <div className="flex flex-wrap gap-3">
             <Select value={filtroTipo} onValueChange={setFiltroTipo}>
@@ -1054,6 +1312,21 @@ function TransferenciasPage() {
                           {new Date(t.data).toLocaleDateString("pt-BR")}
                           {t.duracao_emprestimo ? ` · até ${t.duracao_emprestimo}` : ""}
                         </p>
+                        {t.parcelado ? (
+                          <p className="text-xs text-muted-foreground">
+                            Parcelado: {moeda(t.valor_a_vista ?? 0)} à vista + {t.parcelas_qtd}×{" "}
+                            {moeda(valorParcela(t))}
+                          </p>
+                        ) : null}
+                        {t.inicio_tipo && t.inicio_tipo !== "agora" ? (
+                          <p className="text-xs text-primary">
+                            {t.chegada_status === "pendente"
+                              ? t.inicio_tipo === "proxima_janela" && t.data_inicio
+                                ? `Chega ao elenco em ${formatarDiaCurto(t.data_inicio)}`
+                                : "Chega ao elenco na próxima temporada"
+                              : "Já integrado ao elenco"}
+                          </p>
+                        ) : null}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -1322,6 +1595,76 @@ function TransferenciasPage() {
                 </div>
               )}
 
+              {tipo === "entrada" && modalidade === "definitiva" ? (
+                <div className="grid gap-2">
+                  <Label>Início da contratação</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(["agora", "proxima_janela", "proxima_temporada"] as const).map((i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setInicio(i)}
+                        className={cn(
+                          "rounded-lg border px-2 py-2 text-sm transition-colors",
+                          inicio === i
+                            ? "border-primary bg-primary/10"
+                            : "border-border opacity-70 hover:opacity-100",
+                        )}
+                      >
+                        {ROTULO_INICIO[i]}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {inicio === "agora"
+                      ? janelaAberta(dataNeg || hojeISO())
+                        ? "O jogador entra no elenco agora."
+                        : "A janela está fechada nesta data; o jogador entra no elenco agora mesmo assim."
+                      : inicio === "proxima_janela"
+                        ? `O jogador entra no elenco em ${formatarDiaCurto(proximaAberturaJanela(dataNeg || hojeISO()))}, na abertura da janela.`
+                        : "O jogador entra no elenco na virada para a próxima temporada. A transferência fica registrada nesta temporada."}
+                  </p>
+                </div>
+              ) : null}
+
+              {modalidade !== "emprestimo" ? (
+                <div className="grid gap-3 rounded-lg border border-border p-3">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="parcelado">Pagamento parcelado?</Label>
+                    <Switch id="parcelado" checked={parcelado} onCheckedChange={setParcelado} />
+                  </div>
+                  {parcelado ? (
+                    <>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="grid gap-1">
+                          <Label>Valor à vista</Label>
+                          <Input
+                            type="number"
+                            value={valorAVista}
+                            onChange={(e) => setValorAVista(e.target.value)}
+                            placeholder="0"
+                          />
+                        </div>
+                        <div className="grid gap-1">
+                          <Label>Nº de parcelas</Label>
+                          <Input
+                            type="number"
+                            min={1}
+                            value={parcelasQtd}
+                            onChange={(e) => setParcelasQtd(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {previaParcelas
+                          ? `Restante de ${moeda(previaParcelas.restante)} em ${previaParcelas.qtd}× de ${moeda(previaParcelas.primeira)}, debitadas a cada nova temporada, a partir da próxima.`
+                          : "O valor à vista é debitado agora e o restante é dividido em parcelas, uma por temporada."}
+                      </p>
+                    </>
+                  ) : null}
+                </div>
+              ) : null}
+
               <div className="grid gap-1">
                 <Label>Data da negociação</Label>
                 <div className="flex items-center gap-2">
@@ -1416,8 +1759,14 @@ function TransferenciasPage() {
               </div>
               <div className="grid gap-1">
                 <Label>Valor</Label>
+                {editando.parcelado ? (
+                  <p className="text-xs text-muted-foreground">
+                    Transferência parcelada: para mudar o valor, exclua e registre de novo.
+                  </p>
+                ) : null}
                 <Input
                   type="number"
+                  disabled={!!editando.parcelado}
                   value={editando.valor ?? ""}
                   onChange={(e) =>
                     setEditando((p) =>

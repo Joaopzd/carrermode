@@ -53,6 +53,16 @@ import { Bandeira } from "@/components/bandeira";
 import { supabase } from "@/integrations/supabase/client";
 import { PAISES, POSICOES, STATUS_JOGADOR } from "@/lib/onboarding-data";
 import { useSaveAtual } from "@/lib/use-save";
+import { lerDataCarreira } from "@/lib/carreira-data";
+import { ClubBadge } from "@/components/club-badge";
+import {
+  ROTULO_INICIO,
+  ativarChegadaAgora,
+  ativarChegadasPorData,
+  formatarDiaCurto,
+  listarChegadasPendentes,
+  type ChegadaPendente,
+} from "@/lib/transferencias-futuras";
 
 export const Route = createFileRoute("/_authenticated/elenco")({
   head: () => ({
@@ -112,6 +122,7 @@ type CampoOrdem = (typeof ORDENACOES)[number]["valor"];
 function ElencoPage() {
   const { save, carregando: carregandoSave } = useSaveAtual();
   const [jogadores, setJogadores] = useState<Jogador[]>([]);
+  const [chegadas, setChegadas] = useState<ChegadaPendente[]>([]);
   const [carregando, setCarregando] = useState(true);
   useIndicadorCarregamento(carregando);
   const mostrarSkeleton = useSkeletonDelay(carregando);
@@ -167,6 +178,10 @@ function ElencoPage() {
   }
 
   async function carregar(saveId: string, stintId: string) {
+    // Garante que contratações agendadas para hoje (ou antes) já estejam no elenco.
+    const dataAtual = lerDataCarreira(saveId);
+    if (dataAtual) await ativarChegadasPorData(saveId, stintId, dataAtual);
+    setChegadas(await listarChegadasPendentes(stintId));
     const { data } = await supabase
       .from("players")
       .select("*")
@@ -330,6 +345,46 @@ function ElencoPage() {
               <UserPlus className="mr-1 h-4 w-4" /> Adicionar jogador
             </Button>
           </header>
+
+          {chegadas.length > 0 && (
+            <Card className="hq-card border-primary/40">
+              <CardContent className="space-y-2 py-4">
+                <p className="text-xs uppercase tracking-widest text-muted-foreground">
+                  Contratações a chegar ({chegadas.length})
+                </p>
+                {chegadas.map((c) => (
+                  <div key={c.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                    <span className="flex items-center gap-2">
+                      <span className="font-display text-base tracking-wide">
+                        {c.jogador_pendente?.nome ?? "Jogador"}
+                      </span>
+                      <span className="text-muted-foreground">de</span>
+                      <ClubBadge nome={c.clube_contraparte} className="align-middle" />
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <Badge variant="outline">
+                        {c.inicio_tipo === "proxima_janela" && c.data_inicio
+                          ? `Chega em ${formatarDiaCurto(c.data_inicio)}`
+                          : ROTULO_INICIO[c.inicio_tipo]}
+                      </Badge>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={async () => {
+                          if (!save) return;
+                          const r = await ativarChegadaAgora(save.id, save.stintId ?? "", c.id);
+                          if (r.ativados > 0) toast.success(`${r.nomes[0]} entrou no elenco.`);
+                          void carregar(save.id, save.stintId ?? "");
+                        }}
+                      >
+                        Chegar agora
+                      </Button>
+                    </span>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
 
           <div className="flex flex-wrap gap-3">
             <div className="relative min-w-56 flex-1">
