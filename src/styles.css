@@ -7,15 +7,13 @@
 /*
  * Design system definition.
  *
- * The @theme inline block maps CSS custom properties to Tailwind utility
- * classes (e.g. --color-primary -> bg-primary, text-primary).
+ * Fundo neutro (grafite / quase preto). A cor do clube entra só nos destaques
+ * (botão, item ativo da sidebar, barras e bordas) por meio de --club-primary,
+ * que o app ajusta em tempo de execução (src/lib/club-theme.ts).
+ * Verde, amarelo e vermelho ficam reservados para significado:
+ * vitória / empate / derrota e subir / cair de overall. Dourado nos troféus.
  *
- * The :root and .dark blocks define the actual color values using oklch.
- * All colors MUST use oklch format.
- *
- * To add a new semantic color:
- * 1. Add the variable to :root (light value) and .dark (dark value)
- * 2. Register it in @theme inline as --color-<name>: var(--<name>)
+ * All colors MUST use oklch format (exceto as cores do clube, definidas em runtime).
  */
 
 @theme inline {
@@ -47,6 +45,12 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-gold: var(--gold);
+  --color-club-secondary: var(--club-secondary);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -66,111 +70,98 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-:root {
-  --radius: 0.5rem;
-  --pitch: oklch(0.62 0.17 148);
-  --chalk: oklch(0.97 0.01 100);
-  --background: oklch(0.17 0.02 160);
-  --foreground: oklch(0.96 0.01 120);
-  --card: oklch(0.22 0.025 160);
-  --card-foreground: oklch(0.96 0.01 120);
-  --popover: oklch(0.22 0.025 160);
-  --popover-foreground: oklch(0.96 0.01 120);
-  --primary: oklch(0.72 0.19 145);
-  --primary-foreground: oklch(0.18 0.03 160);
-  --secondary: oklch(0.28 0.03 160);
-  --secondary-foreground: oklch(0.96 0.01 120);
-  --muted: oklch(0.26 0.025 160);
-  --muted-foreground: oklch(0.72 0.02 150);
-  --accent: oklch(0.78 0.16 88);
-  --accent-foreground: oklch(0.2 0.03 160);
-  --destructive: oklch(0.6 0.22 25);
-  --destructive-foreground: oklch(0.97 0.01 120);
-  --border: oklch(0.32 0.03 160);
-  --input: oklch(0.3 0.03 160);
-  --ring: oklch(0.72 0.19 145);
-  --chart-1: oklch(0.72 0.19 145);
-  --chart-2: oklch(0.78 0.16 88);
-  --chart-3: oklch(0.65 0.15 230);
-  --chart-4: oklch(0.7 0.18 20);
-  --chart-5: oklch(0.6 0.12 300);
-  --sidebar: oklch(0.2 0.025 160);
-  --sidebar-foreground: oklch(0.96 0.01 120);
-  --sidebar-primary: oklch(0.72 0.19 145);
-  --sidebar-primary-foreground: oklch(0.18 0.03 160);
-  --sidebar-accent: oklch(0.28 0.03 160);
-  --sidebar-accent-foreground: oklch(0.96 0.01 120);
-  --sidebar-border: oklch(0.32 0.03 160);
-  --sidebar-ring: oklch(0.72 0.19 145);
-}
-
-/* Tema claro (aplicado com a classe .light no <html>) */
-.light {
-  --pitch: oklch(0.6 0.16 148);
-  --chalk: oklch(0.25 0.02 150);
-  --background: oklch(0.98 0.008 120);
-  --foreground: oklch(0.22 0.03 160);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.03 160);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.22 0.03 160);
-  --primary: oklch(0.55 0.16 148);
-  --primary-foreground: oklch(0.99 0.01 120);
-  --secondary: oklch(0.94 0.015 150);
-  --secondary-foreground: oklch(0.25 0.03 160);
-  --muted: oklch(0.95 0.012 150);
-  --muted-foreground: oklch(0.48 0.02 155);
-  --accent: oklch(0.82 0.14 88);
-  --accent-foreground: oklch(0.25 0.03 160);
-  --destructive: oklch(0.55 0.21 25);
-  --destructive-foreground: oklch(0.99 0.01 120);
-  --border: oklch(0.9 0.012 150);
-  --input: oklch(0.9 0.012 150);
-  --ring: oklch(0.55 0.16 148);
-  --sidebar: oklch(0.96 0.012 145);
-  --sidebar-foreground: oklch(0.22 0.03 160);
-  --sidebar-primary: oklch(0.55 0.16 148);
-  --sidebar-primary-foreground: oklch(0.99 0.01 120);
-  --sidebar-accent: oklch(0.92 0.015 150);
-  --sidebar-accent-foreground: oklch(0.22 0.03 160);
-  --sidebar-border: oklch(0.9 0.012 150);
-  --sidebar-ring: oklch(0.55 0.16 148);
-}
-
-
+/* Tema escuro neutro (padrão). .dark repete os mesmos valores. */
+:root,
 .dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
+  --radius: 0.5rem;
+
+  /* Cores do clube: sobrescritas em runtime. Padrão: azul aço discreto. */
+  --club-primary: oklch(0.68 0.13 250);
+  --club-primary-fg: oklch(0.14 0 0);
+  --club-secondary: oklch(0.96 0 0);
+
+  --pitch: var(--club-primary);
+  --chalk: oklch(0.97 0.002 270);
+
+  --background: oklch(0.155 0.003 270);
+  --foreground: oklch(0.965 0.002 270);
+  --card: oklch(0.2 0.004 270);
+  --card-foreground: oklch(0.965 0.002 270);
+  --popover: oklch(0.215 0.004 270);
+  --popover-foreground: oklch(0.965 0.002 270);
+  --primary: var(--club-primary);
+  --primary-foreground: var(--club-primary-fg);
+  --secondary: oklch(0.26 0.004 270);
+  --secondary-foreground: oklch(0.965 0.002 270);
+  --muted: oklch(0.245 0.004 270);
+  --muted-foreground: oklch(0.7 0.008 270);
+  --accent: oklch(0.78 0.15 88);
+  --accent-foreground: oklch(0.2 0.03 88);
+  --destructive: oklch(0.64 0.21 25);
+  --destructive-foreground: oklch(0.98 0 0);
+
+  /* Semântica: resultado e variação de overall */
+  --success: oklch(0.72 0.17 152);
+  --success-foreground: oklch(0.16 0.03 152);
+  --warning: oklch(0.82 0.15 88);
+  --warning-foreground: oklch(0.2 0.03 88);
+  --gold: oklch(0.8 0.14 85);
+
+  --border: oklch(1 0 0 / 9%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: var(--club-primary);
+  --glass-border: oklch(1 0 0 / 9%);
+  --glass-highlight: oklch(1 0 0 / 5%);
+  --glass-shadow: oklch(0 0 0 / 70%);
+
+  --chart-1: var(--club-primary);
+  --chart-2: oklch(0.8 0.14 85);
+  --chart-3: oklch(0.65 0.04 250);
+  --chart-4: oklch(0.7 0.14 20);
+  --chart-5: oklch(0.6 0.08 300);
+
+  --sidebar: oklch(0.175 0.004 270);
+  --sidebar-foreground: oklch(0.965 0.002 270);
+  --sidebar-primary: var(--club-primary);
+  --sidebar-primary-foreground: var(--club-primary-fg);
+  --sidebar-accent: color-mix(in oklab, var(--club-primary) 16%, transparent);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: var(--club-primary);
+}
+
+/* Tema claro (classe .light no <html>) */
+.light {
+  --chalk: oklch(0.25 0.003 270);
+  --background: oklch(0.975 0.002 270);
+  --foreground: oklch(0.2 0.004 270);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2 0.004 270);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2 0.004 270);
+  --secondary: oklch(0.945 0.003 270);
+  --secondary-foreground: oklch(0.25 0.004 270);
+  --muted: oklch(0.95 0.003 270);
+  --muted-foreground: oklch(0.48 0.01 270);
+  --accent: oklch(0.82 0.14 88);
+  --accent-foreground: oklch(0.25 0.03 88);
+  --destructive: oklch(0.55 0.21 25);
+  --destructive-foreground: oklch(0.99 0 0);
+  --success: oklch(0.58 0.15 152);
+  --success-foreground: oklch(0.99 0 0);
+  --warning: oklch(0.8 0.15 88);
+  --warning-foreground: oklch(0.22 0.03 88);
+  --gold: oklch(0.72 0.14 80);
+  --border: oklch(0 0 0 / 9%);
+  --input: oklch(0 0 0 / 12%);
+  --glass-border: oklch(0 0 0 / 9%);
+  --glass-highlight: oklch(1 0 0 / 70%);
+  --glass-shadow: oklch(0 0 0 / 18%);
+  --sidebar: oklch(0.96 0.003 270);
+  --sidebar-foreground: oklch(0.2 0.004 270);
+  --sidebar-accent: color-mix(in oklab, var(--club-primary) 14%, transparent);
+  --sidebar-accent-foreground: oklch(0.2 0.004 270);
+  --sidebar-border: oklch(0 0 0 / 8%);
 }
 
 @layer base {
@@ -189,40 +180,49 @@
   h3 {
     font-family: var(--font-display);
     letter-spacing: 0.02em;
+  }
 
+  /* Item ativo da sidebar: fundo suave + barra fina na cor do clube */
+  [data-sidebar="menu-button"][data-active="true"] {
+    box-shadow: inset 2px 0 0 var(--primary);
   }
 }
 
-/* Onboarding / club HQ visual layer */
+/* Camada visual do clube: "vidro escuro" sóbrio, sem glow */
 :root {
-  --gradient-pitch: linear-gradient(135deg, var(--pitch), oklch(0.5 0.14 172));
-  --gradient-hq: radial-gradient(
-      120% 90% at 12% -10%,
-      color-mix(in oklab, var(--primary) 22%, transparent),
-      transparent 60%
-    ),
-    radial-gradient(
-      100% 80% at 100% 0%,
-      color-mix(in oklab, var(--accent) 14%, transparent),
-      transparent 55%
-    );
-  --shadow-glow: 0 18px 45px -22px color-mix(in oklab, var(--primary) 70%, transparent);
-}
-
-@utility hq-surface {
-  background-image: var(--gradient-hq);
-}
-
-@utility pitch-lines {
-  background-image: repeating-linear-gradient(
-    90deg,
-    color-mix(in oklab, var(--chalk) 4%, transparent) 0 2px,
-    transparent 2px 84px
+  --gradient-pitch: linear-gradient(
+    135deg,
+    var(--foreground),
+    color-mix(in oklab, var(--primary) 75%, var(--foreground))
   );
 }
 
+/* Fundo neutro: sem gradientes coloridos nem listras de gramado */
+@utility hq-surface {
+  background-image: none;
+}
+
+@utility pitch-lines {
+  background-image: none;
+}
+
+/* Painel de vidro: borda fina + sombra sutil (substitui o glow) */
 @utility glow-panel {
-  box-shadow: var(--shadow-glow);
+  background-color: color-mix(in oklab, var(--card) 92%, transparent);
+  border: 1px solid var(--glass-border);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    0 10px 28px -18px var(--glass-shadow);
+  backdrop-filter: blur(10px) saturate(1.05);
+}
+
+@utility hq-card {
+  background-color: color-mix(in oklab, var(--card) 92%, transparent);
+  border: 1px solid var(--glass-border);
+  box-shadow:
+    inset 0 1px 0 var(--glass-highlight),
+    0 10px 28px -18px var(--glass-shadow);
+  backdrop-filter: blur(10px) saturate(1.05);
 }
 
 @utility text-gradient-pitch {
