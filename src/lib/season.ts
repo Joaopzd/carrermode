@@ -1,6 +1,4 @@
 import { supabase } from "@/integrations/supabase/client";
-import { formatarMoeda } from "@/lib/moeda";
-import { moedaDaPassagem } from "@/lib/moeda-stint";
 import { carregarRegras, zonaDaPosicao } from "@/lib/league-rules";
 import { resolverEmprestimosNoFimDaTemporada } from "@/lib/emprestimos";
 import {
@@ -337,76 +335,13 @@ export async function encerrarTemporada(saveId: string, seasonId: string, stintI
   const novaSeason = (criada as unknown as Season | null) ?? null;
 
   // Contratações marcadas para a próxima temporada entram no elenco agora.
-  const chegadas = await ativarChegadasDeTemporada(saveId, stintId);
-  if (chegadas.ativados > 0) {
-    await supabase.from("news_feed").insert({
-      save_id: saveId,
-      stint_id: stintId,
-      season_id: novaSeason?.id ?? null,
-      tipo: "transferencia",
-      titulo: "Reforços chegam para a nova temporada",
-      corpo: `Passam a integrar o elenco: ${chegadas.nomes.join(", ")}.`,
-    });
-  }
+  await ativarChegadasDeTemporada(saveId, stintId);
 
   // Primeira (ou próxima) parcela de cada transferência parcelada é debitada na nova temporada.
-  const parcelas = await liquidarParcelasDaTemporada(stintId, novaSeason?.id ?? null);
-  if (parcelas.qtd > 0) {
-    const codigoMoeda = await moedaDaPassagem(stintId);
-    const moeda = (v: number) => formatarMoeda(v, codigoMoeda);
-    const partes = [
-      parcelas.pagar > 0 ? `Parcelas pagas: ${moeda(parcelas.pagar)}.` : null,
-      parcelas.receber > 0 ? `Parcelas recebidas: ${moeda(parcelas.receber)}.` : null,
-    ].filter(Boolean);
-    await supabase.from("news_feed").insert({
-      save_id: saveId,
-      stint_id: stintId,
-      season_id: novaSeason?.id ?? null,
-      tipo: "transferencia",
-      titulo: "Parcelas de transferências debitadas",
-      corpo: partes.join(" "),
-    });
-  }
+  await liquidarParcelasDaTemporada(stintId, novaSeason?.id ?? null);
 
   // Empréstimos vencidos: obrigação de compra vira definitiva, o resto devolve o jogador.
-  const emprestimos = await resolverEmprestimosNoFimDaTemporada(saveId, seasonId, "verao", stintId);
-  if (emprestimos.devolvidos > 0 || emprestimos.comprados > 0) {
-    await supabase.from("news_feed").insert({
-      save_id: saveId,
-      stint_id: stintId,
-      season_id: novaSeason?.id ?? null,
-      tipo: "transferencia",
-      titulo: "Empréstimos encerrados no fim da temporada",
-      corpo: `${emprestimos.devolvidos} jogador(es) retornaram ao clube de origem e ${emprestimos.comprados} tiveram a compra efetivada.`,
-    });
-  }
-
-  if (transicao.movimento !== "permanencia" || transicao.competicoes.length > 0) {
-    const titulo =
-      transicao.movimento === "acesso"
-        ? `Acesso conquistado! Rumo à ${transicao.ligaNova ?? "divisão superior"}`
-        : transicao.movimento === "rebaixamento"
-          ? `Rebaixamento confirmado para a ${transicao.ligaNova ?? "divisão inferior"}`
-          : `Classificação europeia garantida`;
-    const corpo = [
-      transicao.posicao ? `Terminamos a temporada em ${transicao.posicao}º lugar.` : null,
-      transicao.zona ? `Zona final: ${transicao.zona}.` : null,
-      transicao.competicoes.length > 0
-        ? `Competições na próxima temporada: ${transicao.competicoes.join(", ")}.`
-        : null,
-      transicao.ligaNova ? `Nova divisão: ${transicao.ligaNova}.` : null,
-    ]
-      .filter(Boolean)
-      .join(" ");
-    await supabase.from("news_feed").insert({
-      save_id: saveId,
-      stint_id: stintId,
-      season_id: novaSeason?.id ?? null,
-      tipo: "temporada",
-      titulo,
-      corpo,
-    });
-  }
+  await resolverEmprestimosNoFimDaTemporada(saveId, seasonId, "verao", stintId);
 
   return { resumo, nova: novaSeason, transicao };
 }
