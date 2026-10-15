@@ -339,6 +339,7 @@ export type Database = {
         Row: {
           criado_em: string
           estilo_tatico: string | null
+          foto_url: string | null
           id: string
           nacionalidade: string | null
           nome: string
@@ -349,6 +350,7 @@ export type Database = {
         Insert: {
           criado_em?: string
           estilo_tatico?: string | null
+          foto_url?: string | null
           id?: string
           nacionalidade?: string | null
           nome: string
@@ -359,6 +361,7 @@ export type Database = {
         Update: {
           criado_em?: string
           estilo_tatico?: string | null
+          foto_url?: string | null
           id?: string
           nacionalidade?: string | null
           nome?: string
@@ -463,6 +466,7 @@ export type Database = {
           desarmes: number | null
           editado_apos_arquivamento: boolean
           fase: string | null
+          formacao: string | null
           gols_adversario_detalhe: string | null
           id: string
           mando: Database["public"]["Enums"]["match_venue"]
@@ -490,6 +494,7 @@ export type Database = {
           desarmes?: number | null
           editado_apos_arquivamento?: boolean
           fase?: string | null
+          formacao?: string | null
           gols_adversario_detalhe?: string | null
           id?: string
           mando?: Database["public"]["Enums"]["match_venue"]
@@ -517,6 +522,7 @@ export type Database = {
           desarmes?: number | null
           editado_apos_arquivamento?: boolean
           fase?: string | null
+          formacao?: string | null
           gols_adversario_detalhe?: string | null
           id?: string
           mando?: Database["public"]["Enums"]["match_venue"]
@@ -873,6 +879,7 @@ export type Database = {
           data_inicio: string | null
           id: string
           nome: string
+          orcamento_inicial: number | null
           resumo: Json | null
           save_id: string
           status: string
@@ -884,6 +891,7 @@ export type Database = {
           data_inicio?: string | null
           id?: string
           nome: string
+          orcamento_inicial?: number | null
           resumo?: Json | null
           save_id: string
           status?: string
@@ -895,6 +903,7 @@ export type Database = {
           data_inicio?: string | null
           id?: string
           nome?: string
+          orcamento_inicial?: number | null
           resumo?: Json | null
           save_id?: string
           status?: string
