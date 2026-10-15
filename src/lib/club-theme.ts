@@ -467,7 +467,12 @@ async function atualizarTema() {
     .limit(1)
     .maybeSingle();
 
-  const clube = stint?.clubs ?? null;
+  const bruto = stint?.clubs as
+    | { nome: string; escudo_url: string | null }
+    | { nome: string; escudo_url: string | null }[]
+    | null
+    | undefined;
+  const clube = Array.isArray(bruto) ? (bruto[0] ?? null) : (bruto ?? null);
   const cores =
     lerCoresManuais(save.id as string) ??
     (await corPadraoDoClube(clube?.nome, stint?.escudo_url ?? clube?.escudo_url));
