@@ -458,7 +458,7 @@ function Dashboard() {
             <>
               {/* Card principal: identidade, overall da equipe e forma */}
               <section className="glow-panel rounded-xl p-5">
-                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-6 xl:grid-cols-[minmax(0,1fr)_auto_auto]">
+                <div className="grid grid-cols-1 items-center gap-6 sm:grid-cols-[minmax(0,1fr)_auto] xl:grid-cols-[minmax(0,1fr)_auto_auto]">
                   <div className="flex min-w-0 items-center gap-4">
                     <div className="group relative shrink-0">
                       {resumo.escudo ? (
@@ -499,7 +499,7 @@ function Dashboard() {
                     </div>
                   </div>
 
-                  <div className="col-span-2 grid min-w-0 grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] xl:col-span-1 xl:col-start-2 xl:row-start-1">
+                  <div className="grid min-w-0 grid-cols-2 gap-x-6 gap-y-4 sm:col-span-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] xl:col-span-1 xl:col-start-2 xl:row-start-1">
                     <div className="grid min-w-0 grid-rows-[1.25rem_3rem_1.25rem] gap-1">
                       <p className="flex items-center text-[0.7rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
                         Overall da equipe
@@ -600,7 +600,7 @@ function Dashboard() {
                     </div>
                   </div>
 
-                  <div className="col-start-2 row-start-1 flex shrink-0 flex-col items-end gap-2 xl:col-start-3">
+                  <div className="flex shrink-0 flex-col items-start gap-2 sm:col-start-2 sm:row-start-1 sm:items-end xl:col-start-3">
                     <span className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">
                       {/^temporada\b/i.test(resumo.temporada) ? resumo.temporada : `Temporada ${resumo.temporada}`}
                     </span>
