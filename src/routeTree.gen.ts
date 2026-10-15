@@ -19,6 +19,7 @@ import { Route as AuthenticatedBaseRouteImport } from './routes/_authenticated/b
 import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
 import { Route as AuthenticatedClassificacaoRouteImport } from './routes/_authenticated/classificacao'
 import { Route as AuthenticatedComissaoRouteImport } from './routes/_authenticated/comissao'
+import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedElencoRouteImport } from './routes/_authenticated/elenco'
 import { Route as AuthenticatedEmBreveRouteImport } from './routes/_authenticated/em-breve'
@@ -34,6 +35,7 @@ import { Route as AuthenticatedPartidasRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedRegrasLigaRouteImport } from './routes/_authenticated/regras-liga'
 import { Route as AuthenticatedRelacoesClubesRouteImport } from './routes/_authenticated/relacoes-clubes'
 import { Route as AuthenticatedTransferenciasRouteImport } from './routes/_authenticated/transferencias'
+import { Route as AuthenticatedTreinadorRouteImport } from './routes/_authenticated/treinador'
 import { Route as AuthenticatedTrocarClubeRouteImport } from './routes/_authenticated/trocar-clube'
 import { Route as AuthenticatedTrofeusRouteImport } from './routes/_authenticated/trofeus'
 
@@ -88,6 +90,12 @@ const AuthenticatedComissaoRoute = AuthenticatedComissaoRouteImport.update({
   path: '/comissao',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedConfiguracoesRoute =
+  AuthenticatedConfiguracoesRouteImport.update({
+    id: '/configuracoes',
+    path: '/configuracoes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -169,6 +177,11 @@ const AuthenticatedTransferenciasRoute =
     path: '/transferencias',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedTreinadorRoute = AuthenticatedTreinadorRouteImport.update({
+  id: '/treinador',
+  path: '/treinador',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedTrocarClubeRoute =
   AuthenticatedTrocarClubeRouteImport.update({
     id: '/trocar-clube',
@@ -191,6 +204,7 @@ export interface FileRoutesByFullPath {
   '/calendario': typeof AuthenticatedCalendarioRoute
   '/classificacao': typeof AuthenticatedClassificacaoRoute
   '/comissao': typeof AuthenticatedComissaoRoute
+  '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/elenco': typeof AuthenticatedElencoRoute
   '/em-breve': typeof AuthenticatedEmBreveRoute
@@ -206,6 +220,7 @@ export interface FileRoutesByFullPath {
   '/regras-liga': typeof AuthenticatedRegrasLigaRoute
   '/relacoes-clubes': typeof AuthenticatedRelacoesClubesRoute
   '/transferencias': typeof AuthenticatedTransferenciasRoute
+  '/treinador': typeof AuthenticatedTreinadorRoute
   '/trocar-clube': typeof AuthenticatedTrocarClubeRoute
   '/trofeus': typeof AuthenticatedTrofeusRoute
 }
@@ -219,6 +234,7 @@ export interface FileRoutesByTo {
   '/calendario': typeof AuthenticatedCalendarioRoute
   '/classificacao': typeof AuthenticatedClassificacaoRoute
   '/comissao': typeof AuthenticatedComissaoRoute
+  '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/elenco': typeof AuthenticatedElencoRoute
   '/em-breve': typeof AuthenticatedEmBreveRoute
@@ -234,6 +250,7 @@ export interface FileRoutesByTo {
   '/regras-liga': typeof AuthenticatedRegrasLigaRoute
   '/relacoes-clubes': typeof AuthenticatedRelacoesClubesRoute
   '/transferencias': typeof AuthenticatedTransferenciasRoute
+  '/treinador': typeof AuthenticatedTreinadorRoute
   '/trocar-clube': typeof AuthenticatedTrocarClubeRoute
   '/trofeus': typeof AuthenticatedTrofeusRoute
 }
@@ -249,6 +266,7 @@ export interface FileRoutesById {
   '/_authenticated/calendario': typeof AuthenticatedCalendarioRoute
   '/_authenticated/classificacao': typeof AuthenticatedClassificacaoRoute
   '/_authenticated/comissao': typeof AuthenticatedComissaoRoute
+  '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/elenco': typeof AuthenticatedElencoRoute
   '/_authenticated/em-breve': typeof AuthenticatedEmBreveRoute
@@ -264,6 +282,7 @@ export interface FileRoutesById {
   '/_authenticated/regras-liga': typeof AuthenticatedRegrasLigaRoute
   '/_authenticated/relacoes-clubes': typeof AuthenticatedRelacoesClubesRoute
   '/_authenticated/transferencias': typeof AuthenticatedTransferenciasRoute
+  '/_authenticated/treinador': typeof AuthenticatedTreinadorRoute
   '/_authenticated/trocar-clube': typeof AuthenticatedTrocarClubeRoute
   '/_authenticated/trofeus': typeof AuthenticatedTrofeusRoute
 }
@@ -279,6 +298,7 @@ export interface FileRouteTypes {
     | '/calendario'
     | '/classificacao'
     | '/comissao'
+    | '/configuracoes'
     | '/dashboard'
     | '/elenco'
     | '/em-breve'
@@ -294,6 +314,7 @@ export interface FileRouteTypes {
     | '/regras-liga'
     | '/relacoes-clubes'
     | '/transferencias'
+    | '/treinador'
     | '/trocar-clube'
     | '/trofeus'
   fileRoutesByTo: FileRoutesByTo
@@ -307,6 +328,7 @@ export interface FileRouteTypes {
     | '/calendario'
     | '/classificacao'
     | '/comissao'
+    | '/configuracoes'
     | '/dashboard'
     | '/elenco'
     | '/em-breve'
@@ -322,6 +344,7 @@ export interface FileRouteTypes {
     | '/regras-liga'
     | '/relacoes-clubes'
     | '/transferencias'
+    | '/treinador'
     | '/trocar-clube'
     | '/trofeus'
   id:
@@ -336,6 +359,7 @@ export interface FileRouteTypes {
     | '/_authenticated/calendario'
     | '/_authenticated/classificacao'
     | '/_authenticated/comissao'
+    | '/_authenticated/configuracoes'
     | '/_authenticated/dashboard'
     | '/_authenticated/elenco'
     | '/_authenticated/em-breve'
@@ -351,6 +375,7 @@ export interface FileRouteTypes {
     | '/_authenticated/regras-liga'
     | '/_authenticated/relacoes-clubes'
     | '/_authenticated/transferencias'
+    | '/_authenticated/treinador'
     | '/_authenticated/trocar-clube'
     | '/_authenticated/trofeus'
   fileRoutesById: FileRoutesById
@@ -432,6 +457,13 @@ declare module '@tanstack/react-router' {
       path: '/comissao'
       fullPath: '/comissao'
       preLoaderRoute: typeof AuthenticatedComissaoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/configuracoes': {
+      id: '/_authenticated/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/configuracoes'
+      preLoaderRoute: typeof AuthenticatedConfiguracoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard': {
@@ -539,6 +571,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTransferenciasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/treinador': {
+      id: '/_authenticated/treinador'
+      path: '/treinador'
+      fullPath: '/treinador'
+      preLoaderRoute: typeof AuthenticatedTreinadorRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/trocar-clube': {
       id: '/_authenticated/trocar-clube'
       path: '/trocar-clube'
@@ -563,6 +602,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCalendarioRoute: typeof AuthenticatedCalendarioRoute
   AuthenticatedClassificacaoRoute: typeof AuthenticatedClassificacaoRoute
   AuthenticatedComissaoRoute: typeof AuthenticatedComissaoRoute
+  AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedElencoRoute: typeof AuthenticatedElencoRoute
   AuthenticatedEmBreveRoute: typeof AuthenticatedEmBreveRoute
@@ -578,6 +618,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedRegrasLigaRoute: typeof AuthenticatedRegrasLigaRoute
   AuthenticatedRelacoesClubesRoute: typeof AuthenticatedRelacoesClubesRoute
   AuthenticatedTransferenciasRoute: typeof AuthenticatedTransferenciasRoute
+  AuthenticatedTreinadorRoute: typeof AuthenticatedTreinadorRoute
   AuthenticatedTrocarClubeRoute: typeof AuthenticatedTrocarClubeRoute
   AuthenticatedTrofeusRoute: typeof AuthenticatedTrofeusRoute
 }
@@ -589,6 +630,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCalendarioRoute: AuthenticatedCalendarioRoute,
   AuthenticatedClassificacaoRoute: AuthenticatedClassificacaoRoute,
   AuthenticatedComissaoRoute: AuthenticatedComissaoRoute,
+  AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedElencoRoute: AuthenticatedElencoRoute,
   AuthenticatedEmBreveRoute: AuthenticatedEmBreveRoute,
@@ -604,6 +646,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedRegrasLigaRoute: AuthenticatedRegrasLigaRoute,
   AuthenticatedRelacoesClubesRoute: AuthenticatedRelacoesClubesRoute,
   AuthenticatedTransferenciasRoute: AuthenticatedTransferenciasRoute,
+  AuthenticatedTreinadorRoute: AuthenticatedTreinadorRoute,
   AuthenticatedTrocarClubeRoute: AuthenticatedTrocarClubeRoute,
   AuthenticatedTrofeusRoute: AuthenticatedTrofeusRoute,
 }
