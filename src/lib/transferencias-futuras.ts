@@ -67,6 +67,7 @@ export type Parcela = {
   direcao: "pagar" | "receber";
   status: "pendente" | "liquidada";
   season_liquidacao_id: string | null;
+  liquidada_em?: string | null;
 };
 
 export async function criarParcelas(args: {

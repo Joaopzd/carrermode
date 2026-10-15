@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { carregarRegras, zonaDaPosicao } from "@/lib/league-rules";
 import { resolverEmprestimosNoFimDaTemporada } from "@/lib/emprestimos";
+import { calcularCaixa, salvarOrcamentoInicial } from "@/lib/financas";
 import {
   ajusteFinanceiroParcelado,
   ativarChegadasDeTemporada,
@@ -333,6 +334,16 @@ export async function encerrarTemporada(saveId: string, seasonId: string, stintI
     .single();
 
   const novaSeason = (criada as unknown as Season | null) ?? null;
+
+  // O caixa final desta temporada vira o orçamento inicial da próxima (pode ser ajustado em Configurações).
+  if (novaSeason) {
+    try {
+      const caixaFinal = await calcularCaixa(stintId, seasonId);
+      if (caixaFinal.caixa != null) await salvarOrcamentoInicial(novaSeason.id, caixaFinal.caixa);
+    } catch {
+      /* coluna de orçamento ainda não criada */
+    }
+  }
 
   // Contratações marcadas para a próxima temporada entram no elenco agora.
   await ativarChegadasDeTemporada(saveId, stintId);
