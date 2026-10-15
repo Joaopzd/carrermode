@@ -458,8 +458,8 @@ function Dashboard() {
             <>
               {/* Card principal: identidade, overall da equipe e forma */}
               <section className="glow-panel rounded-xl p-5">
-                <div className="flex flex-wrap items-center gap-x-8 gap-y-5">
-                  <div className="flex min-w-0 flex-1 items-center gap-4">
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-6 xl:grid-cols-[minmax(0,1fr)_auto_auto]">
+                  <div className="flex min-w-0 items-center gap-4">
                     <div className="group relative shrink-0">
                       {resumo.escudo ? (
                         <img
@@ -499,34 +499,34 @@ function Dashboard() {
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-x-8 gap-y-4">
-                    <div>
-                      <p className="text-[0.7rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                  <div className="col-span-2 grid min-w-0 grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] xl:col-span-1 xl:col-start-2 xl:row-start-1">
+                    <div className="grid min-w-0 grid-rows-[1.25rem_3rem_1.25rem] gap-1">
+                      <p className="flex items-center text-[0.7rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
                         Overall da equipe
                       </p>
-                      <p className="font-display text-5xl leading-none text-primary">
+                      <p className="flex items-center font-display text-5xl leading-none tabular-nums text-primary">
                         {resumo.overallEquipe != null ? (
                           <CountUp valor={resumo.overallEquipe} decimais={0} />
                         ) : (
                           "—"
                         )}
                       </p>
-                      <p className="mt-1 text-xs text-muted-foreground">Média dos 18 melhores</p>
+                      <p className="flex items-center text-xs text-muted-foreground">Média dos 18 melhores</p>
                     </div>
 
-                    <div>
-                      <p className="text-[0.7rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                    <div className="grid min-w-0 grid-rows-[1.25rem_3rem_1.25rem] gap-1">
+                      <p className="flex items-center text-[0.7rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
                         Caixa disponível
                       </p>
                       {resumo.caixa != null ? (
                         <>
-                          <p className="font-display text-4xl leading-none">
+                          <p className="flex items-center whitespace-nowrap font-display text-5xl leading-none tabular-nums">
                             {resumo.caixa < 0 ? "−" : ""}
                             {formatarMoedaCompacta(Math.abs(resumo.caixa), resumo.moeda)}
                           </p>
                           <p
                             className={cn(
-                              "mt-1 text-xs",
+                              "flex items-center whitespace-nowrap text-xs",
                               resumo.variacaoCaixa > 0 && "text-success",
                               resumo.variacaoCaixa < 0 && "text-destructive",
                               resumo.variacaoCaixa === 0 && "text-muted-foreground",
@@ -539,10 +539,10 @@ function Dashboard() {
                         </>
                       ) : (
                         <>
-                          <p className="font-display text-3xl leading-none text-muted-foreground">—</p>
+                          <p className="flex items-center font-display text-5xl leading-none text-muted-foreground">—</p>
                           <Link
                             to="/configuracoes"
-                            className="mt-1 block text-xs text-primary hover:underline"
+                            className="flex items-center text-xs text-primary hover:underline"
                           >
                             Definir orçamento
                           </Link>
@@ -550,12 +550,12 @@ function Dashboard() {
                       )}
                     </div>
 
-                    <div>
-                      <p className="text-[0.7rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                    <div className="col-span-2 grid min-w-0 grid-rows-[1.25rem_3rem_1.25rem] gap-1 sm:col-span-1">
+                      <p className="flex items-center text-[0.7rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
                         Forma · últimos 5
                       </p>
                       <TooltipProvider delayDuration={100}>
-                        <div className="mt-1.5 flex gap-1.5">
+                        <div className="flex h-12 items-center gap-1.5">
                           {Array.from({ length: 5 }).map((_, i) => {
                             const jogo = resumo.ultimos[i - (5 - resumo.ultimos.length)];
                             if (!jogo) {
@@ -600,7 +600,7 @@ function Dashboard() {
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-start gap-2 sm:items-end">
+                  <div className="col-start-2 row-start-1 flex shrink-0 flex-col items-end gap-2 xl:col-start-3">
                     <span className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">
                       {/^temporada\b/i.test(resumo.temporada) ? resumo.temporada : `Temporada ${resumo.temporada}`}
                     </span>
