@@ -20,6 +20,7 @@ import { formatarMoedaCompacta, moedaDoPais, type CodigoMoeda } from "@/lib/moed
 import { contarMvps } from "@/lib/mvp";
 import { encerrarTemporada, garantirSeasonAtiva, type TransicaoLiga } from "@/lib/season";
 import { ajusteFinanceiroParcelado } from "@/lib/transferencias-futuras";
+import { calcularCaixa } from "@/lib/financas";
 import { cn } from "@/lib/utils";
 import { AppShell } from "@/components/app-shell";
 import { CountUp, HoverCard, StaggerItem } from "@/components/motion";
@@ -97,6 +98,9 @@ type Resumo = {
   moeda: CodigoMoeda;
   manager: { nome_usado: string | null; nome: string; estilo_tatico: string | null } | null;
   overallEquipe: number | null;
+  /** Caixa atual (orçamento inicial + vendas − compras); nulo se o orçamento não foi definido. */
+  caixa: number | null;
+  variacaoCaixa: number;
   valorTotal: number;
   artilheiro: { nome: string; gols: number } | null;
   melhorNota: { nome: string; nota: number } | null;
@@ -353,6 +357,8 @@ function Dashboard() {
       const liga = identidade?.leagues;
       const moeda = moedaDoPais(clube?.pais ?? liga?.pais);
 
+      const financas = seasonId ? await calcularCaixa(stintId, seasonId) : null;
+
       // Classificação: última rodada sincronizada, janela de 5 times ao redor do meu.
       const todas = standingsRes.data ?? [];
       const ultimaRodada = todas[0]?.rodada ?? null;
@@ -426,6 +432,8 @@ function Dashboard() {
           overalls.length > 0
             ? Math.round(overalls.reduce((a, b) => a + b, 0) / overalls.length)
             : null,
+        caixa: financas?.caixa ?? null,
+        variacaoCaixa: (financas?.receitas ?? 0) - (financas?.gastos ?? 0),
         valorTotal,
         trofeus: trofeusCount ?? 0,
         artilheiro,
@@ -491,7 +499,7 @@ function Dashboard() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-8">
+                  <div className="flex flex-wrap items-center gap-x-8 gap-y-4">
                     <div>
                       <p className="text-[0.7rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
                         Overall da equipe
@@ -504,6 +512,42 @@ function Dashboard() {
                         )}
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">Média dos 18 melhores</p>
+                    </div>
+
+                    <div>
+                      <p className="text-[0.7rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                        Caixa disponível
+                      </p>
+                      {resumo.caixa != null ? (
+                        <>
+                          <p className="font-display text-4xl leading-none">
+                            {resumo.caixa < 0 ? "−" : ""}
+                            {formatarMoedaCompacta(Math.abs(resumo.caixa), resumo.moeda)}
+                          </p>
+                          <p
+                            className={cn(
+                              "mt-1 text-xs",
+                              resumo.variacaoCaixa > 0 && "text-success",
+                              resumo.variacaoCaixa < 0 && "text-destructive",
+                              resumo.variacaoCaixa === 0 && "text-muted-foreground",
+                            )}
+                          >
+                            {resumo.variacaoCaixa > 0 ? "+" : resumo.variacaoCaixa < 0 ? "−" : ""}
+                            {formatarMoedaCompacta(Math.abs(resumo.variacaoCaixa), resumo.moeda)} na
+                            temporada
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="font-display text-3xl leading-none text-muted-foreground">—</p>
+                          <Link
+                            to="/configuracoes"
+                            className="mt-1 block text-xs text-primary hover:underline"
+                          >
+                            Definir orçamento
+                          </Link>
+                        </>
+                      )}
                     </div>
 
                     <div>

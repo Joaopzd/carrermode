@@ -70,7 +70,9 @@ import {
 } from "@/lib/transferencias-futuras";
 import { PAISES } from "@/lib/onboarding-data";
 
-import { checarVendaPolemica } from "@/lib/eventos";
+import { GraficoCaixa, type PontoCaixa } from "@/components/grafico-caixa";
+import { carregarOrcamentoInicial } from "@/lib/financas";
+import { formatarMoedaCompacta, moedaDoPais } from "@/lib/moeda";
 import { useSaveAtual } from "@/lib/use-save";
 import { cn } from "@/lib/utils";
 
@@ -238,6 +240,7 @@ function TransferenciasPage() {
   const [valorAVista, setValorAVista] = useState("");
   const [parcelasQtd, setParcelasQtd] = useState("2");
   const [parcelas, setParcelas] = useState<Parcela[]>([]);
+  const [orcamentoInicial, setOrcamentoInicial] = useState<number | null>(null);
   const [chegadasPend, setChegadasPend] = useState<ChegadaPendente[]>([]);
   // Quando a contratação só entra no elenco depois, o cadastro vira "jogador pendente".
   const [chegadaAgendada, setChegadaAgendada] = useState<{ inicio: InicioTipo; data: string | null } | null>(null);
@@ -268,7 +271,7 @@ function TransferenciasPage() {
     if (dataAtual && stintId) await ativarChegadasPorData(saveId, stintId, dataAtual);
     let qt = supabase.from("transfers").select("*").eq("stint_id", stintId);
     if (seasonId) qt = qt.eq("season_id", seasonId);
-    const [{ data: t }, { data: p }, { data: ex }, ativos, parcelasLista, chegadasLista] = await Promise.all([
+    const [{ data: t }, { data: p }, { data: ex }, ativos, parcelasLista, chegadasLista, orcamento] = await Promise.all([
       qt.order("data", { ascending: false }),
       supabase
         .from("players")
@@ -286,7 +289,9 @@ function TransferenciasPage() {
       carregarEmprestimosAtivos(saveId, stintId),
       carregarParcelas(stintId),
       listarChegadasPendentes(stintId),
+      carregarOrcamentoInicial(seasonId),
     ]);
+    setOrcamentoInicial(orcamento);
     setParcelas(parcelasLista);
     setChegadasPend(chegadasLista);
     setLista((t ?? []) as Transferencia[]);
@@ -586,13 +591,6 @@ function TransferenciasPage() {
         toast.error("A negociação não foi concluída porque o jogador não saiu do elenco.");
         return;
       }
-      void checarVendaPolemica(
-        save.id,
-        jogadorQueSai,
-        numOrNull(valor),
-        clubeContraparte.trim() || null,
-        save.stintId,
-      );
     }
 
     setSalvando(false);
@@ -943,6 +941,41 @@ function TransferenciasPage() {
 
   const emprestimosAtivos = emprestimos;
 
+  // Caixa ao longo da temporada: cada compra, venda e parcela debitada move o saldo.
+  const caixa = useMemo(() => {
+    const eventos: { id: string; quando: number; rotulo: string; delta: number }[] = [];
+    for (const t of lista) {
+      const parte = t.parcelado ? (t.valor_a_vista ?? 0) : (t.valor ?? 0);
+      if (!parte) continue;
+      eventos.push({
+        id: t.id,
+        quando: new Date(t.data).getTime(),
+        rotulo: `${t.tipo === "entrada" ? "Compra" : "Venda"} · ${rotuloJogador(t)}`,
+        delta: t.tipo === "entrada" ? -parte : parte,
+      });
+    }
+    for (const p of parcelas) {
+      if (p.status !== "liquidada" || p.season_liquidacao_id !== save?.seasonId) continue;
+      eventos.push({
+        id: p.id,
+        quando: p.liquidada_em ? new Date(`${p.liquidada_em}T12:00:00`).getTime() : 0,
+        rotulo: `Parcela ${p.numero} ${p.direcao === "pagar" ? "paga" : "recebida"}`,
+        delta: p.direcao === "pagar" ? -Number(p.valor) : Number(p.valor),
+      });
+    }
+    eventos.sort((a, b) => a.quando - b.quando);
+    let saldo = orcamentoInicial ?? 0;
+    const pontos: PontoCaixa[] = eventos.map((e) => {
+      saldo += e.delta;
+      return { id: e.id, rotulo: e.rotulo, delta: e.delta, saldo };
+    });
+    return { pontos, atual: saldo };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lista, parcelas, orcamentoInicial, save?.seasonId, nomePorId]);
+
+  const moedaCaixa = moedaDoPais(save?.ligaPais);
+  const fmtCaixa = (v: number) => formatarMoedaCompacta(v, moedaCaixa);
+
   async function retornarAgora(t: Transferencia) {
     if (!save) return;
     setProcessandoOpcao(t.id);
@@ -1007,6 +1040,33 @@ function TransferenciasPage() {
               </CardContent>
             </Card>
           </div>
+
+          <Card className="hq-card">
+            <CardContent className="space-y-3 py-4">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <p className="text-xs uppercase tracking-widest text-muted-foreground">
+                  Caixa ao longo da temporada
+                </p>
+                {orcamentoInicial != null ? (
+                  <p className="font-display text-2xl">{fmtCaixa(caixa.atual)}</p>
+                ) : (
+                  <a href="/configuracoes" className="text-xs text-primary hover:underline">
+                    Defina o orçamento inicial em Configurações
+                  </a>
+                )}
+              </div>
+              <GraficoCaixa
+                inicial={orcamentoInicial ?? 0}
+                pontos={caixa.pontos}
+                formatar={fmtCaixa}
+              />
+              {orcamentoInicial == null ? (
+                <p className="text-xs text-muted-foreground">
+                  Sem orçamento inicial, o gráfico mostra apenas a variação a partir de zero.
+                </p>
+              ) : null}
+            </CardContent>
+          </Card>
 
           {(parcelasResumo.qtd > 0 || chegadasPend.length > 0) && (
             <div className="grid gap-4 sm:grid-cols-2">
