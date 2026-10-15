@@ -21,6 +21,7 @@ import {
   Trash2,
   UserMinus,
   Users,
+  Wallet,
 } from "lucide-react";
 import {
   Sidebar,
@@ -77,6 +78,7 @@ export const GRUPOS_NAV = [
     rotulo: "Configurações",
     itens: [
       { title: "Regras da Liga", url: "/regras-liga", icon: Settings },
+      { title: "Finanças e Tema", url: "/configuracoes", icon: Wallet },
       { title: "Trocar Clube", url: "/trocar-clube", icon: Replace },
       { title: "Encerrar Passagem e Mudar de Clube", url: "/mudar-clube", icon: Repeat },
       { title: "Excluir carreira", url: "/excluir-carreira", icon: Trash2 },
