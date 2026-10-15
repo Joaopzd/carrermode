@@ -1,20 +1,16 @@
 import { ClubBadge } from "@/components/club-badge";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
   Award,
   Banknote,
   CalendarClock,
   Flag,
-  Gavel,
-  HeartPulse,
-  Megaphone,
-  Newspaper,
-  Repeat,
   ImagePlus,
+  ListOrdered,
   Loader2,
-  Sprout,
   Star,
+  Target,
   Trophy,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -23,6 +19,8 @@ import { garantirStintAtiva } from "@/lib/stint";
 import { formatarMoedaCompacta, moedaDoPais, type CodigoMoeda } from "@/lib/moeda";
 import { contarMvps } from "@/lib/mvp";
 import { encerrarTemporada, garantirSeasonAtiva, type TransicaoLiga } from "@/lib/season";
+import { ajusteFinanceiroParcelado } from "@/lib/transferencias-futuras";
+import { cn } from "@/lib/utils";
 import { AppShell } from "@/components/app-shell";
 import { CountUp, HoverCard, StaggerItem } from "@/components/motion";
 import { Button } from "@/components/ui/button";
@@ -36,6 +34,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Label } from "@/components/ui/label";
 import { SkeletonDashboard } from "@/components/loading";
 import { useIndicadorCarregamento, useSkeletonDelay } from "@/lib/loading-bus";
@@ -47,12 +46,12 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
       {
         name: "description",
         content:
-          "Resumo da carreira: elenco, próximo jogo, últimos resultados e notícias do clube.",
+          "Resumo da carreira: overall, forma, classificação, próximos jogos e objetivos da diretoria.",
       },
       { property: "og:title", content: "Central do clube | Carreira FC Manager" },
       {
         property: "og:description",
-        content: "Acompanhe elenco, calendário, resultados e notícias do seu modo carreira.",
+        content: "Acompanhe elenco, calendário, resultados e metas do seu modo carreira.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -60,6 +59,31 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   }),
   component: Dashboard,
 });
+
+type Jogo = {
+  id: string;
+  adversario: string | null;
+  placar_time: number | null;
+  placar_adversario: number | null;
+  competicao: string | null;
+  data_hora: string | null;
+  mando: string | null;
+};
+
+type LinhaTabela = {
+  time: string;
+  posicao: number | null;
+  pontos: number | null;
+  jogos: number | null;
+};
+
+type Objetivo = {
+  tipo: string;
+  rotulo: string;
+  progresso: number;
+  estado: "ok" | "risco" | "neutro";
+  texto: string;
+};
 
 type Resumo = {
   saveId: string;
@@ -72,34 +96,34 @@ type Resumo = {
   temporada: string;
   moeda: CodigoMoeda;
   manager: { nome_usado: string | null; nome: string; estilo_tatico: string | null } | null;
-  overallMedio: number | null;
+  overallEquipe: number | null;
   valorTotal: number;
   artilheiro: { nome: string; gols: number } | null;
   melhorNota: { nome: string; nota: number } | null;
   maisMvp: { nome: string; vezes: number } | null;
   trofeus: number;
-  proximo: {
-    data_hora: string | null;
-    adversario: string | null;
-    competicao: string | null;
-  } | null;
-  ultimos: {
-    id: string;
-    adversario: string | null;
-    placar_time: number | null;
-    placar_adversario: number | null;
-  }[];
-  noticias: { id: string; tipo: string; titulo: string; corpo: string | null }[];
+  proximos: Jogo[];
+  /** Do mais antigo para o mais recente. */
+  ultimos: Jogo[];
+  tabela: { linhas: LinhaTabela[]; minhaPosicao: number | null };
+  objetivos: Objetivo[];
 };
 
-const ICONE_NOTICIA: Record<string, typeof Newspaper> = {
-  resultado: Trophy,
-  transferencia: Repeat,
-  torcida: Megaphone,
-  diretoria: Gavel,
-  lesao: HeartPulse,
-  base: Sprout,
+const normalizar = (v: string | null | undefined) =>
+  (v ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+
+const ROTULO_OBJETIVO: Record<string, string> = {
+  posicao_alvo: "Posição-alvo na liga",
+  receita_vendas: "Receita com vendas",
+  teto_salarial: "Teto salarial do elenco",
 };
+
+const rotuloMando = (m: string | null) =>
+  !m ? null : /casa|home/i.test(m) ? "Casa" : /fora|away/i.test(m) ? "Fora" : m;
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -216,46 +240,55 @@ function Dashboard() {
       const seasonId = season?.id ?? null;
       const porSeason = <T,>(q: T): T => (seasonId ? (q as never as { eq: (a: string, b: string) => T }).eq("season_id", seasonId) : q);
 
-      const [managerRes, playersRes, matchesRes, finalizadasRes, newsRes] = await Promise.all([
-        supabase
-          .from("managers")
-          .select("nome, nome_usado, estilo_tatico")
-          .eq("save_id", saveId)
-          .maybeSingle(),
-        supabase
-          .from("players")
-          .select("id, nome, overall, valor_mercado")
-          .eq("stint_id", stintId)
-          .eq("ativo", true),
-        porSeason(
+      const [managerRes, playersRes, proximosRes, finalizadasRes, standingsRes, objetivosRes] =
+        await Promise.all([
           supabase
-            .from("matches")
-            .select("data_hora, adversario, competicao")
-            .eq("stint_id", stintId)
-            .eq("status", "agendada"),
-        )
-          .order("data_hora", { ascending: true })
-          .limit(1)
-          .maybeSingle(),
-        porSeason(
+            .from("managers")
+            .select("nome, nome_usado, estilo_tatico")
+            .eq("save_id", saveId)
+            .maybeSingle(),
           supabase
-            .from("matches")
-            .select("id, adversario, placar_time, placar_adversario")
+            .from("players")
+            .select("id, nome, overall, valor_mercado, salario")
             .eq("stint_id", stintId)
-            .eq("status", "finalizada"),
-        )
-          .order("data_hora", { ascending: false })
-          .limit(5),
-        porSeason(
-          supabase.from("news_feed").select("id, tipo, titulo, corpo").eq("stint_id", stintId),
-        )
-          .order("gerado_em", { ascending: false })
-          .limit(5),
-      ]);
+            .eq("ativo", true),
+          porSeason(
+            supabase
+              .from("matches")
+              .select("id, data_hora, adversario, competicao, mando, placar_time, placar_adversario")
+              .eq("stint_id", stintId)
+              .eq("status", "agendada"),
+          )
+            .order("data_hora", { ascending: true })
+            .limit(3),
+          porSeason(
+            supabase
+              .from("matches")
+              .select("id, data_hora, adversario, competicao, mando, placar_time, placar_adversario")
+              .eq("stint_id", stintId)
+              .eq("status", "finalizada"),
+          )
+            .order("data_hora", { ascending: false })
+            .limit(5),
+          porSeason(
+            supabase
+              .from("standings_snapshot")
+              .select("time, posicao, pontos, jogos, rodada")
+              .eq("stint_id", stintId),
+          )
+            .order("rodada", { ascending: false })
+            .limit(400),
+          supabase.from("board_objectives").select("tipo, meta").eq("stint_id", stintId),
+        ]);
 
       const players = playersRes.data ?? [];
-      const overalls = players.map((p) => p.overall).filter((o): o is number => o != null);
+      const overalls = players
+        .map((p) => p.overall)
+        .filter((o): o is number => o != null)
+        .sort((a, b) => b - a)
+        .slice(0, 18);
       const valorTotal = players.reduce((acc, p) => acc + Number(p.valor_mercado ?? 0), 0);
+      const folha = players.reduce((acc, p) => acc + Number(p.salario ?? 0), 0);
 
       let artilheiro: Resumo["artilheiro"] = null;
       let melhorNota: Resumo["melhorNota"] = null;
@@ -318,6 +351,64 @@ function Dashboard() {
 
       const clube = identidade?.clubs;
       const liga = identidade?.leagues;
+      const moeda = moedaDoPais(clube?.pais ?? liga?.pais);
+
+      // Classificação: última rodada sincronizada, janela de 5 times ao redor do meu.
+      const todas = standingsRes.data ?? [];
+      const ultimaRodada = todas[0]?.rodada ?? null;
+      const linhasTabela: LinhaTabela[] = todas
+        .filter((l) => l.rodada === ultimaRodada)
+        .map((l) => ({ time: l.time, posicao: l.posicao, pontos: l.pontos, jogos: l.jogos }))
+        .sort((a, b) => (a.posicao ?? 99) - (b.posicao ?? 99));
+      const idxMeu = linhasTabela.findIndex((l) => normalizar(l.time) === normalizar(clube?.nome));
+      const minhaPosicao = idxMeu >= 0 ? (linhasTabela[idxMeu]?.posicao ?? idxMeu + 1) : null;
+      const inicioJanela =
+        idxMeu >= 0 ? Math.max(0, Math.min(idxMeu - 2, linhasTabela.length - 5)) : 0;
+      const janelaTabela = linhasTabela.slice(inicioJanela, inicioJanela + 5);
+
+      // Objetivos da diretoria e o quanto já foi cumprido (sem gerar notícias nem chamar IA).
+      const fmt = (v: number) => formatarMoedaCompacta(v, moeda);
+      const objetivos: Objetivo[] = [];
+      for (const o of objetivosRes.data ?? []) {
+        const meta = Number(o.meta);
+        if (!Number.isFinite(meta) || meta <= 0) continue;
+        const rotulo = ROTULO_OBJETIVO[o.tipo] ?? o.tipo;
+        if (o.tipo === "posicao_alvo") {
+          if (minhaPosicao == null) {
+            objetivos.push({ tipo: o.tipo, rotulo, progresso: 0, estado: "neutro", texto: `Alvo ${meta}º · sem classificação` });
+          } else {
+            const ok = minhaPosicao <= meta;
+            objetivos.push({
+              tipo: o.tipo,
+              rotulo,
+              progresso: ok ? 100 : Math.max(5, Math.min(100, (meta / minhaPosicao) * 100)),
+              estado: ok ? "ok" : "risco",
+              texto: `${minhaPosicao}º · alvo ${meta}º`,
+            });
+          }
+        } else if (o.tipo === "receita_vendas") {
+          const { data: vendas } = await porSeason(
+            supabase.from("transfers").select("valor").eq("stint_id", stintId).eq("tipo", "saida"),
+          );
+          let atual = (vendas ?? []).reduce((a, t) => a + Number(t.valor ?? 0), 0);
+          if (seasonId) atual += (await ajusteFinanceiroParcelado(stintId, seasonId)).saidas;
+          objetivos.push({
+            tipo: o.tipo,
+            rotulo,
+            progresso: Math.max(0, Math.min(100, (atual / meta) * 100)),
+            estado: atual >= meta ? "ok" : "neutro",
+            texto: `${fmt(atual)} / ${fmt(meta)}`,
+          });
+        } else if (o.tipo === "teto_salarial") {
+          objetivos.push({
+            tipo: o.tipo,
+            rotulo,
+            progresso: Math.max(0, Math.min(100, (folha / meta) * 100)),
+            estado: folha <= meta ? "ok" : "risco",
+            texto: `${fmt(folha)} / ${fmt(meta)}`,
+          });
+        }
+      }
 
       setResumo({
         saveId,
@@ -329,9 +420,9 @@ function Dashboard() {
 
         ligaNome: liga?.nome ?? null,
         temporada: season?.nome ?? (save.temporada as string),
-        moeda: moedaDoPais(clube?.pais ?? liga?.pais),
+        moeda,
         manager: managerRes.data ?? null,
-        overallMedio:
+        overallEquipe:
           overalls.length > 0
             ? Math.round(overalls.reduce((a, b) => a + b, 0) / overalls.length)
             : null,
@@ -340,9 +431,10 @@ function Dashboard() {
         artilheiro,
         melhorNota,
         maisMvp,
-        proximo: matchesRes.data ?? null,
-        ultimos: finalizadasRes.data ?? [],
-        noticias: newsRes.data ?? [],
+        proximos: (proximosRes.data ?? []) as Jogo[],
+        ultimos: [...((finalizadasRes.data ?? []) as Jogo[])].reverse(),
+        tabela: { linhas: janelaTabela, minhaPosicao },
+        objetivos,
       });
       setCarregando(false);
     })();
@@ -350,54 +442,121 @@ function Dashboard() {
 
   return (
     <AppShell titulo="Central do clube">
-      <div className="pitch-lines min-h-full px-4 py-6 sm:px-8">
+      <div className="min-h-full px-4 py-6 sm:px-8">
         <div className="mx-auto max-w-6xl space-y-6">
           {carregando || !resumo ? (
             mostrarSkeleton || !resumo ? <SkeletonDashboard /> : <div className="h-96" />
           ) : (
             <>
-              <section className="glow-panel flex flex-wrap items-center gap-4 rounded-xl border border-border bg-card p-5">
-                <div className="group relative">
-                  {resumo.escudo ? (
-                    <img
-                      src={resumo.escudo}
-                      alt={`Escudo do ${resumo.clubeNome ?? "clube"}`}
-                      className="h-16 w-16 object-contain"
-                    />
-                  ) : (
-                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted font-display text-2xl">
-                      {(resumo.clubeNome ?? "FC").slice(0, 2).toUpperCase()}
+              {/* Card principal: identidade, overall da equipe e forma */}
+              <section className="glow-panel rounded-xl p-5">
+                <div className="flex flex-wrap items-center gap-x-8 gap-y-5">
+                  <div className="flex min-w-0 flex-1 items-center gap-4">
+                    <div className="group relative shrink-0">
+                      {resumo.escudo ? (
+                        <img
+                          src={resumo.escudo}
+                          alt={`Escudo do ${resumo.clubeNome ?? "clube"}`}
+                          className="h-16 w-16 object-contain"
+                        />
+                      ) : (
+                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted font-display text-2xl">
+                          {(resumo.clubeNome ?? "FC").slice(0, 2).toUpperCase()}
+                        </div>
+                      )}
+                      <Button
+                        size="icon"
+                        variant="secondary"
+                        aria-label="Alterar logo do clube"
+                        className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full shadow"
+                        onClick={() => {
+                          setUrlEscudo(resumo.escudo ?? "");
+                          setEditandoEscudo(true);
+                        }}
+                      >
+                        <ImagePlus className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
-                  )}
-                  <Button
-                    size="icon"
-                    variant="secondary"
-                    aria-label="Alterar logo do clube"
-                    className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full shadow"
-                    onClick={() => {
-                      setUrlEscudo(resumo.escudo ?? "");
-                      setEditandoEscudo(true);
-                    }}
-                  >
-                    <ImagePlus className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h1 className="font-display text-3xl leading-tight tracking-wide text-foreground break-words sm:text-4xl">
-                    {resumo.clubeNome ?? "Clube a definir"}
-                  </h1>
-                  <p className="text-sm font-medium text-foreground/70 break-words">
-                    {resumo.ligaNome ?? "Liga"}
-                  </p>
-                </div>
-                <div className="ml-auto flex flex-col items-start gap-2 sm:items-end sm:text-right">
-                  <p className="font-display text-lg tracking-wide break-words">
-                    {resumo.manager?.nome_usado ?? resumo.manager?.nome ?? "Treinador"}
-                  </p>
-                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">
-                    {resumo.manager?.estilo_tatico ?? "Estilo a definir"}
-                  </p>
-                  <div className="flex items-center gap-2">
+                    <div className="min-w-0">
+                      <h1 className="break-words font-display text-3xl leading-tight tracking-wide text-foreground sm:text-4xl">
+                        {resumo.clubeNome ?? "Clube a definir"}
+                      </h1>
+                      <p className="break-words text-sm font-medium text-foreground/70">
+                        {resumo.ligaNome ?? "Liga"}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {resumo.manager?.nome_usado ?? resumo.manager?.nome ?? "Treinador"}
+                        {resumo.manager?.estilo_tatico ? ` · ${resumo.manager.estilo_tatico}` : ""}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-8">
+                    <div>
+                      <p className="text-[0.7rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                        Overall da equipe
+                      </p>
+                      <p className="font-display text-5xl leading-none text-primary">
+                        {resumo.overallEquipe != null ? (
+                          <CountUp valor={resumo.overallEquipe} decimais={0} />
+                        ) : (
+                          "—"
+                        )}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">Média dos 18 melhores</p>
+                    </div>
+
+                    <div>
+                      <p className="text-[0.7rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                        Forma · últimos 5
+                      </p>
+                      <TooltipProvider delayDuration={100}>
+                        <div className="mt-1.5 flex gap-1.5">
+                          {Array.from({ length: 5 }).map((_, i) => {
+                            const jogo = resumo.ultimos[i - (5 - resumo.ultimos.length)];
+                            if (!jogo) {
+                              return (
+                                <span
+                                  key={i}
+                                  className="flex h-8 w-8 items-center justify-center rounded-md border border-dashed border-border text-xs text-muted-foreground"
+                                >
+                                  –
+                                </span>
+                              );
+                            }
+                            const gp = jogo.placar_time ?? 0;
+                            const gc = jogo.placar_adversario ?? 0;
+                            const r = gp > gc ? "V" : gp === gc ? "E" : "D";
+                            const cor =
+                              r === "V"
+                                ? "bg-success text-success-foreground"
+                                : r === "E"
+                                  ? "bg-warning text-warning-foreground"
+                                  : "bg-destructive text-destructive-foreground";
+                            return (
+                              <Tooltip key={jogo.id}>
+                                <TooltipTrigger asChild>
+                                  <span
+                                    className={cn(
+                                      "flex h-8 w-8 cursor-default items-center justify-center rounded-md font-display text-lg",
+                                      cor,
+                                    )}
+                                  >
+                                    {r}
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent side="bottom" className="px-2 py-1 text-xs">
+                                  {gp} × {gc} · {jogo.adversario ?? "Adversário"}
+                                </TooltipContent>
+                              </Tooltip>
+                            );
+                          })}
+                        </div>
+                      </TooltipProvider>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-start gap-2 sm:items-end">
                     <span className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">
                       {/^temporada\b/i.test(resumo.temporada) ? resumo.temporada : `Temporada ${resumo.temporada}`}
                     </span>
@@ -413,15 +572,176 @@ function Dashboard() {
                 </div>
               </section>
 
-              <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-                <ResumoCard
-                  icone={<Star className="h-4 w-4" />}
-                  rotulo="Overall médio"
-                  {...(resumo.overallMedio != null
-                    ? { numero: resumo.overallMedio }
-                    : { valor: "—" })}
-                  detalhe="Elenco cadastrado"
-                />
+              {/* Mini tabela + próximos 3 jogos */}
+              <section className="grid gap-4 lg:grid-cols-2">
+                <Card className="glow-panel">
+                  <CardHeader className="flex-row items-center gap-2 pb-2">
+                    <ListOrdered className="h-4 w-4 text-primary" />
+                    <CardTitle className="text-base font-semibold uppercase tracking-[0.06em]">
+                      Classificação
+                    </CardTitle>
+                    <Link
+                      to="/classificacao"
+                      className="ml-auto text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      Ver tabela completa
+                    </Link>
+                  </CardHeader>
+                  <CardContent>
+                    {resumo.tabela.linhas.length > 0 ? (
+                      <div>
+                        <div className="flex items-center gap-3 px-2 pb-1 text-[0.65rem] uppercase tracking-widest text-muted-foreground">
+                          <span className="w-5 text-right">#</span>
+                          <span className="flex-1">Clube</span>
+                          <span className="w-8 text-right">J</span>
+                          <span className="w-8 text-right">Pts</span>
+                        </div>
+                        <ul className="space-y-0.5">
+                          {resumo.tabela.linhas.map((l) => {
+                            const minha =
+                              normalizar(l.time) === normalizar(resumo.clubeNome);
+                            return (
+                              <li
+                                key={l.time}
+                                className={cn(
+                                  "flex items-center gap-3 rounded-md px-2 py-1.5 text-sm",
+                                  minha && "bg-primary/10 ring-1 ring-primary/40",
+                                )}
+                              >
+                                <span className="w-5 text-right tabular-nums text-muted-foreground">
+                                  {l.posicao ?? "–"}
+                                </span>
+                                <ClubBadge nome={l.time} className="flex-1" />
+                                <span className="w-8 text-right tabular-nums text-muted-foreground">
+                                  {l.jogos ?? 0}
+                                </span>
+                                <span className="w-8 text-right font-semibold tabular-nums">
+                                  {l.pontos ?? 0}
+                                </span>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    ) : (
+                      <Vazio texto="Sem classificação sincronizada. Registre a tabela da liga em Classificação para vê-la aqui." />
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card className="glow-panel">
+                  <CardHeader className="flex-row items-center gap-2 pb-2">
+                    <CalendarClock className="h-4 w-4 text-primary" />
+                    <CardTitle className="text-base font-semibold uppercase tracking-[0.06em]">
+                      Próximos jogos
+                    </CardTitle>
+                    <Link
+                      to="/calendario"
+                      className="ml-auto text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      Calendário
+                    </Link>
+                  </CardHeader>
+                  <CardContent>
+                    {resumo.proximos.length > 0 ? (
+                      <ul className="divide-y divide-border">
+                        {resumo.proximos.map((j, i) => {
+                          const mando = rotuloMando(j.mando);
+                          return (
+                            <StaggerItem key={j.id} index={i}>
+                              <li className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+                                <div className="min-w-0 flex-1">
+                                  <div className="font-display text-xl break-words">
+                                    <ClubBadge nome={j.adversario ?? "Adversário a definir"} tamanho="md" />
+                                  </div>
+                                  <p className="text-xs text-muted-foreground">
+                                    {j.competicao ?? "Competição"} ·{" "}
+                                    {j.data_hora
+                                      ? new Date(j.data_hora).toLocaleString("pt-BR", {
+                                          day: "2-digit",
+                                          month: "2-digit",
+                                          hour: "2-digit",
+                                          minute: "2-digit",
+                                        })
+                                      : "data a definir"}
+                                  </p>
+                                </div>
+                                {mando ? (
+                                  <span className="rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">
+                                    {mando}
+                                  </span>
+                                ) : null}
+                              </li>
+                            </StaggerItem>
+                          );
+                        })}
+                      </ul>
+                    ) : (
+                      <Vazio texto="Nenhuma partida agendada. Cadastre o calendário para ver os próximos confrontos aqui." />
+                    )}
+                  </CardContent>
+                </Card>
+              </section>
+
+              {/* Objetivos da diretoria */}
+              <section>
+                <Card className="glow-panel">
+                  <CardHeader className="flex-row items-center gap-2 pb-2">
+                    <Target className="h-4 w-4 text-primary" />
+                    <CardTitle className="text-base font-semibold uppercase tracking-[0.06em]">
+                      Objetivos da diretoria
+                    </CardTitle>
+                    <Link
+                      to="/metas"
+                      className="ml-auto text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      Editar metas
+                    </Link>
+                  </CardHeader>
+                  <CardContent>
+                    {resumo.objetivos.length > 0 ? (
+                      <ul className="grid gap-4 sm:grid-cols-3">
+                        {resumo.objetivos.map((o) => (
+                          <li key={o.tipo} className="space-y-1.5">
+                            <div className="flex items-baseline justify-between gap-2">
+                              <span className="text-xs font-semibold uppercase tracking-[0.06em] text-muted-foreground">
+                                {o.rotulo}
+                              </span>
+                              <span
+                                className={cn(
+                                  "text-xs font-medium",
+                                  o.estado === "ok" && "text-success",
+                                  o.estado === "risco" && "text-destructive",
+                                  o.estado === "neutro" && "text-muted-foreground",
+                                )}
+                              >
+                                {o.estado === "ok" ? "No caminho" : o.estado === "risco" ? "Em risco" : "Em andamento"}
+                              </span>
+                            </div>
+                            <div className="h-2 overflow-hidden rounded-full bg-muted">
+                              <div
+                                className={cn(
+                                  "h-full rounded-full transition-all duration-500",
+                                  o.estado === "ok" && "bg-success",
+                                  o.estado === "risco" && "bg-destructive",
+                                  o.estado === "neutro" && "bg-primary",
+                                )}
+                                style={{ width: `${o.progresso}%` }}
+                              />
+                            </div>
+                            <p className="text-sm tabular-nums">{o.texto}</p>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <Vazio texto="A diretoria ainda não definiu objetivos. Cadastre as metas da temporada em Metas da Diretoria." />
+                    )}
+                  </CardContent>
+                </Card>
+              </section>
+
+              {/* Estatísticas do elenco */}
+              <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                 <ResumoCard
                   icone={<Banknote className="h-4 w-4" />}
                   rotulo="Valor do elenco"
@@ -447,7 +767,7 @@ function Dashboard() {
                   }
                 />
                 <ResumoCard
-                  icone={<Star className="h-4 w-4 text-accent" />}
+                  icone={<Star className="h-4 w-4 text-gold" />}
                   rotulo="Mais vezes MVP"
                   valor={resumo.maisMvp?.nome ?? "—"}
                   detalhe={
@@ -457,118 +777,11 @@ function Dashboard() {
                   }
                 />
                 <ResumoCard
-                  icone={<Trophy className="h-4 w-4 text-amber-400" />}
+                  icone={<Trophy className="h-4 w-4 text-gold" />}
                   rotulo="Troféus"
                   numero={resumo.trofeus}
                   detalhe="Títulos do clube na carreira"
                 />
-              </section>
-
-              <section className="grid gap-4 lg:grid-cols-2">
-                <Card>
-                  <CardHeader className="flex-row items-center gap-2 pb-2">
-                    <CalendarClock className="h-4 w-4 text-primary" />
-                    <CardTitle className="text-base font-semibold uppercase tracking-[0.06em]">
-                      Próximo jogo
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {resumo.proximo ? (
-                      <div className="space-y-1">
-                        <div className="font-display text-2xl break-words">
-                          <ClubBadge nome={resumo.proximo.adversario ?? "Adversário a definir"} tamanho="md" />
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {resumo.proximo.competicao ?? "Competição"} ·{" "}
-                          {resumo.proximo.data_hora
-                            ? new Date(resumo.proximo.data_hora).toLocaleString("pt-BR")
-                            : "data a definir"}
-                        </p>
-                      </div>
-                    ) : (
-                      <Vazio texto="Nenhuma partida agendada. Cadastre o calendário para ver o próximo confronto aqui." />
-                    )}
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base font-semibold uppercase tracking-[0.06em]">
-                      Últimos 5 resultados
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {resumo.ultimos.length > 0 ? (
-                      <ul className="space-y-2">
-                        {resumo.ultimos.map((m, i) => {
-                          const gp = m.placar_time ?? 0;
-                          const gc = m.placar_adversario ?? 0;
-                          const r = gp > gc ? "V" : gp === gc ? "E" : "D";
-                          const cor =
-                            r === "V"
-                              ? "bg-primary text-primary-foreground"
-                              : r === "E"
-                                ? "bg-accent text-accent-foreground"
-                                : "bg-destructive text-destructive-foreground";
-                          return (
-                            <StaggerItem key={m.id} index={i}>
-                            <li className="flex items-center gap-3 text-sm">
-                              <span
-                                className={`flex h-7 w-7 items-center justify-center rounded-md font-display text-base ${cor}`}
-                              >
-                                {r}
-                              </span>
-                              <ClubBadge nome={m.adversario} className="flex-1" />
-                              <span className="font-semibold tabular-nums">
-                                {gp} × {gc}
-                              </span>
-                            </li>
-                            </StaggerItem>
-                          );
-                        })}
-                      </ul>
-                    ) : (
-                      <Vazio texto="Nenhuma partida finalizada ainda. Os resultados aparecem aqui após o primeiro jogo." />
-                    )}
-                  </CardContent>
-                </Card>
-              </section>
-
-              <section>
-                <Card>
-                  <CardHeader className="flex-row items-center gap-2 pb-2">
-                    <Newspaper className="h-4 w-4 text-primary" />
-                    <CardTitle className="text-base font-semibold uppercase tracking-[0.06em]">
-                      Feed de notícias
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {resumo.noticias.length > 0 ? (
-                      <ul className="divide-y divide-border">
-                        {resumo.noticias.map((n, i) => {
-                          const Icone = ICONE_NOTICIA[n.tipo] ?? Newspaper;
-                          return (
-                            <StaggerItem key={n.id} index={i}>
-                            <li className="flex gap-3 py-3 first:pt-0 last:pb-0">
-                              <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted text-primary">
-                                <Icone className="h-4 w-4" />
-                              </span>
-                              <div className="min-w-0">
-                                <p className="font-semibold">{n.titulo}</p>
-                                {n.corpo && (
-                                  <p className="text-sm text-muted-foreground">{n.corpo}</p>
-                                )}
-                              </div>
-                            </li>
-                            </StaggerItem>
-                          );
-                        })}
-                      </ul>
-                    ) : (
-                      <Vazio texto="A sala de imprensa está calma. Notícias de resultados, transferências, torcida e diretoria aparecem aqui." />
-                    )}
-                  </CardContent>
-                </Card>
               </section>
             </>
           )}

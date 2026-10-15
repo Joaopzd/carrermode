@@ -135,8 +135,7 @@ function MetasPage() {
           <header>
             <h1 className="text-gradient-pitch text-4xl">Metas da diretoria</h1>
             <p className="text-sm text-muted-foreground">
-              Defina os objetivos da temporada. A diretoria se manifesta no feed quando uma meta
-              entra em risco ou é cumprida.
+              Defina os objetivos da temporada. O progresso de cada meta aparece no dashboard.
             </p>
           </header>
 

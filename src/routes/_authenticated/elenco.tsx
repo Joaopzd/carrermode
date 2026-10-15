@@ -53,7 +53,6 @@ import { Bandeira } from "@/components/bandeira";
 import { supabase } from "@/integrations/supabase/client";
 import { PAISES, POSICOES, STATUS_JOGADOR } from "@/lib/onboarding-data";
 import { useSaveAtual } from "@/lib/use-save";
-import { formatarMoeda } from "@/lib/moeda";
 import { lerDataCarreira } from "@/lib/carreira-data";
 import { ClubBadge } from "@/components/club-badge";
 import {
@@ -99,6 +98,9 @@ type Jogador = {
   capitao: boolean;
 };
 
+const moeda = (v: number | null) =>
+  v === null ? "—" : `£ ${new Intl.NumberFormat("pt-BR").format(v)}`;
+
 /** Vermelho ≤64 · amarelo 65-74 · verde 75-84 · azul ≥85. */
 function corOverall(overall: number | null) {
   if (overall === null) return "bg-muted text-muted-foreground";
@@ -119,7 +121,6 @@ type CampoOrdem = (typeof ORDENACOES)[number]["valor"];
 
 function ElencoPage() {
   const { save, carregando: carregandoSave } = useSaveAtual();
-  const moeda = (v: number | null) => formatarMoeda(v, save?.moeda ?? "EUR");
   const [jogadores, setJogadores] = useState<Jogador[]>([]);
   const [chegadas, setChegadas] = useState<ChegadaPendente[]>([]);
   const [carregando, setCarregando] = useState(true);
@@ -274,10 +275,6 @@ function ElencoPage() {
     // Exclusão definitiva: limpa vínculos antes de remover o registro.
     await supabase.from("match_player_stats").delete().eq("player_id", excluindo.id);
     await supabase.from("fan_pressure_events").delete().eq("player_id", excluindo.id);
-    await supabase
-      .from("news_feed")
-      .update({ relacionado_player_id: null })
-      .eq("relacionado_player_id", excluindo.id);
     await supabase.from("transfers").update({ player_id: null }).eq("player_id", excluindo.id);
     await supabase
       .from("transfers")
