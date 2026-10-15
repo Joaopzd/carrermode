@@ -8,12 +8,14 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTemaDoClube } from "@/lib/club-theme";
 
 
 export function AppShell({ titulo, children }: { titulo: string; children: ReactNode }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  useTemaDoClube();
 
   async function sair() {
     await queryClient.cancelQueries();
