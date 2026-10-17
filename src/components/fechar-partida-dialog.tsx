@@ -1,7 +1,7 @@
 import { Collapse } from "@/components/motion";
 import { ehGoleiro, posEn, GRUPOS_POSICAO, grupoDaPosicao } from "@/lib/posicoes";
 import { Fragment, useEffect, useMemo, useState } from "react";
-import { ChevronDown, ChevronRight, Loader2, Save, Star } from "lucide-react";
+import { Camera, ChevronDown, ChevronRight, Loader2, Save, Star } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ICONE_COMPETICAO } from "@/lib/match-data";
-import { checarEventosPosPartida } from "@/lib/eventos";
+import {
+  montarPreenchimento,
+  outroLado,
+  reduzirImagem,
+  type ExtracaoPartida,
+  type Preenchimento,
+} from "@/lib/partida-foto";
+import { extrairPartidaDeFotos } from "@/lib/partida-foto.functions";
 
 export type PartidaBase = {
   id: string;
@@ -132,6 +139,7 @@ export function FecharPartidaDialog({
   clubeNome,
   aberto,
   marcarEditadoAposArquivamento = false,
+  extracaoInicial = null,
   onOpenChange,
   onSalvo,
 }: {
@@ -141,9 +149,14 @@ export function FecharPartidaDialog({
   clubeNome: string | null;
   aberto: boolean;
   marcarEditadoAposArquivamento?: boolean;
+  /** Leitura de fotos já feita (fluxo "Registrar por foto"): preenche o formulário ao abrir. */
+  extracaoInicial?: ExtracaoPartida | null;
   onOpenChange: (v: boolean) => void;
   onSalvo: () => void;
 }) {
+  const [importando, setImportando] = useState(false);
+  const [extracao, setExtracao] = useState<ExtracaoPartida | null>(null);
+  const [importado, setImportado] = useState<Preenchimento | null>(null);
 
   const [jogadores, setJogadores] = useState<Jogador[]>([]);
   const [selecionados, setSelecionados] = useState<string[]>([]);
@@ -198,11 +211,10 @@ export function FecharPartidaDialog({
         supabase.from("match_player_stats").select("*").eq("match_id", partida.id),
       ]);
 
-      setJogadores(
-        ((elenco ?? []) as Jogador[]).filter(
-          (j) => marcarEditadoAposArquivamento || j.status === "Liberado" || j.status === "Convocado" || !j.status,
-        ),
+      const lista = ((elenco ?? []) as Jogador[]).filter(
+        (j) => marcarEditadoAposArquivamento || j.status === "Liberado" || j.status === "Convocado" || !j.status,
       );
+      setJogadores(lista);
 
       const mapa: Record<string, StatJogador> = {};
       const ids: string[] = [];
@@ -243,8 +255,25 @@ export function FecharPartidaDialog({
 
       setSelecionados(ids);
       setStats(mapa);
+      setExtracao(null);
+      setImportado(null);
+
+      // Fluxo "Registrar por foto": aplica a leitura sobre o que já estava salvo.
+      if (extracaoInicial) {
+        const res = montarPreenchimento({
+          extracao: extracaoInicial,
+          elenco: lista,
+          meuClube: clubeNome,
+          adversario: partida.adversario,
+          mando: partida.mando,
+          ehGoleiro,
+        });
+        setExtracao(extracaoInicial);
+        aplicarPreenchimento(res, mapa, ids);
+      }
     })();
-  }, [aberto, partida, saveId, stintId, marcarEditadoAposArquivamento]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aberto, partida, saveId, stintId, marcarEditadoAposArquivamento, extracaoInicial]);
 
   const escalados = useMemo(
     () => jogadores.filter((j) => selecionados.includes(j.id)),
@@ -272,6 +301,80 @@ export function FecharPartidaDialog({
   useEffect(() => {
     if (!mvpTocado && sugestaoMvp) setMvp(sugestaoMvp);
   }, [sugestaoMvp, mvpTocado]);
+
+  /** Aplica no formulário o que foi lido das fotos. O usuário confere e salva. */
+  function aplicarPreenchimento(
+    res: Preenchimento,
+    baseStats?: Record<string, StatJogador>,
+    baseIds?: string[],
+  ) {
+    setJogo((prev) => ({ ...prev, ...res.jogo }));
+    const novosIds = Object.keys(res.jogadores);
+    setSelecionados((prev) => Array.from(new Set([...(baseIds ?? prev), ...novosIds])));
+    setStats((prev) => {
+      const base = baseStats ?? prev;
+      const proximo = { ...base };
+      for (const [id, s] of Object.entries(res.jogadores)) {
+        proximo[id] = {
+          ...STAT_VAZIA,
+          ...(base[id] ?? {}),
+          titular: s.titular,
+          gols: s.gols,
+          assistencias: s.assistencias,
+          nota: s.nota,
+          ...(s.clean_sheet !== undefined ? { clean_sheet: s.clean_sheet } : {}),
+          ...(s.defesas !== undefined ? { defesas: s.defesas } : {}),
+        };
+      }
+      return proximo;
+    });
+    if (res.mvpId) {
+      setMvp(res.mvpId);
+      setMvpTocado(true);
+    }
+    setImportado(res);
+  }
+
+  async function importarFotos(arquivos: FileList | null) {
+    if (!arquivos || arquivos.length === 0 || !partida) return;
+    if (arquivos.length > 4) {
+      toast.error("Envie no máximo 4 fotos por vez.");
+      return;
+    }
+    setImportando(true);
+    try {
+      const imagens = await Promise.all(Array.from(arquivos).map((f) => reduzirImagem(f)));
+      const lida = await extrairPartidaDeFotos({ data: { imagens } });
+      setExtracao(lida);
+      const res = montarPreenchimento({
+        extracao: lida,
+        elenco: jogadores,
+        meuClube: clubeNome,
+        adversario: partida.adversario,
+        mando: partida.mando,
+        ehGoleiro,
+      });
+      aplicarPreenchimento(res);
+      toast.success("Fotos lidas! Confira os dados e salve.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Não foi possível ler as fotos.");
+    }
+    setImportando(false);
+  }
+
+  function inverterLados() {
+    if (!extracao || !importado) return;
+    const res = montarPreenchimento({
+      extracao,
+      elenco: jogadores,
+      meuClube: clubeNome,
+      adversario: partida?.adversario,
+      mando: partida?.mando,
+      ehGoleiro,
+      lado: outroLado(importado.lado),
+    });
+    aplicarPreenchimento(res);
+  }
 
   function alternar(id: string) {
     setSelecionados((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]));
@@ -389,8 +492,6 @@ export function FecharPartidaDialog({
       }
     }
 
-    if (!marcarEditadoAposArquivamento) void checarEventosPosPartida(saveId, partida.id, partida.stint_id ?? stintId);
-
     setSalvando(false);
     toast.success("Partida finalizada!");
     onOpenChange(false);
@@ -412,6 +513,75 @@ export function FecharPartidaDialog({
               : ""}
           </DialogDescription>
         </DialogHeader>
+
+        <section className="space-y-3 rounded-xl border border-primary/40 bg-primary/5 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Preencher por foto
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Fotografe as telas de Resumo e Desempenho individual (até 4 fotos). Você confere
+                tudo antes de salvar.
+              </p>
+            </div>
+            <label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                disabled={importando}
+                onChange={(e) => {
+                  void importarFotos(e.target.files);
+                  e.target.value = "";
+                }}
+              />
+              <Button asChild variant="secondary" disabled={importando}>
+                <span className="cursor-pointer">
+                  {importando ? (
+                    <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Camera className="mr-1 h-4 w-4" />
+                  )}
+                  {importando ? "Lendo fotos…" : "Escolher fotos"}
+                </span>
+              </Button>
+            </label>
+          </div>
+          {importado ? (
+            <div className="space-y-1 text-xs">
+              <p>
+                Reconhecidos: {Object.keys(importado.jogadores).length} jogador(es) · lado do seu
+                clube: <span className="font-semibold">{importado.lado}</span>
+                {importado.adversarioLido ? ` · adversário lido: ${importado.adversarioLido}` : ""}
+              </p>
+              {!importado.ladoConfiavel ? (
+                <p className="text-warning">
+                  Não deu para confirmar qual lado é o seu clube. Se o placar ficou invertido, use
+                  o botão abaixo.
+                </p>
+              ) : null}
+              {importado.naoEncontrados.length > 0 ? (
+                <p className="text-warning">
+                  Não encontrados no elenco: {importado.naoEncontrados.join(", ")}. Marque-os na
+                  escalação, se for o caso.
+                </p>
+              ) : null}
+              {Object.keys(importado.jogadores).length === 0 ? (
+                <p className="text-warning">
+                  Nenhum jogador do seu elenco foi reconhecido. As fotos de Desempenho individual
+                  são do seu time?
+                </p>
+              ) : null}
+              <Button type="button" variant="outline" size="sm" onClick={inverterLados}>
+                Inverter lados
+              </Button>
+            </div>
+          ) : null}
+        </section>
+
+        <Separator />
 
         <section className="space-y-3">
           <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
