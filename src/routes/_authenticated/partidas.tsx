@@ -2,7 +2,7 @@ import { ClubBadge } from "@/components/club-badge";
 import { ClubAutocomplete } from "@/components/club-autocomplete";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
-import { AlertTriangle, CalendarPlus, ClipboardCheck, Pencil, Plus, Trash2 } from "lucide-react";
+import { AlertTriangle, CalendarPlus, Camera, ClipboardCheck, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -32,6 +32,14 @@ import { SkeletonListaItens } from "@/components/loading";
 import { useIndicadorCarregamento, useSkeletonDelay } from "@/lib/loading-bus";
 import { FecharPartidaDialog, type PartidaBase } from "@/components/fechar-partida-dialog";
 import { RelatorioPartidaDialog } from "@/components/relatorio-partida-dialog";
+import {
+  escolherLado,
+  outroLado,
+  reduzirImagem,
+  type ExtracaoPartida,
+  type Lado,
+} from "@/lib/partida-foto";
+import { extrairPartidaDeFotos } from "@/lib/partida-foto.functions";
 import { ICONE_COMPETICAO } from "@/lib/match-data";
 import { useSaveAtual } from "@/lib/use-save";
 
@@ -86,6 +94,9 @@ function PartidasPage() {
   });
 
   const [nomesMvp, setNomesMvp] = useState<Record<string, string>>({});
+  const [importandoFoto, setImportandoFoto] = useState(false);
+  const [extracaoInicial, setExtracaoInicial] = useState<ExtracaoPartida | null>(null);
+  const [escolhendoLado, setEscolhendoLado] = useState<ExtracaoPartida | null>(null);
 
   const carregar = useCallback(async (saveId: string, seasonId: string | null, stintId: string) => {
     let q = supabase.from("matches").select("*").eq("stint_id", stintId);
@@ -181,10 +192,6 @@ function PartidasPage() {
   async function excluirPartida() {
     if (!excluindo || !save) return;
     await supabase.from("match_player_stats").delete().eq("match_id", excluindo.id);
-    await supabase
-      .from("news_feed")
-      .update({ relacionado_match_id: null })
-      .eq("relacionado_match_id", excluindo.id);
     const { error } = await supabase.from("matches").delete().eq("id", excluindo.id);
     if (error) {
       toast.error("Não foi possível excluir a partida.");
@@ -199,8 +206,63 @@ function PartidasPage() {
   const finalizadas = partidas.filter((p) => p.status === "finalizada");
 
   function abrir(p: PartidaBase) {
+    setExtracaoInicial(null);
     setSelecionada(p);
     setAberto(true);
+  }
+
+  /** Cria a partida a partir da leitura das fotos e abre o fechamento já preenchido. */
+  async function criarPartidaDaFoto(lida: ExtracaoPartida, lado: Lado) {
+    if (!save) return;
+    const adversario = lida[outroLado(lado)].nome?.trim();
+    if (!adversario) {
+      toast.error("Não consegui identificar o adversário nas fotos. Use Nova partida.");
+      return;
+    }
+    const dia = dataCarreira ?? new Date().toISOString().slice(0, 10);
+    const { data: criada, error } = await supabase
+      .from("matches")
+      .insert({
+        save_id: save.id,
+        stint_id: save.stintId,
+        season_id: save.seasonId,
+        status: "agendada",
+        data_hora: new Date(`${dia}T16:00:00`).toISOString(),
+        competicao: "Liga",
+        adversario,
+        mando: lado === "esquerda" ? "casa" : "fora",
+      })
+      .select("*")
+      .single();
+    if (error || !criada) {
+      toast.error("Não foi possível criar a partida.");
+      return;
+    }
+    void carregar(save.id, save.seasonId, save.stintId ?? "");
+    setExtracaoInicial(lida);
+    setSelecionada(criada as unknown as PartidaBase);
+    setAberto(true);
+    toast.success("Partida criada pelas fotos. Confira os dados e salve.");
+  }
+
+  /** Registrar por foto: lê as fotos, cria a partida e já abre o fechamento preenchido. */
+  async function registrarPorFoto(arquivos: FileList | null) {
+    if (!save || !arquivos || arquivos.length === 0) return;
+    if (arquivos.length > 4) {
+      toast.error("Envie no máximo 4 fotos por vez.");
+      return;
+    }
+    setImportandoFoto(true);
+    try {
+      const imagens = await Promise.all(Array.from(arquivos).map((f) => reduzirImagem(f)));
+      const lida = await extrairPartidaDeFotos({ data: { imagens } });
+      const { lado, confiavel } = escolherLado(lida, save.clubeNome, null, "casa");
+      if (confiavel) await criarPartidaDaFoto(lida, lado);
+      else setEscolhendoLado(lida); // nome do clube diferente do jogo: pergunta qual lado é o seu
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Não foi possível ler as fotos.");
+    }
+    setImportandoFoto(false);
   }
 
   return (
@@ -220,6 +282,29 @@ function PartidasPage() {
                   <CalendarPlus className="mr-1 h-4 w-4" /> Calendário
                 </Link>
               </Button>
+              <label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  disabled={!save || importandoFoto}
+                  onChange={(e) => {
+                    void registrarPorFoto(e.target.files);
+                    e.target.value = "";
+                  }}
+                />
+                <Button asChild variant="secondary" disabled={!save || importandoFoto}>
+                  <span className="cursor-pointer">
+                    {importandoFoto ? (
+                      <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Camera className="mr-1 h-4 w-4" />
+                    )}
+                    {importandoFoto ? "Lendo fotos…" : "Registrar por foto"}
+                  </span>
+                </Button>
+              </label>
               <Button onClick={novaPartida} disabled={!save}>
                 <Plus className="mr-1 h-4 w-4" /> Nova partida
               </Button>
@@ -538,6 +623,35 @@ function PartidasPage() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={escolhendoLado !== null} onOpenChange={(v) => !v && setEscolhendoLado(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Qual é o seu clube?</DialogTitle>
+            <DialogDescription>
+              Não reconheci o nome do seu clube nas fotos. Escolha o seu lado para registrar o
+              placar certo.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-2">
+            {(["esquerda", "direita"] as const).map((lado) => (
+              <Button
+                key={lado}
+                variant="outline"
+                className="h-auto justify-between py-3"
+                onClick={() => {
+                  const lida = escolhendoLado;
+                  setEscolhendoLado(null);
+                  if (lida) void criarPartidaDaFoto(lida, lado);
+                }}
+              >
+                <span>{escolhendoLado?.[lado].nome ?? lado}</span>
+                <span className="font-display text-2xl">{escolhendoLado?.[lado].gols ?? "–"}</span>
+              </Button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={excluindo !== null} onOpenChange={(v) => !v && setExcluindo(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -565,7 +679,11 @@ function PartidasPage() {
             stintId={save.stintId}
             clubeNome={save.clubeNome}
             aberto={aberto}
-            onOpenChange={setAberto}
+            extracaoInicial={extracaoInicial}
+            onOpenChange={(v) => {
+              setAberto(v);
+              if (!v) setExtracaoInicial(null);
+            }}
             onSalvo={() => void carregar(save.id, save.seasonId, save.stintId ?? "")}
           />
           <RelatorioPartidaDialog
