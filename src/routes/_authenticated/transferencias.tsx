@@ -1025,29 +1025,31 @@ function TransferenciasPage() {
           </div>
 
           <Card className="hq-card">
-            <CardContent className="space-y-3 py-4">
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <p className="text-xs uppercase tracking-widest text-muted-foreground">
-                  Caixa ao longo da temporada
-                </p>
-                {orcamentoInicial != null ? (
-                  <p className="font-display text-2xl">{fmtCaixa(caixa.atual)}</p>
-                ) : (
-                  <a href="/configuracoes" className="text-xs text-primary hover:underline">
-                    Defina o orçamento inicial em Configurações
-                  </a>
-                )}
-              </div>
-              <GraficoCaixa
-                inicial={orcamentoInicial ?? 0}
-                pontos={caixa.pontos}
-                formatar={fmtCaixa}
-              />
-              {orcamentoInicial == null ? (
-                <p className="text-xs text-muted-foreground">
-                  Sem orçamento inicial, o gráfico mostra apenas a variação a partir de zero.
-                </p>
-              ) : null}
+            <CardContent className="py-4">
+              <p className="text-xs uppercase tracking-widest text-muted-foreground">
+                Caixa na temporada
+              </p>
+              {orcamentoInicial != null ? (
+                <>
+                  <p className="mt-1 font-display text-3xl">{fmtCaixa(caixa)}</p>
+                  <p
+                    className={cn(
+                      "text-sm",
+                      caixa - orcamentoInicial >= 0 ? "text-emerald-400" : "text-red-400",
+                    )}
+                  >
+                    {caixa - orcamentoInicial >= 0 ? "+" : "−"}{" "}
+                    {fmtCaixa(Math.abs(caixa - orcamentoInicial))}{" "}
+                    <span className="text-muted-foreground">
+                      desde o orçamento inicial ({fmtCaixa(orcamentoInicial)})
+                    </span>
+                  </p>
+                </>
+              ) : (
+                <a href="/configuracoes" className="text-xs text-primary hover:underline">
+                  Defina o orçamento inicial em Configurações
+                </a>
+              )}
             </CardContent>
           </Card>
 
