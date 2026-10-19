@@ -70,7 +70,6 @@ import {
 } from "@/lib/transferencias-futuras";
 import { PAISES } from "@/lib/onboarding-data";
 
-import { GraficoCaixa, type PontoCaixa } from "@/components/grafico-caixa";
 import { carregarOrcamentoInicial } from "@/lib/financas";
 import { formatarMoedaCompacta, moedaDoPais } from "@/lib/moeda";
 import { useSaveAtual } from "@/lib/use-save";
