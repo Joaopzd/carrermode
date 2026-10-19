@@ -303,7 +303,7 @@ export function montarPreenchimento(args: {
       ...(goleiro
         ? {
             clean_sheet: !sofreuGol && rival.gols != null,
-            defesas: txt(meu.stats.defesas),
+            ...(txt(meu.stats.defesas) != null ? { defesas: txt(meu.stats.defesas) } : {}),
           }
         : {}),
     };
