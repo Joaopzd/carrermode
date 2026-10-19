@@ -295,6 +295,7 @@ export function montarPreenchimento(args: {
       continue;
     }
     const goleiro = ehGoleiro(achado.posicao_principal);
+    const defesas = txt(meu.stats.defesas);
     jogadores[achado.id] = {
       titular: (j.posicao ?? "").toUpperCase() !== "RES",
       gols: String(j.gols ?? 0),
@@ -303,7 +304,7 @@ export function montarPreenchimento(args: {
       ...(goleiro
         ? {
             clean_sheet: !sofreuGol && rival.gols != null,
-            defesas: txt(meu.stats.defesas),
+            ...(defesas != null ? { defesas } : {}),
           }
         : {}),
     };
