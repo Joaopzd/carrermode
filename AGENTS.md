@@ -15,6 +15,7 @@
 - Reuse ArquivoPassagem with an explicit historical stint and club for career history, keeping standings read-only and corrections confirmed.
 - Retire legacy save club/league fields without deleting them to preserve compatibility and data until a verified backup and authorized removal.
 - Refresh the shared club catalog by matching canonical club identities, retaining IDs and crests and detaching omitted clubs instead of deleting them; historical stints keep their own league references.
+- Resolve club names through the shared explicit identity aliases for autocomplete, roster lookup and crest lookup; verify external football team identity and country before accepting a crest to avoid ambiguous matches.
 - Own session transition handling in the root route and resume authenticated public-home/auth arrivals in the career area so full-page OAuth returns do not strand users on the landing page.
 - Delete careers with one owner-scoped saves DELETE using existing cascading foreign keys; keep accounts and the shared catalog and clear cached career data before onboarding.
 - Resolve monetary display through the shared country-to-currency registry using the viewed stint's club country (league country fallback), never the currently active club for historical records; formatting does not convert stored amounts.

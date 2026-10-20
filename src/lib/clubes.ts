@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { contarEscudosPendentes, sincronizarEscudos } from "@/lib/crests.functions";
+import { chaveClube } from "./club-identidade";
 
 export type ClubeRef = { id: string; nome: string; escudo_url: string | null; league_id: string | null };
 
@@ -17,7 +18,8 @@ export async function carregarClubes(forcar = false): Promise<ClubeRef[]> {
       .select("id, nome, escudo_url, league_id")
       .order("nome");
     cache = (data as ClubeRef[]) ?? [];
-    ouvintes.forEach((fn) => fn(cache!));
+    const carregados = cache;
+    ouvintes.forEach((fn) => fn(carregados));
     return cache;
   })();
   return promessa;
@@ -40,18 +42,10 @@ export function useClubes() {
   return clubes;
 }
 
-function normalizar(nome: string) {
-  return nome
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim()
-    .toLowerCase();
-}
-
 export function acharClube(clubes: ClubeRef[], nome?: string | null): ClubeRef | null {
   if (!nome) return null;
-  const alvo = normalizar(nome);
-  return clubes.find((c) => normalizar(c.nome) === alvo) ?? null;
+  const alvo = chaveClube(nome);
+  return clubes.find((c) => chaveClube(c.nome) === alvo) ?? null;
 }
 
 export function escudoPorNome(clubes: ClubeRef[], nome?: string | null): string | null {

@@ -17,6 +17,7 @@ import { carregarClubes, useClubes } from "@/lib/clubes";
 import { cadastrarClubeCatalogo } from "@/lib/crests.functions";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { chaveClube, correspondeBuscaClube } from "@/lib/club-identidade";
 
 type Props = {
   value: string;
@@ -54,7 +55,7 @@ export function ClubAutocomplete({
   const termo = normalizar(value.trim());
 
   const sugestoes = useMemo(() => {
-    const lista = clubes.filter((c) => (termo ? normalizar(c.nome).includes(termo) : true));
+    const lista = clubes.filter((c) => correspondeBuscaClube(c.nome, termo));
     const ordenada = [...lista].sort((a, b) => {
       const pa = leagueId && a.league_id === leagueId ? 0 : 1;
       const pb = leagueId && b.league_id === leagueId ? 0 : 1;
@@ -70,7 +71,7 @@ export function ClubAutocomplete({
   }, [clubes, termo, leagueId]);
 
   const jaExiste = useMemo(
-    () => clubes.some((c) => normalizar(c.nome) === termo) || ehFreeAgent(value),
+    () => clubes.some((c) => chaveClube(c.nome) === chaveClube(value)) || ehFreeAgent(value),
     [clubes, termo, value],
   );
   const podeCadastrar = value.trim().length >= 2 && !jaExiste;
