@@ -254,6 +254,16 @@ function CalendarioPage() {
                     {formatarDia(dataAtual)}
                   </p>
                 </div>
+                {janelaAberta(dataAtual) ? (
+                  <Link
+                    to="/transferencias"
+                    title={`${ROTULO_JANELA[rotuloJanela(dataAtual)]} · 01/07 a 31/08 ou 01/01 a 31/01`}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 text-sm font-semibold text-emerald-400 transition-colors hover:bg-emerald-500/20"
+                  >
+                    <ArrowLeftRight className="h-4 w-4" />
+                    {ROTULO_JANELA[rotuloJanela(dataAtual)]} aberta
+                  </Link>
+                ) : null}
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Input
