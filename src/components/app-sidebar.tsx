@@ -68,10 +68,16 @@ export const GRUPOS_NAV = [
     itens: [
       { title: "Transferências", url: "/transferencias", icon: Repeat },
       { title: "Relações com Clubes", url: "/relacoes-clubes", icon: Handshake },
-      { title: "Treinador", url: "/treinador", icon: UserRound },
       { title: "Metas da Diretoria", url: "/metas", icon: Target },
       { title: "Histórico", url: "/historico", icon: History },
       { title: "Arquivo de Temporadas", url: "/arquivo", icon: Archive },
+    ],
+  },
+  {
+    id: "treinador",
+    rotulo: "Treinador",
+    itens: [
+      { title: "Treinador", url: "/treinador", icon: UserRound },
       { title: "Histórico de Carreira", url: "/historico-carreira", icon: History },
     ],
   },
