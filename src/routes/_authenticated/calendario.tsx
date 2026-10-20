@@ -75,6 +75,16 @@ export const Route = createFileRoute("/_authenticated/calendario")({
   component: CalendarioPage,
 });
 
+/** Verão: 01/07 a 31/08 · Inverno: 01/01 a 31/01. */
+function rotuloJanela(dia: string): "verao" | "inverno" {
+  return Number(dia.slice(5, 7)) === 1 ? "inverno" : "verao";
+}
+
+const ROTULO_JANELA: Record<"verao" | "inverno", string> = {
+  verao: "Janela de verão",
+  inverno: "Janela de inverno",
+};
+
 type Partida = {
   id: string;
   data_hora: string | null;
