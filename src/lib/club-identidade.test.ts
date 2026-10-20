@@ -1,5 +1,4 @@
-/// <reference types="bun" />
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from "vitest";
 import { readFileSync } from "node:fs";
 import { chaveClube, correspondeBuscaClube, nomeCatalogoClube } from "./club-identidade";
 import { selecionarEscudo } from "./club-escudo";
