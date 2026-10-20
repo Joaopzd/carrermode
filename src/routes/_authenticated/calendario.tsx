@@ -1,10 +1,11 @@
 import { ClubBadge } from "@/components/club-badge";
 import { ClubAutocomplete } from "@/components/club-autocomplete";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { ativarChegadasPorData } from "@/lib/transferencias-futuras";
+import { ativarChegadasPorData, janelaAberta } from "@/lib/transferencias-futuras";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
+  ArrowLeftRight,
   CalendarCheck,
   CalendarDays,
   ChevronLeft,
@@ -73,6 +74,16 @@ export const Route = createFileRoute("/_authenticated/calendario")({
   }),
   component: CalendarioPage,
 });
+
+/** Verão: 01/07 a 31/08 · Inverno: 01/01 a 31/01. */
+function rotuloJanela(dia: string): "verao" | "inverno" {
+  return Number(dia.slice(5, 7)) === 1 ? "inverno" : "verao";
+}
+
+const ROTULO_JANELA: Record<"verao" | "inverno", string> = {
+  verao: "Janela de verão",
+  inverno: "Janela de inverno",
+};
 
 type Partida = {
   id: string;
@@ -220,6 +231,18 @@ function CalendarioPage() {
               <span className="min-w-44 text-center text-lg font-semibold uppercase tracking-wide">
                 {MESES[mes.getMonth()]} {mes.getFullYear()}
               </span>
+              {janelaAberta(
+                `${mes.getFullYear()}-${String(mes.getMonth() + 1).padStart(2, "0")}-15`,
+              ) ? (
+                <span className="hidden items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400 sm:inline-flex">
+                  <ArrowLeftRight className="h-3.5 w-3.5" />
+                  {
+                    ROTULO_JANELA[
+                      rotuloJanela(`${mes.getFullYear()}-${String(mes.getMonth() + 1).padStart(2, "0")}-15`)
+                    ]
+                  }
+                </span>
+              ) : null}
               <Button
                 variant="outline"
                 size="icon"
@@ -243,6 +266,17 @@ function CalendarioPage() {
                     {formatarDia(dataAtual)}
                   </p>
                 </div>
+                {janelaAberta(dataAtual) ? (
+                  <Link
+                    to="/transferencias"
+                    search={{ recontratar: undefined }}
+                    title={`${ROTULO_JANELA[rotuloJanela(dataAtual)]} · 01/07 a 31/08 ou 01/01 a 31/01`}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 text-sm font-semibold text-emerald-400 transition-colors hover:bg-emerald-500/20"
+                  >
+                    <ArrowLeftRight className="h-4 w-4" />
+                    {ROTULO_JANELA[rotuloJanela(dataAtual)]} aberta
+                  </Link>
+                ) : null}
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Input
@@ -308,16 +342,31 @@ function CalendarioPage() {
                         key={k}
                         type="button"
                         onClick={() => setDiaSelecionado(k)}
+                        title={
+                          doMes && janelaAberta(k)
+                            ? `${ROTULO_JANELA[rotuloJanela(k)]} de transferências`
+                            : undefined
+                        }
                         className={`group min-h-24 border-b border-r p-2 text-left transition-colors hover:bg-accent/40 ${
                           doMes ? "" : "opacity-40"
-                        }`}
+                        } ${doMes && janelaAberta(k) ? "bg-emerald-500/5" : ""}`}
                       >
-                        <span
-                          className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold ${
-                            eHoje ? "bg-primary text-primary-foreground" : "text-muted-foreground"
-                          }`}
-                        >
-                          {d.getDate()}
+                        <span className="flex items-center justify-between">
+                          <span
+                            className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold ${
+                              eHoje
+                                ? "bg-primary text-primary-foreground"
+                                : "text-muted-foreground"
+                            }`}
+                          >
+                            {d.getDate()}
+                          </span>
+                          {doMes && janelaAberta(k) ? (
+                            <ArrowLeftRight
+                              aria-hidden
+                              className="h-3.5 w-3.5 text-emerald-500/70"
+                            />
+                          ) : null}
                         </span>
                         <div className="mt-1 space-y-1">
                           {jogos.slice(0, 2).map((j) => (
