@@ -2,6 +2,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { carregarRegras, zonaDaPosicao } from "@/lib/league-rules";
 import { resolverEmprestimosNoFimDaTemporada } from "@/lib/emprestimos";
 import { calcularCaixa, salvarOrcamentoInicial } from "@/lib/financas";
+import { semearTabelaProximaTemporada } from "@/lib/tabela-liga";
+import { envelhecerBase } from "@/lib/base-jogadores";
 import {
   ajusteFinanceiroParcelado,
   ativarChegadasDeTemporada,
@@ -269,7 +271,10 @@ export async function encerrarTemporada(saveId: string, seasonId: string, stintI
   saidas += ajuste.saidas;
 
   const ultimaRodada = standingsRes.data?.[0]?.rodada ?? null;
-  const linhasUltima = (standingsRes.data ?? []).filter((l) => l.rodada === ultimaRodada);
+  // Rodada 0 é só a pré-temporada (ninguém jogou): não conta como classificação final.
+  const linhasUltima = ultimaRodada
+    ? (standingsRes.data ?? []).filter((l) => l.rodada === ultimaRodada)
+    : [];
   const seasonAtual = seasonRes.data as unknown as Season | null;
 
   const transicao = await apurarTransicaoLiga(
@@ -334,6 +339,30 @@ export async function encerrarTemporada(saveId: string, seasonId: string, stintI
     .single();
 
   const novaSeason = (criada as unknown as Season | null) ?? null;
+
+  // Tabela de pré-temporada da próxima temporada: clubes da liga menos os rebaixados.
+  if (novaSeason) {
+    try {
+      await semearTabelaProximaTemporada({
+        saveId,
+        stintId,
+        seasonId: novaSeason.id,
+        tabelaFinal: linhasUltima.map((l) => ({ time: l.time, posicao: l.posicao })),
+        moveuDeDivisao: transicao.movimento !== "permanencia" && !!transicao.ligaNova,
+      });
+    } catch {
+      /* a tabela é criada automaticamente na Classificação */
+    }
+  }
+
+  // A base envelhece um ano e cada jovem ganha um ponto de partida na nova temporada.
+  if (novaSeason) {
+    try {
+      await envelhecerBase(saveId, stintId, novaSeason.id);
+    } catch {
+      /* tabela de avaliações ainda não criada */
+    }
+  }
 
   // O caixa final desta temporada vira o orçamento inicial da próxima (pode ser ajustado em Configurações).
   if (novaSeason) {
