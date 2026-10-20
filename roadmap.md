@@ -1,5 +1,5 @@
 # Continuação: passagens por clube
-- [ ] Corrigir Paris Saint Germain, Bayern Munich e Inter Milan e revisar correspondências nas buscas de clubes, mantendo IDs, escudos e histórico.
+- [x] Corrigir Paris Saint Germain, Bayern Munich e Inter Milan; busca por aliases, elencos e escudos validados, IDs e histórico preservados e dez escudos confirmados preenchidos.
 - [x] Corrigir temporada duplicada no dashboard.
 - [x] Exibir moeda conforme o país do clube, preservando a unidade de cada passagem histórica.
 - [x] Validar libra/euro e cabeçalho da temporada em carreiras temporárias; dashboard, elenco, perfil e gráficos conferidos, dados de teste removidos.
