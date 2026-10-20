@@ -5,6 +5,8 @@
  * Valor de mercado e salário não existem no dataset: ficam vazios para edição.
  */
 
+import { chaveClube } from "./club-identidade";
+
 type Linha = [
   nome: string,
   nacionalidade: string,
@@ -44,22 +46,13 @@ function carregarCatalogo(): Promise<Catalogo> {
   return cache;
 }
 
-function normalizar(s: string): string {
-  return s
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
-}
-
 /** Retorna o elenco padrão do clube, ou null se o clube não estiver no catálogo. */
 export async function elencoPadraoDoClube(nomeClube: string): Promise<JogadorPadrao[] | null> {
   const cat = await carregarCatalogo();
   let linhas = cat.clubes[nomeClube];
   if (!linhas) {
-    const alvo = normalizar(nomeClube);
-    const chave = Object.keys(cat.clubes).find((k) => normalizar(k) === alvo);
+    const alvo = chaveClube(nomeClube);
+    const chave = Object.keys(cat.clubes).find((k) => chaveClube(k) === alvo);
     if (chave) linhas = cat.clubes[chave];
   }
   if (!linhas || linhas.length === 0) return null;

@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-
-const API = "https://www.thesportsdb.com/api/v1/json/123/searchteams.php";
+import { buscarEscudoClube } from "./club-escudo";
+import { chaveClube, nomeCatalogoClube } from "./club-identidade";
 
 /** Quantidade de clubes ainda sem escudo cadastrado. */
 export const contarEscudosPendentes = createServerFn({ method: "POST" })
@@ -31,7 +31,7 @@ export const sincronizarEscudos = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: clubes, error } = await context.supabase
       .from("clubs")
-      .select("id, nome")
+      .select("id, nome, pais")
       .is("escudo_url", null)
       .order("nome")
       .limit(data.limite);
@@ -43,32 +43,12 @@ export const sincronizarEscudos = createServerFn({ method: "POST" })
     let naoEncontrados = 0;
     let falhas = 0;
 
-    for (let i = 0; i < (clubes?.length ?? 0); i++) {
-      const clube = clubes![i]!;
+    for (const [i, clube] of (clubes ?? []).entries()) {
       if (i > 0 && data.delayMs > 0) {
         await new Promise((r) => setTimeout(r, data.delayMs));
       }
       try {
-        const res = await fetch(`${API}?t=${encodeURIComponent(clube.nome)}`, {
-          headers: { accept: "application/json" },
-        });
-        if (!res.ok) {
-          falhas++;
-          continue;
-        }
-        const json = (await res.json()) as {
-          teams?: Array<{
-            strTeamBadge?: string | null;
-            strBadge?: string | null;
-            strSport?: string | null;
-          }> | null;
-        };
-        const temBadge = (t: { strTeamBadge?: string | null; strBadge?: string | null }) =>
-          t.strTeamBadge ?? t.strBadge ?? null;
-        const time =
-          json.teams?.find((t) => t.strSport === "Soccer" && temBadge(t)) ??
-          json.teams?.find((t) => temBadge(t));
-        const badge = time ? temBadge(time) : null;
+        const badge = await buscarEscudoClube(clube.nome, clube.pais);
         if (!badge) {
           naoEncontrados++;
           continue;
@@ -128,36 +108,20 @@ export const cadastrarClubeCatalogo = createServerFn({ method: "POST" })
   .inputValidator((input: { nome: string; pais?: string | null }) => {
     const nome = input?.nome?.trim() ?? "";
     if (nome.length < 2) throw new Error("Informe o nome do clube.");
-    return { nome, pais: input?.pais?.trim() || null };
+    return { nome: nomeCatalogoClube(nome), pais: input?.pais?.trim() || null };
   })
   .handler(async ({ data, context }) => {
-    const { data: existente } = await context.supabase
+    const { data: catalogo, error: erroCatalogo } = await context.supabase
       .from("clubs")
       .select("id, nome, escudo_url, league_id")
-      .ilike("nome", data.nome)
-      .maybeSingle();
+      .order("nome");
+    if (erroCatalogo) throw new Error(erroCatalogo.message);
+    const existente = catalogo?.find((clube) => chaveClube(clube.nome) === chaveClube(data.nome));
     if (existente) return existente;
 
     let escudo: string | null = null;
     try {
-      const res = await fetch(`${API}?t=${encodeURIComponent(data.nome)}`, {
-        headers: { accept: "application/json" },
-      });
-      if (res.ok) {
-        const json = (await res.json()) as {
-          teams?: Array<{
-            strTeamBadge?: string | null;
-            strBadge?: string | null;
-            strSport?: string | null;
-          }> | null;
-        };
-        const badgeDe = (t: { strTeamBadge?: string | null; strBadge?: string | null }) =>
-          t.strTeamBadge ?? t.strBadge ?? null;
-        const time =
-          json.teams?.find((t) => t.strSport === "Soccer" && badgeDe(t)) ??
-          json.teams?.find((t) => badgeDe(t));
-        escudo = time ? badgeDe(time) : null;
-      }
+      escudo = await buscarEscudoClube(data.nome, data.pais);
     } catch {
       escudo = null;
     }
