@@ -2,7 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { carregarRegras, zonaDaPosicao } from "@/lib/league-rules";
 import { resolverEmprestimosNoFimDaTemporada } from "@/lib/emprestimos";
 import { calcularCaixa, salvarOrcamentoInicial } from "@/lib/financas";
-import { semearTabelaProximaTemporada } from "@/lib/tabela-liga";
+import { semearTabelaProximaTemporada } from "./tabela-liga.ts";
 import { envelhecerBase } from "@/lib/base-jogadores";
 import {
   ajusteFinanceiroParcelado,
