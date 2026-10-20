@@ -30,6 +30,10 @@ export const Route = createFileRoute("/_authenticated/jogador/$id")({
     meta: [
       { title: "Jogador | Carreira FC Manager" },
       { name: "description", content: "Perfil, evolução e estatísticas do jogador." },
+      { property: "og:title", content: "Jogador | Carreira FC Manager" },
+      { property: "og:description", content: "Perfil, evolução e estatísticas do jogador da sua carreira." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: JogadorPage,

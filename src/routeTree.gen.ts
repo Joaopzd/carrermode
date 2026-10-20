@@ -38,6 +38,7 @@ import { Route as AuthenticatedTransferenciasRouteImport } from './routes/_authe
 import { Route as AuthenticatedTreinadorRouteImport } from './routes/_authenticated/treinador'
 import { Route as AuthenticatedTrocarClubeRouteImport } from './routes/_authenticated/trocar-clube'
 import { Route as AuthenticatedTrofeusRouteImport } from './routes/_authenticated/trofeus'
+import { Route as AuthenticatedJogadorIdRouteImport } from './routes/_authenticated/jogador.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -193,6 +194,11 @@ const AuthenticatedTrofeusRoute = AuthenticatedTrofeusRouteImport.update({
   path: '/trofeus',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedJogadorIdRoute = AuthenticatedJogadorIdRouteImport.update({
+  id: '/jogador/$id',
+  path: '/jogador/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -223,6 +229,7 @@ export interface FileRoutesByFullPath {
   '/treinador': typeof AuthenticatedTreinadorRoute
   '/trocar-clube': typeof AuthenticatedTrocarClubeRoute
   '/trofeus': typeof AuthenticatedTrofeusRoute
+  '/jogador/$id': typeof AuthenticatedJogadorIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -253,6 +260,7 @@ export interface FileRoutesByTo {
   '/treinador': typeof AuthenticatedTreinadorRoute
   '/trocar-clube': typeof AuthenticatedTrocarClubeRoute
   '/trofeus': typeof AuthenticatedTrofeusRoute
+  '/jogador/$id': typeof AuthenticatedJogadorIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -285,6 +293,7 @@ export interface FileRoutesById {
   '/_authenticated/treinador': typeof AuthenticatedTreinadorRoute
   '/_authenticated/trocar-clube': typeof AuthenticatedTrocarClubeRoute
   '/_authenticated/trofeus': typeof AuthenticatedTrofeusRoute
+  '/_authenticated/jogador/$id': typeof AuthenticatedJogadorIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -317,6 +326,7 @@ export interface FileRouteTypes {
     | '/treinador'
     | '/trocar-clube'
     | '/trofeus'
+    | '/jogador/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -347,6 +357,7 @@ export interface FileRouteTypes {
     | '/treinador'
     | '/trocar-clube'
     | '/trofeus'
+    | '/jogador/$id'
   id:
     | '__root__'
     | '/'
@@ -378,6 +389,7 @@ export interface FileRouteTypes {
     | '/_authenticated/treinador'
     | '/_authenticated/trocar-clube'
     | '/_authenticated/trofeus'
+    | '/_authenticated/jogador/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -592,6 +604,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTrofeusRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/jogador/$id': {
+      id: '/_authenticated/jogador/$id'
+      path: '/jogador/$id'
+      fullPath: '/jogador/$id'
+      preLoaderRoute: typeof AuthenticatedJogadorIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -621,6 +640,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTreinadorRoute: typeof AuthenticatedTreinadorRoute
   AuthenticatedTrocarClubeRoute: typeof AuthenticatedTrocarClubeRoute
   AuthenticatedTrofeusRoute: typeof AuthenticatedTrofeusRoute
+  AuthenticatedJogadorIdRoute: typeof AuthenticatedJogadorIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -649,6 +669,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedTreinadorRoute: AuthenticatedTreinadorRoute,
   AuthenticatedTrocarClubeRoute: AuthenticatedTrocarClubeRoute,
   AuthenticatedTrofeusRoute: AuthenticatedTrofeusRoute,
+  AuthenticatedJogadorIdRoute: AuthenticatedJogadorIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
