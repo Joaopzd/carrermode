@@ -4,7 +4,7 @@ const IDENTIDADES = [
   ["Bayern Munich", "Bayern de Munique", "Bayer de Munique", "Bayern München", "FC Bayern München"],
   ["Inter Milan", "Inter de Milão", "Internazionale", "FC Internazionale Milano"],
   ["Rochdale", "Rochdale AFC"],
-  ["Boulogne", "Boulogne-sur-Mer", "US Boulogne Côte-d'Opale"],
+  ["Boulogne", "Boulogne-sur-Mer", "US Boulogne", "US Boulogne Côte-d'Opale"],
   ["Saint Etienne", "Saint-Étienne", "AS Saint-Étienne"],
   ["Saarbrucken", "Saarbrücken", "1. FC Saarbrücken"],
   ["Brighton & Hove Albion", "Brighton", "Brighton and Hove Albion"],

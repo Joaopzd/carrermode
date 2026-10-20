@@ -1,4 +1,6 @@
+/// <reference types="bun" />
 import { describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
 import { chaveClube, correspondeBuscaClube, nomeCatalogoClube } from "./club-identidade";
 import { selecionarEscudo } from "./club-escudo";
 
@@ -20,6 +22,14 @@ describe("identidades de clubes", () => {
     expect(correspondeBuscaClube("Bayern Munich", "Munique")).toBe(true);
     expect(correspondeBuscaClube("Inter Milan", "Milão")).toBe(true);
     expect(correspondeBuscaClube("Paris Saint Germain", "PSG")).toBe(true);
+  });
+  test("os três nomes corrigidos encontram seus elencos existentes", () => {
+    const catalogo = JSON.parse(readFileSync("public/elencos.json", "utf8")) as { clubes: Record<string, unknown[]> };
+    for (const nome of ["Paris Saint Germain", "Bayern Munich", "Inter Milan"]) {
+      const chave = Object.keys(catalogo.clubes).find((k) => chaveClube(k) === chaveClube(nome));
+      expect(chave).toBeDefined();
+      expect(chave ? catalogo.clubes[chave]?.length : 0).toBeGreaterThan(10);
+    }
   });
   test("escudo exige identidade, futebol e país correspondentes", () => {
     const times = [
