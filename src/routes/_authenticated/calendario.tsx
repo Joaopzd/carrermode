@@ -341,16 +341,31 @@ function CalendarioPage() {
                         key={k}
                         type="button"
                         onClick={() => setDiaSelecionado(k)}
+                        title={
+                          doMes && janelaAberta(k)
+                            ? `${ROTULO_JANELA[rotuloJanela(k)]} de transferências`
+                            : undefined
+                        }
                         className={`group min-h-24 border-b border-r p-2 text-left transition-colors hover:bg-accent/40 ${
                           doMes ? "" : "opacity-40"
-                        }`}
+                        } ${doMes && janelaAberta(k) ? "bg-emerald-500/5" : ""}`}
                       >
-                        <span
-                          className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold ${
-                            eHoje ? "bg-primary text-primary-foreground" : "text-muted-foreground"
-                          }`}
-                        >
-                          {d.getDate()}
+                        <span className="flex items-center justify-between">
+                          <span
+                            className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold ${
+                              eHoje
+                                ? "bg-primary text-primary-foreground"
+                                : "text-muted-foreground"
+                            }`}
+                          >
+                            {d.getDate()}
+                          </span>
+                          {doMes && janelaAberta(k) ? (
+                            <ArrowLeftRight
+                              aria-hidden
+                              className="h-3.5 w-3.5 text-emerald-500/70"
+                            />
+                          ) : null}
                         </span>
                         <div className="mt-1 space-y-1">
                           {jogos.slice(0, 2).map((j) => (
