@@ -8,6 +8,13 @@
       "when": 1791804370045,
       "tag": "0000_complete_stint_workflows",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792462538793,
+      "tag": "0001_create_player_evaluations",
+      "breakpoints": true
     }
   ]
 }

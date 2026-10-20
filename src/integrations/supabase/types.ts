@@ -655,6 +655,63 @@ export type Database = {
           },
         ]
       }
+      player_evaluations: {
+        Row: {
+          id: string
+          idade: number | null
+          nota: string | null
+          overall: number | null
+          player_id: string
+          potencial: number | null
+          registrado_em: string
+          save_id: string
+          season_id: string | null
+          stint_id: string | null
+          tipo: string
+        }
+        Insert: {
+          id?: string
+          idade?: number | null
+          nota?: string | null
+          overall?: number | null
+          player_id: string
+          potencial?: number | null
+          registrado_em?: string
+          save_id: string
+          season_id?: string | null
+          stint_id?: string | null
+          tipo?: string
+        }
+        Update: {
+          id?: string
+          idade?: number | null
+          nota?: string | null
+          overall?: number | null
+          player_id?: string
+          potencial?: number | null
+          registrado_em?: string
+          save_id?: string
+          season_id?: string | null
+          stint_id?: string | null
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_evaluations_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_evaluations_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_overall_history: {
         Row: {
           id: string
