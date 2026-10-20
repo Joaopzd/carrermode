@@ -1,10 +1,11 @@
 import { ClubBadge } from "@/components/club-badge";
 import { ClubAutocomplete } from "@/components/club-autocomplete";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { ativarChegadasPorData } from "@/lib/transferencias-futuras";
+import { ativarChegadasPorData, janelaAberta } from "@/lib/transferencias-futuras";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
+  ArrowLeftRight,
   CalendarCheck,
   CalendarDays,
   ChevronLeft,
