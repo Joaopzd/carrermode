@@ -231,6 +231,16 @@ function CalendarioPage() {
               <span className="min-w-44 text-center text-lg font-semibold uppercase tracking-wide">
                 {MESES[mes.getMonth()]} {mes.getFullYear()}
               </span>
+              {janelaAberta(
+                `${mes.getFullYear()}-${String(mes.getMonth() + 1).padStart(2, "0")}-15`,
+              ) ? (
+                <span className="hidden items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400 sm:inline-flex">
+                  <ArrowLeftRight className="h-3.5 w-3.5" />
+                  {ROTULO_JANELA[
+                    Number(mes.getMonth() + 1) === 1 ? "inverno" : "verao"
+                  ]}
+                </span>
+              ) : null}
               <Button
                 variant="outline"
                 size="icon"
