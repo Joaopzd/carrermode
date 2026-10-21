@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { garantirEscudosSincronizados } from "@/lib/clubes";
 import { elencoPadraoDoClube } from "@/lib/elenco-catalogo";
+import { salvarAtributosPorNome, temAtributos, type Atributos } from "@/lib/atributos-jogador";
+import { garantirStintAtiva } from "@/lib/stint";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,6 +43,8 @@ type Jogador = {
   altura: string;
   playstyle: string;
   status: string;
+  /** Vêm do catálogo do EA FC 27; gravados depois que a passagem é criada. */
+  atributos?: Atributos;
 };
 
 const PASSOS = ["Liga", "Clube", "Treinador", "Comissão", "Elenco"];
@@ -164,6 +168,7 @@ export function CareerOnboarding({ saveId = null, motivo = null, temporadaInicia
             idade: p.idade,
             altura: "",
             playstyle: p.playstyle,
+            atributos: p.atributos,
             status: "Liberado",
           })),
         );
@@ -253,6 +258,22 @@ export function CareerOnboarding({ saveId = null, motivo = null, temporadaInicia
       });
       if (error) throw new Error(error.message);
 
+      // Atributos do EA FC 27 (opcionais): falhar aqui nunca impede a criação da carreira.
+      const comAtributos = validos.filter((j) => temAtributos(j.atributos));
+      if (comAtributos.length > 0) {
+        try {
+          const stint = await garantirStintAtiva(saveId as string);
+          if (stint) {
+            await salvarAtributosPorNome(
+              stint.id,
+              comAtributos.map((j) => ({ nome: j.nome.trim(), atributos: j.atributos as Atributos })),
+            );
+          }
+        } catch {
+          /* coluna ainda não criada */
+        }
+      }
+
       toast.success(novaPassagem ? "Nova passagem iniciada!" : "Carreira criada! Bem-vindo ao comando do clube.");
       navigate({ to: "/dashboard" });
     } catch (e) {
@@ -295,31 +316,6 @@ export function CareerOnboarding({ saveId = null, motivo = null, temporadaInicia
               ))}
             </ol>
           </header>
-
-          <div className="sticky top-0 z-30 mb-8 flex items-center justify-between gap-3 rounded-xl border border-border bg-card/90 px-3 py-2 backdrop-blur">
-            <Button
-              type="button"
-              variant="ghost"
-              disabled={passo === 0 || salvando}
-              onClick={() => setPasso((p) => Math.max(0, p - 1))}
-            >
-              Voltar
-            </Button>
-
-            {passo < passos.length - 1 ? (
-              <Button
-                type="button"
-                disabled={!podeAvancar}
-                onClick={() => setPasso((p) => p + 1)}
-              >
-                Continuar
-              </Button>
-            ) : (
-              <Button type="button" disabled={salvando} onClick={finalizar}>
-                {salvando ? "Salvando…" : "Finalizar elenco e ir para o dashboard"}
-              </Button>
-            )}
-          </div>
 
           {passo === 0 && (
             <section className="space-y-4">
@@ -739,6 +735,30 @@ export function CareerOnboarding({ saveId = null, motivo = null, temporadaInicia
             </section>
           )}
 
+          <footer className="mt-10 flex items-center justify-between gap-3 border-t border-border pt-6">
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={passo === 0 || salvando}
+              onClick={() => setPasso((p) => Math.max(0, p - 1))}
+            >
+              Voltar
+            </Button>
+
+            {passo < passos.length - 1 ? (
+              <Button
+                type="button"
+                disabled={!podeAvancar}
+                onClick={() => setPasso((p) => p + 1)}
+              >
+                Continuar
+              </Button>
+            ) : (
+              <Button type="button" disabled={salvando} onClick={finalizar}>
+                {salvando ? "Salvando…" : "Finalizar elenco e ir para o dashboard"}
+              </Button>
+            )}
+          </footer>
         </div>
       </div>
     </main>

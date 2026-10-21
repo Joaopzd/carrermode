@@ -24,6 +24,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bandeira } from "@/components/bandeira";
 import { PlaystyleSelect } from "@/components/playstyle-select";
 import { PAISES, POSICOES, STATUS_JOGADOR } from "@/lib/onboarding-data";
+import { RadarAtributos } from "@/components/radar-atributos";
+import { CHAVES_ATRIBUTO, COLUNA_ATRIBUTO, rotulosAtributos, type ChaveAtributo } from "@/lib/atributos-jogador";
+import { ehGoleiro } from "@/lib/posicoes";
 import { cn } from "@/lib/utils";
 
 export type JogadorForm = {
@@ -41,6 +44,13 @@ export type JogadorForm = {
   status: string;
   favorito_torcida: boolean;
   capitao: boolean;
+  /** Atributos principais (opcionais), de 0 a 99. */
+  ritmo: string;
+  finalizacao: string;
+  passe: string;
+  drible: string;
+  defesa: string;
+  fisico: string;
 };
 
 export const jogadorFormVazio: JogadorForm = {
@@ -58,6 +68,12 @@ export const jogadorFormVazio: JogadorForm = {
   status: "Liberado",
   favorito_torcida: false,
   capitao: false,
+  ritmo: "",
+  finalizacao: "",
+  passe: "",
+  drible: "",
+  defesa: "",
+  fisico: "",
 };
 
 export function formParaPayload(f: JogadorForm) {
@@ -77,6 +93,10 @@ export function formParaPayload(f: JogadorForm) {
     status: f.status || null,
     favorito_torcida: f.favorito_torcida,
     capitao: f.capitao,
+    // Só envia os atributos quando algum foi preenchido, para não depender da coluna existir.
+    ...(CHAVES_ATRIBUTO.some((c) => f[c].trim() !== "")
+      ? Object.fromEntries(CHAVES_ATRIBUTO.map((c) => [COLUNA_ATRIBUTO[c], num(f[c])]))
+      : {}),
   };
 }
 
@@ -135,8 +155,9 @@ export function JogadorFormDialog({
         </DialogHeader>
 
         <Tabs defaultValue="dados">
-          <TabsList className={cn("grid w-full", mostrarPotencial ? "grid-cols-2" : "grid-cols-1")}>
+          <TabsList className={cn("grid w-full", mostrarPotencial ? "grid-cols-3" : "grid-cols-2")}>
             <TabsTrigger value="dados">Dados do jogador</TabsTrigger>
+            <TabsTrigger value="atributos">Atributos</TabsTrigger>
             {mostrarPotencial ? <TabsTrigger value="potencial">Potencial</TabsTrigger> : null}
           </TabsList>
 
@@ -308,6 +329,37 @@ export function JogadorFormDialog({
               </div>
               <Switch checked={form.capitao} onCheckedChange={(v) => set({ capitao: v })} />
             </div>
+          </TabsContent>
+
+          <TabsContent value="atributos" className="mt-4 space-y-4">
+            <p className="text-xs text-muted-foreground">
+              Opcional. Informe os seis atributos principais (0 a 99) para ver o gráfico do jogador.
+            </p>
+            <div className="grid grid-cols-3 gap-3">
+              {rotulosAtributos(ehGoleiro(form.posicao_principal || null)).map((r) => (
+                <div key={r.chave} className="grid gap-1">
+                  <Label title={r.nome}>
+                    {r.sigla} <span className="text-xs text-muted-foreground">{r.nome}</span>
+                  </Label>
+                  <Input
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    max={99}
+                    value={form[r.chave as ChaveAtributo]}
+                    onChange={(e) => set({ [r.chave]: e.target.value } as Partial<JogadorForm>)}
+                  />
+                </div>
+              ))}
+            </div>
+            <RadarAtributos
+              atributos={Object.fromEntries(
+                CHAVES_ATRIBUTO.map((c) => [c, form[c].trim() === "" ? null : Number(form[c])]),
+              )}
+              overall={form.overall.trim() === "" ? null : Number(form.overall)}
+              goleiro={ehGoleiro(form.posicao_principal || null)}
+              className="max-w-xs"
+            />
           </TabsContent>
 
           {mostrarPotencial ? (
