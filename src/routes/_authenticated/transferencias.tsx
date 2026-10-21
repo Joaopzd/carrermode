@@ -940,37 +940,21 @@ function TransferenciasPage() {
 
   const emprestimosAtivos = emprestimos;
 
-  // Caixa ao longo da temporada: cada compra, venda e parcela debitada move o saldo.
+  // Caixa da temporada: cada compra, venda e parcela debitada move o saldo.
   const caixa = useMemo(() => {
-    const eventos: { id: string; quando: number; rotulo: string; delta: number }[] = [];
+    let saldo = orcamentoInicial ?? 0;
     for (const t of lista) {
       const parte = t.parcelado ? (t.valor_a_vista ?? 0) : (t.valor ?? 0);
       if (!parte) continue;
-      eventos.push({
-        id: t.id,
-        quando: new Date(t.data).getTime(),
-        rotulo: `${t.tipo === "entrada" ? "Compra" : "Venda"} · ${rotuloJogador(t)}`,
-        delta: t.tipo === "entrada" ? -parte : parte,
-      });
+      saldo += t.tipo === "entrada" ? -parte : parte;
     }
     for (const p of parcelas) {
       if (p.status !== "liquidada" || p.season_liquidacao_id !== save?.seasonId) continue;
-      eventos.push({
-        id: p.id,
-        quando: p.liquidada_em ? new Date(`${p.liquidada_em}T12:00:00`).getTime() : 0,
-        rotulo: `Parcela ${p.numero} ${p.direcao === "pagar" ? "paga" : "recebida"}`,
-        delta: p.direcao === "pagar" ? -Number(p.valor) : Number(p.valor),
-      });
+      saldo += p.direcao === "pagar" ? -Number(p.valor) : Number(p.valor);
     }
-    eventos.sort((a, b) => a.quando - b.quando);
-    let saldo = orcamentoInicial ?? 0;
-    const pontos: PontoCaixa[] = eventos.map((e) => {
-      saldo += e.delta;
-      return { id: e.id, rotulo: e.rotulo, delta: e.delta, saldo };
-    });
-    return { pontos, atual: saldo };
+    return saldo;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lista, parcelas, orcamentoInicial, save?.seasonId, nomePorId]);
+  }, [lista, parcelas, orcamentoInicial, save?.seasonId]);
 
   const moedaCaixa = moedaDoPais(save?.ligaPais);
   const fmtCaixa = (v: number) => formatarMoedaCompacta(v, moedaCaixa);
