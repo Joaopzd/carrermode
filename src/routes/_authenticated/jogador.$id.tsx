@@ -9,13 +9,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ClubBadge } from "@/components/club-badge";
 import { EvolucaoJogador } from "@/components/evolucao-jogador";
 import { OverallCard } from "@/components/overall-card";
+import { RadarAtributos } from "@/components/radar-atributos";
+import { atributosDaLinha, temAtributos } from "@/lib/atributos-jogador";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useEvolucaoJogador } from "@/lib/evolucao-jogador";
 import { formatarMoeda, type CodigoMoeda } from "@/lib/moeda";
 import { moedaDaPassagem } from "@/lib/moeda-stint";
 import { parsePlaystyles } from "@/lib/playstyles";
-import { posEn } from "@/lib/posicoes";
+import { ehGoleiro, posEn } from "@/lib/posicoes";
 import { rotuloMotivo } from "@/lib/season";
 import { useSaveAtual } from "@/lib/use-save";
 import { cn } from "@/lib/utils";
@@ -30,10 +32,6 @@ export const Route = createFileRoute("/_authenticated/jogador/$id")({
     meta: [
       { title: "Jogador | Carreira FC Manager" },
       { name: "description", content: "Perfil, evolução e estatísticas do jogador." },
-      { property: "og:title", content: "Jogador | Carreira FC Manager" },
-      { property: "og:description", content: "Perfil, evolução e estatísticas do jogador da sua carreira." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: JogadorPage,
@@ -263,6 +261,20 @@ function JogadorPage() {
 
               <div className="grid gap-6 lg:grid-cols-3">
                 <div className="space-y-6">
+                  <Secao titulo="Atributos">
+                    {temAtributos(atributosDaLinha(jogador as unknown as Record<string, unknown>)) ? (
+                      <RadarAtributos
+                        atributos={atributosDaLinha(jogador as unknown as Record<string, unknown>)}
+                        overall={jogador.overall}
+                        goleiro={ehGoleiro(jogador.posicao_principal)}
+                      />
+                    ) : (
+                      <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+                        Sem atributos cadastrados. Edite o jogador no Elenco para adicioná-los.
+                      </p>
+                    )}
+                  </Secao>
+
                   <Secao titulo="Dados">
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       {[

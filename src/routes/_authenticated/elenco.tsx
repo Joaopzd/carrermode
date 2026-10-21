@@ -1,4 +1,13 @@
-import { posEn } from "@/lib/posicoes";
+import { ehGoleiro, posEn } from "@/lib/posicoes";
+import {
+  COLUNA_ATRIBUTO,
+  atributosDaLinha,
+  colunasDosAtributos,
+  rotulosAtributos,
+} from "@/lib/atributos-jogador";
+import { importarAtributosDoCatalogo } from "@/lib/elenco-catalogo";
+import { db } from "@/lib/transferencias-futuras";
+import { Download } from "lucide-react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -96,6 +105,13 @@ type Jogador = {
   status: string | null;
   favorito_torcida: boolean;
   capitao: boolean;
+  potencial: number | null;
+  atrib_ritmo?: number | null;
+  atrib_finalizacao?: number | null;
+  atrib_passe?: number | null;
+  atrib_drible?: number | null;
+  atrib_defesa?: number | null;
+  atrib_fisico?: number | null;
 };
 
 const moeda = (v: number | null) =>
@@ -137,6 +153,7 @@ function ElencoPage() {
   const [salvando, setSalvando] = useState(false);
   const [adicionando, setAdicionando] = useState(false);
   const [criando, setCriando] = useState(false);
+  const [importandoAtrib, setImportandoAtrib] = useState(false);
   const [excluindo, setExcluindo] = useState<Jogador | null>(null);
   const [removendo, setRemovendo] = useState(false);
   const [encerrando, setEncerrando] = useState<{
@@ -231,6 +248,7 @@ function ElencoPage() {
         nacionalidade: editando.nacionalidade,
         posicao_principal: editando.posicao_principal,
         overall: editando.overall,
+        potencial: editando.potencial,
         valor_mercado: editando.valor_mercado,
         salario: editando.salario,
         idade: editando.idade,
@@ -241,6 +259,19 @@ function ElencoPage() {
         capitao: editando.capitao,
       })
       .eq("id", editando.id);
+    // Atributos ficam num update à parte: se a coluna ainda não existir, o resto é salvo mesmo assim.
+    const colunasAtributos = colunasDosAtributos(
+      atributosDaLinha(editando as unknown as Record<string, unknown>),
+    );
+    if (!error && Object.keys(colunasAtributos).length > 0) {
+      const { error: erroAtributos } = await db
+        .from("players")
+        .update(colunasAtributos)
+        .eq("id", editando.id);
+      if (erroAtributos) {
+        toast.error("Jogador salvo, mas os atributos não foram gravados. O SQL dos atributos já foi rodado?");
+      }
+    }
     if (!error && editando.capitao && save) await definirCapitaoUnico(save.stintId ?? "", editando.id);
     if (
       !error &&
@@ -320,6 +351,27 @@ function ElencoPage() {
     void carregar(save.id, save.stintId ?? "");
   }
 
+  async function importarAtributos() {
+    if (!save?.clubeNome) return;
+    setImportandoAtrib(true);
+    try {
+      const r = await importarAtributosDoCatalogo(save.clubeNome, jogadores as never);
+      if (!r) toast.error("Este clube não está no catálogo do EA FC 27.");
+      else if (r.atualizados === 0) toast.info("Nenhum jogador sem atributos foi encontrado no catálogo.");
+      else
+        toast.success(
+          `Atributos preenchidos em ${r.atualizados} jogador(es)` +
+            (r.semCorrespondencia.length > 0
+              ? `. Sem correspondência: ${r.semCorrespondencia.slice(0, 4).join(", ")}${r.semCorrespondencia.length > 4 ? "…" : ""}.`
+              : "."),
+        );
+      await carregar(save.id, save.stintId ?? "");
+    } catch {
+      toast.error("Não foi possível importar os atributos. O SQL dos atributos já foi rodado?");
+    }
+    setImportandoAtrib(false);
+  }
+
   function campo(patch: Partial<Jogador>) {
     setEditando((prev) => (prev ? { ...prev, ...patch } : prev));
   }
@@ -337,9 +389,19 @@ function ElencoPage() {
                 {filtrados.length} jogador(es) no elenco principal.
               </p>
             </div>
-            <Button onClick={() => setAdicionando(true)} disabled={!save}>
-              <UserPlus className="mr-1 h-4 w-4" /> Adicionar jogador
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="secondary"
+                onClick={() => void importarAtributos()}
+                disabled={!save || importandoAtrib}
+              >
+                <Download className="mr-1 h-4 w-4" />
+                {importandoAtrib ? "Importando…" : "Atributos EA FC 27"}
+              </Button>
+              <Button onClick={() => setAdicionando(true)} disabled={!save}>
+                <UserPlus className="mr-1 h-4 w-4" /> Adicionar jogador
+              </Button>
+            </div>
           </header>
 
           {chegadas.length > 0 && (
@@ -726,6 +788,51 @@ function ElencoPage() {
                   />
                 </div>
               </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="grid gap-1">
+                  <Label>Potencial</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={99}
+                    value={editando.potencial ?? ""}
+                    onChange={(e) => campo({ potencial: numOrNull(e.target.value) })}
+                  />
+                </div>
+              </div>
+              <div className="grid gap-1">
+                <Label>
+                  Atributos <span className="text-xs text-muted-foreground">(opcional)</span>
+                </Label>
+                <div className="grid grid-cols-3 gap-3">
+                  {rotulosAtributos(ehGoleiro(editando.posicao_principal)).map((r) => (
+                    <div key={r.chave} className="grid gap-1">
+                      <span
+                        className="text-[11px] uppercase tracking-wider text-muted-foreground"
+                        title={r.nome}
+                      >
+                        {r.sigla}
+                      </span>
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        min={0}
+                        max={99}
+                        value={
+                          (editando as unknown as Record<string, number | null | undefined>)[
+                            COLUNA_ATRIBUTO[r.chave]
+                          ] ?? ""
+                        }
+                        onChange={(e) =>
+                          campo({
+                            [COLUNA_ATRIBUTO[r.chave]]: numOrNull(e.target.value),
+                          } as Partial<Jogador>)
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
               <div className="grid gap-1">
                 <Label>Playstyles (até 7)</Label>
                 <PlaystyleSelect
@@ -862,6 +969,7 @@ function ElencoPage() {
       <JogadorFormDialog
         open={adicionando}
         onOpenChange={setAdicionando}
+        mostrarPotencial
         titulo="Adicionar jogador ao elenco"
         descricao="Cadastre um novo atleta no elenco principal."
         salvando={criando}
