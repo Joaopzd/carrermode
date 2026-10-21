@@ -761,6 +761,12 @@ export type Database = {
         Row: {
           altura: number | null
           ativo: boolean
+          atrib_defesa: number | null
+          atrib_drible: number | null
+          atrib_finalizacao: number | null
+          atrib_fisico: number | null
+          atrib_passe: number | null
+          atrib_ritmo: number | null
           capitao: boolean
           categoria: string | null
           clube_destino: string | null
@@ -788,6 +794,12 @@ export type Database = {
         Insert: {
           altura?: number | null
           ativo?: boolean
+          atrib_defesa?: number | null
+          atrib_drible?: number | null
+          atrib_finalizacao?: number | null
+          atrib_fisico?: number | null
+          atrib_passe?: number | null
+          atrib_ritmo?: number | null
           capitao?: boolean
           categoria?: string | null
           clube_destino?: string | null
@@ -815,6 +827,12 @@ export type Database = {
         Update: {
           altura?: number | null
           ativo?: boolean
+          atrib_defesa?: number | null
+          atrib_drible?: number | null
+          atrib_finalizacao?: number | null
+          atrib_fisico?: number | null
+          atrib_passe?: number | null
+          atrib_ritmo?: number | null
           capitao?: boolean
           categoria?: string | null
           clube_destino?: string | null
